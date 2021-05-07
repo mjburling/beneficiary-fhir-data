@@ -9,6 +9,7 @@ import ca.uhn.fhir.rest.gclient.TokenClientParam;
 import ca.uhn.fhir.rest.param.DateRangeParam;
 import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
+import com.google.common.collect.ImmutableList;
 import gov.cms.bfd.model.rif.Beneficiary;
 import gov.cms.bfd.model.rif.BeneficiaryHistory;
 import gov.cms.bfd.model.rif.CarrierClaim;
@@ -21,9 +22,12 @@ import gov.cms.bfd.model.rif.OutpatientClaim;
 import gov.cms.bfd.model.rif.PartDEvent;
 import gov.cms.bfd.model.rif.SNFClaim;
 import gov.cms.bfd.model.rif.samples.StaticRifResourceGroup;
-import gov.cms.bfd.pipeline.rif.load.LoadAppOptions;
-import gov.cms.bfd.pipeline.rif.load.RifLoaderTestUtils;
+import gov.cms.bfd.pipeline.ccw.rif.load.LoadAppOptions;
+import gov.cms.bfd.pipeline.ccw.rif.load.RifLoaderTestUtils;
 import gov.cms.bfd.server.war.ServerTestUtils;
+import gov.cms.bfd.server.war.commons.CommonHeaders;
+import gov.cms.bfd.server.war.commons.RequestHeaders;
+import gov.cms.bfd.server.war.commons.TransformerConstants;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -36,6 +40,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import org.apache.commons.lang3.tuple.ImmutableTriple;
+import org.apache.commons.lang3.tuple.Triple;
 import org.hibernate.internal.SessionFactoryRegistry;
 import org.hl7.fhir.dstu3.model.Bundle;
 import org.hl7.fhir.dstu3.model.Bundle.BundleEntryComponent;
@@ -86,7 +92,7 @@ public final class ExplanationOfBenefitResourceProviderIT {
             .execute();
 
     Assert.assertNotNull(eob);
-    CarrierClaimTransformerTest.assertMatches(claim, eob);
+    CarrierClaimTransformerTest.assertMatches(claim, eob, Optional.empty());
   }
 
   /**
@@ -135,7 +141,7 @@ public final class ExplanationOfBenefitResourceProviderIT {
             .execute();
 
     Assert.assertNotNull(eob);
-    DMEClaimTransformerTest.assertMatches(claim, eob);
+    DMEClaimTransformerTest.assertMatches(claim, eob, Optional.empty());
   }
 
   /**
@@ -404,6 +410,43 @@ public final class ExplanationOfBenefitResourceProviderIT {
   /**
    * Verifies that {@link
    * gov.cms.bfd.server.war.stu3.providers.ExplanationOfBenefitResourceProvider#read(org.hl7.fhir.dstu3.model.IdType)}
+   * works as expected for a {@link PartDEvent}-derived {@link ExplanationOfBenefit} that does not
+   * exist in the DB using a negative ID.
+   */
+  @Test(expected = ResourceNotFoundException.class)
+  public void readEobForMissingNegativePartDEvent() {
+    IGenericClient fhirClient = ServerTestUtils.createFhirClient();
+
+    // No data is loaded, so this should return nothing. Tests negative ID will pass regex pattern.
+    fhirClient
+        .read()
+        .resource(ExplanationOfBenefit.class)
+        .withId(TransformerUtils.buildEobId(ClaimType.PDE, "-1234"))
+        .execute();
+  }
+
+  /**
+   * Verifies that {@link
+   * gov.cms.bfd.server.war.stu3.providers.ExplanationOfBenefitResourceProvider#read(org.hl7.fhir.dstu3.model.IdType)}
+   * works as expected for a {@link PartDEvent}-derived {@link ExplanationOfBenefit} that has an
+   * invalid {@link
+   * gov.cms.bfd.server.war.stu3.providers.ExplanationOfBenefitResourceProvider#IdParam} parameter.
+   */
+  @Test(expected = InvalidRequestException.class)
+  public void readEobForInvalidIdParamPartDEvent() {
+    IGenericClient fhirClient = ServerTestUtils.createFhirClient();
+
+    // The IdParam is not valid, so this should return an exception.
+    fhirClient
+        .read()
+        .resource(ExplanationOfBenefit.class)
+        .withId(TransformerUtils.buildEobId(ClaimType.PDE, "-1?234"))
+        .execute();
+  }
+
+  /**
+   * Verifies that {@link
+   * gov.cms.bfd.server.war.stu3.providers.ExplanationOfBenefitResourceProvider#read(org.hl7.fhir.dstu3.model.IdType)}
    * works as expected for an {@link SNFClaim}-derived {@link ExplanationOfBenefit} that does exist
    * in the DB.
    *
@@ -512,7 +555,7 @@ public final class ExplanationOfBenefitResourceProviderIT {
             .get();
     Assert.assertEquals(1, filterToClaimType(searchResults, ClaimType.CARRIER).size());
     CarrierClaimTransformerTest.assertMatches(
-        carrierClaim, filterToClaimType(searchResults, ClaimType.CARRIER).get(0));
+        carrierClaim, filterToClaimType(searchResults, ClaimType.CARRIER).get(0), Optional.empty());
 
     DMEClaim dmeClaim =
         loadedRecords.stream()
@@ -521,7 +564,7 @@ public final class ExplanationOfBenefitResourceProviderIT {
             .findFirst()
             .get();
     DMEClaimTransformerTest.assertMatches(
-        dmeClaim, filterToClaimType(searchResults, ClaimType.DME).get(0));
+        dmeClaim, filterToClaimType(searchResults, ClaimType.DME).get(0), Optional.empty());
 
     HHAClaim hhaClaim =
         loadedRecords.stream()
@@ -677,7 +720,9 @@ public final class ExplanationOfBenefitResourceProviderIT {
             .get();
     Assert.assertEquals(1, filterToClaimTypeFromList(combinedResults, ClaimType.CARRIER).size());
     CarrierClaimTransformerTest.assertMatches(
-        carrierClaim, filterToClaimTypeFromList(combinedResults, ClaimType.CARRIER).get(0));
+        carrierClaim,
+        filterToClaimTypeFromList(combinedResults, ClaimType.CARRIER).get(0),
+        Optional.empty());
 
     DMEClaim dmeClaim =
         loadedRecords.stream()
@@ -686,7 +731,9 @@ public final class ExplanationOfBenefitResourceProviderIT {
             .findFirst()
             .get();
     DMEClaimTransformerTest.assertMatches(
-        dmeClaim, filterToClaimTypeFromList(combinedResults, ClaimType.DME).get(0));
+        dmeClaim,
+        filterToClaimTypeFromList(combinedResults, ClaimType.DME).get(0),
+        Optional.empty());
 
     HHAClaim hhaClaim =
         loadedRecords.stream()
@@ -928,7 +975,7 @@ public final class ExplanationOfBenefitResourceProviderIT {
             .get();
     Assert.assertEquals(1, filterToClaimType(searchResults, ClaimType.CARRIER).size());
     CarrierClaimTransformerTest.assertMatches(
-        carrierClaim, filterToClaimType(searchResults, ClaimType.CARRIER).get(0));
+        carrierClaim, filterToClaimType(searchResults, ClaimType.CARRIER).get(0), Optional.empty());
 
     DMEClaim dmeClaim =
         loadedRecords.stream()
@@ -937,7 +984,7 @@ public final class ExplanationOfBenefitResourceProviderIT {
             .findFirst()
             .get();
     DMEClaimTransformerTest.assertMatches(
-        dmeClaim, filterToClaimType(searchResults, ClaimType.DME).get(0));
+        dmeClaim, filterToClaimType(searchResults, ClaimType.DME).get(0), Optional.empty());
 
     HHAClaim hhaClaim =
         loadedRecords.stream()
@@ -1060,7 +1107,7 @@ public final class ExplanationOfBenefitResourceProviderIT {
             .get();
     Assert.assertEquals(1, filterToClaimType(searchResults, ClaimType.CARRIER).size());
     CarrierClaimTransformerTest.assertMatches(
-        carrierClaim, filterToClaimType(searchResults, ClaimType.CARRIER).get(0));
+        carrierClaim, filterToClaimType(searchResults, ClaimType.CARRIER).get(0), Optional.empty());
 
     DMEClaim dmeClaim =
         loadedRecords.stream()
@@ -1069,7 +1116,7 @@ public final class ExplanationOfBenefitResourceProviderIT {
             .findFirst()
             .get();
     DMEClaimTransformerTest.assertMatches(
-        dmeClaim, filterToClaimType(searchResults, ClaimType.DME).get(0));
+        dmeClaim, filterToClaimType(searchResults, ClaimType.DME).get(0), Optional.empty());
 
     HHAClaim hhaClaim =
         loadedRecords.stream()
@@ -1402,6 +1449,89 @@ public final class ExplanationOfBenefitResourceProviderIT {
       else Assert.assertEquals(1, filterToClaimType(searchResults, claimType).size());
     }
   }
+  /**
+   * Verifies that {@link
+   * gov.cms.bfd.server.war.stu3.providers.ExplanationOfBenefitResourceProvider#findByPatient(ca.uhn.fhir.rest.param.ReferenceParam)}
+   * handles the {@link ExplanationOfBenefitResourceProvider#HEADER_NAME_INCLUDE_TAX_NUMBERS} header
+   * properly.
+   *
+   * @throws FHIRException (indicates test failure)
+   */
+  @Test
+  public void searchForEobsIncludeTaxNumbersHandling() throws FHIRException {
+    List<Object> loadedRecords =
+        ServerTestUtils.loadData(Arrays.asList(StaticRifResourceGroup.SAMPLE_A.getResources()));
+    IGenericClient fhirClient = ServerTestUtils.createFhirClient();
+    Beneficiary beneficiary =
+        loadedRecords.stream()
+            .filter(r -> r instanceof Beneficiary)
+            .map(r -> (Beneficiary) r)
+            .findFirst()
+            .get();
+    CarrierClaim carrierClaim =
+        loadedRecords.stream()
+            .filter(r -> r instanceof CarrierClaim)
+            .map(r -> (CarrierClaim) r)
+            .findFirst()
+            .get();
+    DMEClaim dmeClaim =
+        loadedRecords.stream()
+            .filter(r -> r instanceof DMEClaim)
+            .map(r -> (DMEClaim) r)
+            .findFirst()
+            .get();
+    Bundle searchResults;
+    ExplanationOfBenefit carrierEob;
+    ExplanationOfBenefit dmeEob;
+
+    // Run the search without requesting tax numbers.
+    searchResults =
+        fhirClient
+            .search()
+            .forResource(ExplanationOfBenefit.class)
+            .where(ExplanationOfBenefit.PATIENT.hasId(TransformerUtils.buildPatientId(beneficiary)))
+            .returnBundle(Bundle.class)
+            .execute();
+    Assert.assertNotNull(searchResults);
+
+    // Verify that tax numbers aren't present for carrier claims.
+    carrierEob = filterToClaimType(searchResults, ClaimType.CARRIER).get(0);
+    Assert.assertNull(
+        TransformerTestUtils.findCareTeamEntryForProviderTaxNumber(
+            carrierClaim.getLines().get(0).getProviderTaxNumber(), carrierEob.getCareTeam()));
+
+    // Verify that tax numbers aren't present for DME claims.
+    dmeEob = filterToClaimType(searchResults, ClaimType.DME).get(0);
+    Assert.assertNull(
+        TransformerTestUtils.findCareTeamEntryForProviderTaxNumber(
+            dmeClaim.getLines().get(0).getProviderTaxNumber(), dmeEob.getCareTeam()));
+
+    RequestHeaders requestHeader =
+        RequestHeaders.getHeaderWrapper(CommonHeaders.HEADER_NAME_INCLUDE_TAX_NUMBERS, "true");
+    fhirClient = ServerTestUtils.createFhirClientWithHeaders(requestHeader);
+
+    searchResults =
+        fhirClient
+            .search()
+            .forResource(ExplanationOfBenefit.class)
+            .where(ExplanationOfBenefit.PATIENT.hasId(TransformerUtils.buildPatientId(beneficiary)))
+            .returnBundle(Bundle.class)
+            .execute();
+    Assert.assertNotNull(searchResults);
+
+    // Verify that tax numbers are present for carrier claims.
+    carrierEob = filterToClaimType(searchResults, ClaimType.CARRIER).get(0);
+
+    Assert.assertNotNull(
+        TransformerTestUtils.findCareTeamEntryForProviderTaxNumber(
+            carrierClaim.getLines().get(0).getProviderTaxNumber(), carrierEob.getCareTeam()));
+
+    // Verify that tax numbers are present for DME claims.
+    dmeEob = filterToClaimType(searchResults, ClaimType.DME).get(0);
+    Assert.assertNotNull(
+        TransformerTestUtils.findCareTeamEntryForProviderTaxNumber(
+            dmeClaim.getLines().get(0).getProviderTaxNumber(), dmeEob.getCareTeam()));
+  }
 
   /**
    * Verifies that {@link
@@ -1591,6 +1721,52 @@ public final class ExplanationOfBenefitResourceProviderIT {
         searchWithGreaterThan.getTotal());
   }
 
+  @Test
+  public void searchEobWithServiceDate() {
+    Beneficiary beneficiary = loadSampleA();
+    IGenericClient fhirClient = ServerTestUtils.createFhirClient();
+    // For SampleA data, we have the following service dates
+    // HHA 23-JUN-2015
+    // Hospice 30-JAN-2014
+    // Inpatient 27-JAN-2016
+    // Outpatient 24-JAN-2011
+    // SNF 18-DEC-2013
+    // Carrier 27-OCT-1999
+    // DME 03-FEB-2014
+    // PDE 12-MAY-2015
+
+    // TestName:serviceDate:ExpectedCount
+    List<Triple<String, String, Integer>> testCases =
+        ImmutableList.of(
+            ImmutableTriple.of("No service date filter", "", 8),
+            ImmutableTriple.of(
+                "Contains all", "service-date=ge1999-10-27&service-date=le2016-01-27", 8),
+            ImmutableTriple.of("Contains none - upper bound", "service-date=gt2016-01-27", 0),
+            ImmutableTriple.of("Contains none - lower bound", "service-date=lt1999-10-27", 0),
+            ImmutableTriple.of(
+                "Exclusive check - no earliest/latest",
+                "service-date=gt1999-10-27&service-date=lt2016-01-27",
+                6),
+            ImmutableTriple.of(
+                "Year end 2015 inclusive check (using last day of 2015)",
+                "service-date=le2015-12-31",
+                7),
+            ImmutableTriple.of(
+                "Year end 2014 exclusive check (using first day of 2015)",
+                "service-date=lt2015-01-01",
+                5));
+
+    testCases.forEach(
+        testCase -> {
+          Bundle bundle =
+              fetchWithServiceDate(
+                  fhirClient, beneficiary.getBeneficiaryId(), testCase.getMiddle());
+          Assert.assertNotNull(bundle);
+          Assert.assertEquals(
+              testCase.getLeft(), testCase.getRight().intValue(), bundle.getTotal());
+        });
+  }
+
   /** Ensures that {@link ServerTestUtils#cleanDatabaseServer()} is called after each test case. */
   @After
   public void cleanDatabaseServerAfterEachTestCase() {
@@ -1730,5 +1906,15 @@ public final class ExplanationOfBenefitResourceProviderIT {
               .setParameter("claimId", claimId)
               .executeUpdate();
         });
+  }
+
+  private Bundle fetchWithServiceDate(
+      IGenericClient fhirClient, String id, String serviceEndParam) {
+    String url =
+        "ExplanationOfBenefit?patient=Patient%2F"
+            + id
+            + (serviceEndParam.isEmpty() ? "" : "&" + serviceEndParam)
+            + "&_format=application%2Fjson%2Bfhir";
+    return fhirClient.search().byUrl(url).returnBundle(Bundle.class).execute();
   }
 }

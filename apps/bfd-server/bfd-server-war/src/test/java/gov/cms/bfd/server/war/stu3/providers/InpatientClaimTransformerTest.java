@@ -7,6 +7,9 @@ import gov.cms.bfd.model.rif.InpatientClaimLine;
 import gov.cms.bfd.model.rif.samples.StaticRifResource;
 import gov.cms.bfd.model.rif.samples.StaticRifResourceGroup;
 import gov.cms.bfd.server.war.ServerTestUtils;
+import gov.cms.bfd.server.war.commons.CCWProcedure;
+import gov.cms.bfd.server.war.commons.Diagnosis;
+import gov.cms.bfd.server.war.commons.MedicareSegment;
 import java.math.BigDecimal;
 import java.time.ZoneId;
 import java.util.Arrays;
@@ -41,7 +44,8 @@ public final class InpatientClaimTransformerTest {
             .get();
     claim.setLastUpdated(new Date());
 
-    ExplanationOfBenefit eob = InpatientClaimTransformer.transform(new MetricRegistry(), claim);
+    ExplanationOfBenefit eob =
+        InpatientClaimTransformer.transform(new MetricRegistry(), claim, Optional.empty());
     assertMatches(claim, eob);
   }
 
@@ -153,7 +157,9 @@ public final class InpatientClaimTransformerTest {
         claim.getAttendingPhysicianNpi(),
         claim.getTotalChargeAmount(),
         claim.getPrimaryPayerPaidAmount(),
-        claim.getFiscalIntermediaryNumber());
+        claim.getFiscalIntermediaryNumber(),
+        claim.getFiDocumentClaimControlNumber(),
+        claim.getFiOriginalClaimControlNumber());
 
     Assert.assertEquals(9, eob.getDiagnosis().size());
 
@@ -208,6 +214,8 @@ public final class InpatientClaimTransformerTest {
     TransformerTestUtils.assertEobCommonGroupInpHHAHospiceSNFCoinsuranceEquals(
         eobItem0, claimLine1.getDeductibleCoinsuranceCd());
 
+    String claimControlNumber = "0000000000";
+
     // Test to ensure item level fields between Inpatient, Outpatient, HHA, Hopsice
     // and SNF match
     TransformerTestUtils.assertEobCommonItemRevenueEquals(
@@ -218,6 +226,7 @@ public final class InpatientClaimTransformerTest {
         claimLine1.getTotalChargeAmount(),
         claimLine1.getNonCoveredChargeAmount(),
         claimLine1.getUnitCount(),
+        claimControlNumber,
         claimLine1.getNationalDrugCodeQuantity(),
         claimLine1.getNationalDrugCodeQualifierCode(),
         claimLine1.getRevenueCenterRenderingPhysicianNPI(),

@@ -1,28 +1,38 @@
 package gov.cms.bfd.server.war;
 
 import ca.uhn.fhir.rest.server.IResourceProvider;
-import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.health.HealthCheckRegistry;
 import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
 import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
-import com.justdavis.karl.misc.exceptions.BadCodeMonkeyException;
+import com.codahale.metrics.newrelic.NewRelicReporter;
+import com.newrelic.telemetry.Attributes;
+import com.newrelic.telemetry.OkHttpPoster;
+import com.newrelic.telemetry.SenderConfiguration;
+import com.newrelic.telemetry.metrics.MetricBatchSender;
 import com.zaxxer.hikari.HikariDataSource;
 import gov.cms.bfd.model.rif.schema.DatabaseSchemaManager;
 import gov.cms.bfd.model.rif.schema.DatabaseTestHelper;
 import gov.cms.bfd.model.rif.schema.DatabaseTestHelper.DataSourceComponents;
+import gov.cms.bfd.server.war.r4.providers.R4CoverageResourceProvider;
+import gov.cms.bfd.server.war.r4.providers.R4ExplanationOfBenefitResourceProvider;
+import gov.cms.bfd.server.war.r4.providers.R4PatientResourceProvider;
 import gov.cms.bfd.server.war.stu3.providers.CoverageResourceProvider;
 import gov.cms.bfd.server.war.stu3.providers.ExplanationOfBenefitResourceProvider;
 import gov.cms.bfd.server.war.stu3.providers.PatientResourceProvider;
+import gov.cms.bfd.sharedutils.exceptions.BadCodeMonkeyException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceContext;
@@ -60,6 +70,12 @@ public class SpringConfiguration {
    * application.
    */
   static final String BLUEBUTTON_STU3_RESOURCE_PROVIDERS = "bluebuttonStu3ResourceProviders";
+
+  /**
+   * The {@link Bean#name()} for the {@link List} of R4 {@link IResourceProvider} beans for the
+   * application.
+   */
+  static final String BLUEBUTTON_R4_RESOURCE_PROVIDERS = "bluebuttonR4ResourceProviders";
 
   /**
    * Set this to <code>true</code> to have Hibernate log a ton of info on the SQL statements being
@@ -325,6 +341,23 @@ public class SpringConfiguration {
   }
 
   /**
+   * @param r4PatientResourceProvider the application's {@link R4PatientResourceProvider} bean
+   * @return the {@link List} of R4 {@link IResourceProvider} beans for the application
+   */
+  @Bean(name = BLUEBUTTON_R4_RESOURCE_PROVIDERS)
+  public List<IResourceProvider> r4ResourceProviders(
+      R4PatientResourceProvider r4PatientResourceProvider,
+      R4CoverageResourceProvider r4CoverageResourceProvider,
+      R4ExplanationOfBenefitResourceProvider r4EOBResourceProvider) {
+
+    List<IResourceProvider> r4ResourceProviders = new ArrayList<IResourceProvider>();
+    r4ResourceProviders.add(r4PatientResourceProvider);
+    r4ResourceProviders.add(r4CoverageResourceProvider);
+    r4ResourceProviders.add(r4EOBResourceProvider);
+    return r4ResourceProviders;
+  }
+
+  /**
    * @return the {@link MetricRegistry} for the application, which can be used to collect statistics
    *     on the application's performance
    */
@@ -334,8 +367,46 @@ public class SpringConfiguration {
     metricRegistry.registerAll(new MemoryUsageGaugeSet());
     metricRegistry.registerAll(new GarbageCollectorMetricSet());
 
-    final JmxReporter reporter = JmxReporter.forRegistry(metricRegistry).build();
-    reporter.start();
+    String newRelicMetricKey = System.getenv("NEW_RELIC_METRIC_KEY");
+
+    if (newRelicMetricKey != null) {
+      String newRelicAppName = System.getenv("NEW_RELIC_APP_NAME");
+      String newRelicMetricHost = System.getenv("NEW_RELIC_METRIC_HOST");
+      String newRelicMetricPath = System.getenv("NEW_RELIC_METRIC_PATH");
+      String rawNewRelicPeriod = System.getenv("NEW_RELIC_METRIC_PERIOD");
+
+      int newRelicPeriod;
+      try {
+        newRelicPeriod = Integer.parseInt(rawNewRelicPeriod);
+      } catch (NumberFormatException ex) {
+        newRelicPeriod = 15;
+      }
+
+      String hostname;
+      try {
+        hostname = InetAddress.getLocalHost().getHostName();
+      } catch (UnknownHostException e) {
+        hostname = "unknown";
+      }
+
+      SenderConfiguration configuration =
+          SenderConfiguration.builder(newRelicMetricHost, newRelicMetricPath)
+              .httpPoster(new OkHttpPoster())
+              .apiKey(newRelicMetricKey)
+              .build();
+
+      MetricBatchSender metricBatchSender = MetricBatchSender.create(configuration);
+
+      Attributes commonAttributes =
+          new Attributes().put("host", hostname).put("appName", newRelicAppName);
+
+      NewRelicReporter newRelicReporter =
+          NewRelicReporter.build(metricRegistry, metricBatchSender)
+              .commonAttributes(commonAttributes)
+              .build();
+
+      newRelicReporter.start(newRelicPeriod, TimeUnit.SECONDS);
+    }
 
     return metricRegistry;
   }

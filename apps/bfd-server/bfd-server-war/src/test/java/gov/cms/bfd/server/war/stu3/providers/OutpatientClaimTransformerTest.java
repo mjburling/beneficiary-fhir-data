@@ -8,6 +8,8 @@ import gov.cms.bfd.model.rif.RifFileType;
 import gov.cms.bfd.model.rif.samples.StaticRifResource;
 import gov.cms.bfd.model.rif.samples.StaticRifResourceGroup;
 import gov.cms.bfd.server.war.ServerTestUtils;
+import gov.cms.bfd.server.war.commons.CCWProcedure;
+import gov.cms.bfd.server.war.commons.MedicareSegment;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Date;
@@ -48,7 +50,8 @@ public final class OutpatientClaimTransformerTest {
             .findFirst()
             .get();
 
-    ExplanationOfBenefit eob = OutpatientClaimTransformer.transform(new MetricRegistry(), claim);
+    ExplanationOfBenefit eob =
+        OutpatientClaimTransformer.transform(new MetricRegistry(), claim, Optional.empty());
     assertMatches(claim, eob);
   }
 
@@ -74,7 +77,8 @@ public final class OutpatientClaimTransformerTest {
             .findFirst()
             .get();
 
-    ExplanationOfBenefit eob = OutpatientClaimTransformer.transform(new MetricRegistry(), claim);
+    ExplanationOfBenefit eob =
+        OutpatientClaimTransformer.transform(new MetricRegistry(), claim, Optional.empty());
     assertMatches(claim, eob);
   }
 
@@ -108,7 +112,8 @@ public final class OutpatientClaimTransformerTest {
                   claim.getBeneficiaryId(),
                   claim.getClaimId());
               ExplanationOfBenefit eob =
-                  OutpatientClaimTransformer.transform(new MetricRegistry(), claim);
+                  OutpatientClaimTransformer.transform(
+                      new MetricRegistry(), claim, Optional.empty());
               assertMatches(claim, eob);
             });
   }
@@ -174,7 +179,9 @@ public final class OutpatientClaimTransformerTest {
         claim.getAttendingPhysicianNpi(),
         claim.getTotalChargeAmount(),
         claim.getPrimaryPayerPaidAmount(),
-        claim.getFiscalIntermediaryNumber());
+        claim.getFiscalIntermediaryNumber(),
+        claim.getFiDocumentClaimControlNumber(),
+        claim.getFiOriginalClaimControlNumber());
 
     Assert.assertTrue(
         "Expect actual diagnosis count is less than or equal to the claim count",
@@ -277,6 +284,8 @@ public final class OutpatientClaimTransformerTest {
         claimLine1.getPatientResponsibilityAmount(),
         eobItem0.getAdjudication());
 
+    String claimControlNumber = "0000000000";
+
     // Test to ensure item level fields between Inpatient, Outpatient, HHA, Hopsice
     // and SNF match
     TransformerTestUtils.assertEobCommonItemRevenueEquals(
@@ -287,6 +296,7 @@ public final class OutpatientClaimTransformerTest {
         claimLine1.getTotalChargeAmount(),
         claimLine1.getNonCoveredChargeAmount(),
         claimLine1.getUnitCount(),
+        claimControlNumber,
         claimLine1.getNationalDrugCodeQuantity(),
         claimLine1.getNationalDrugCodeQualifierCode(),
         claimLine1.getRevenueCenterRenderingPhysicianNPI(),

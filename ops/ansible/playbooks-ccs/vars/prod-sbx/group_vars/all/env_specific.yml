@@ -3,14 +3,15 @@
 # Version of the ETL Jar to deploy 
 data_pipeline_version: '0.1.0-SNAPSHOT'
 
-# Bucket where deployment artifacts are located. 
-s3_bucket_deployment: 'bfd-mgmt-artifacts-577373831711'
-
-# Name of ETL Staging Bucket 
-s3_bucket_etl_staging: 'bfd-prod-sbx-etl-577373831711'
-
 # The abbreviated name for this environment, per https://confluence.cms.gov/display/ODI/AWS+Naming+and+Tagging+Conventions.
 env_name_std: 'prod-sbx'
+
+# Whether to enable BFD API V2
+data_server_v2_enabled: true
+
+# New Relic Metric API
+data_server_new_relic_metric_host: 'https://gov-metric-api.newrelic.com'
+data_server_new_relic_metric_path: '/metric/v1'
 
 # This system is an m5.xlarge (4 vCPUs, 16 GB RAM).
 data_pipeline_ec2_instance_type_mem_mib: "{{ 16 * 1024 }}"
@@ -20,8 +21,10 @@ data_pipeline_ec2_instance_type_vcpu: 4
 # load.
 data_pipeline_idempotency_required: false
 
-# These systems are m5.xlarge (4 vCPUs, 16 GB RAM).
-data_server_ec2_instance_type_mem_mib: "{{ 16 * 1024 }}"
+# app server instance type
+# c5.4xlarge == 16 vcpu's /w 32GiB mem
+data_server_num_cores: 16
+data_server_ec2_instance_type_mem_mib: "{{ 32 * 1024 }}"
 
 # The path (in this project) to the test keypair that will be copied to the Data Servers for local-only testing.
 # Note: This file is encrypted with Ansible Vault and will be automagically encrypted during the copy.
@@ -71,3 +74,4 @@ data_server_ssl_client_certificates:
     certificate: "{{ lookup('file', 'files/client_data_server_ab2d_sbx_certificate.pem') }}"
   - alias: client_ab2d_imp
     certificate: "{{ lookup('file', 'files/client_data_server_ab2d_imp_certificate.pem') }}"
+
