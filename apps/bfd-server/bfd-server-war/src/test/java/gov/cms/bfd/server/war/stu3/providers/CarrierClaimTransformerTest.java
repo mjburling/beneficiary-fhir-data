@@ -98,7 +98,7 @@ public final class CarrierClaimTransformerTest {
         claim.getClaimId(),
         claim.getBeneficiaryId(),
         ClaimType.CARRIER,
-        claim.getClaimGroupId().toPlainString(),
+        claim.getClaimGroupId(),
         MedicareSegment.PART_B,
         Optional.of(claim.getDateFrom()),
         Optional.of(claim.getDateThrough()),
@@ -191,7 +191,7 @@ public final class CarrierClaimTransformerTest {
         claim.getHcpcsYearCode(),
         0 /* index */);
 
-    if (claimLine1.getAnesthesiaUnitCount().compareTo(BigDecimal.ZERO) > 0) {
+    if (claimLine1.getAnesthesiaUnitCount() > 0) {
       TransformerTestUtils.assertExtensionQuantityEquals(
           CcwCodebookVariable.CARR_LINE_ANSTHSA_UNIT_CNT,
           claimLine1.getAnesthesiaUnitCount(),

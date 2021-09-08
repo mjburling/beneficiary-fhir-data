@@ -31,7 +31,7 @@ import gov.cms.bfd.server.war.commons.PatientLinkBuilder;
 import gov.cms.bfd.server.war.commons.QueryUtils;
 import gov.cms.bfd.server.war.commons.RequestHeaders;
 import gov.cms.bfd.server.war.commons.TransformerConstants;
-import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
@@ -646,7 +646,7 @@ public final class R4PatientResourceProvider implements IResourceProvider, Commo
   @Trace
   private Patient queryDatabaseByHash(
       String hash,
-      String hashType,
+      String hashType, // "mbi", "hicn"
       SingularAttribute<Beneficiary, String> beneficiaryHashField,
       SingularAttribute<BeneficiaryHistory, String> beneficiaryHistoryHashField,
       RequestHeaders requestHeader) {
@@ -689,14 +689,17 @@ public final class R4PatientResourceProvider implements IResourceProvider, Commo
     CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 
     // First, find all matching hashes from BeneficiariesHistory.
-    CriteriaQuery<String> beneHistoryMatches = builder.createQuery(String.class);
+    CriteriaQuery<BigInteger> beneHistoryMatches = builder.createQuery(BigInteger.class);
     Root<BeneficiaryHistory> beneHistoryMatchesRoot =
         beneHistoryMatches.from(BeneficiaryHistory.class);
+
     beneHistoryMatches
         .select(beneHistoryMatchesRoot.get(BeneficiaryHistory_.beneficiaryId))
         .where(builder.equal(beneHistoryMatchesRoot.get(beneficiaryHistoryHashField), hash));
-    List<String> matchingIdsFromBeneHistory = null;
+
+    List<BigInteger> matchingIdsFromBeneHistory = null;
     Long fromHistoryQueryNanoSeconds = null;
+
     Timer.Context beneHistoryMatchesTimer =
         metricRegistry
             .timer(
@@ -706,6 +709,7 @@ public final class R4PatientResourceProvider implements IResourceProvider, Commo
                     "bene_by_" + hashType,
                     hashType + "s_from_beneficiarieshistory"))
             .time();
+
     try {
       matchingIdsFromBeneHistory = entityManager.createQuery(beneHistoryMatches).getResultList();
     } finally {
@@ -726,7 +730,9 @@ public final class R4PatientResourceProvider implements IResourceProvider, Commo
     }
 
     beneMatches.select(beneMatchesRoot);
+
     Predicate beneHashMatches = builder.equal(beneMatchesRoot.get(beneficiaryHashField), hash);
+
     if (matchingIdsFromBeneHistory != null && !matchingIdsFromBeneHistory.isEmpty()) {
       Predicate beneHistoryHashMatches =
           beneMatchesRoot.get(Beneficiary_.beneficiaryId).in(matchingIdsFromBeneHistory);
@@ -734,6 +740,7 @@ public final class R4PatientResourceProvider implements IResourceProvider, Commo
     } else {
       beneMatches.where(beneHashMatches);
     }
+
     List<Beneficiary> matchingBenes = Collections.emptyList();
     Long benesByHashOrIdQueryNanoSeconds = null;
     Timer.Context timerQuery =
@@ -796,16 +803,16 @@ public final class R4PatientResourceProvider implements IResourceProvider, Commo
    */
   @Trace
   private Beneficiary selectBeneWithLatestReferenceYear(List<Beneficiary> duplicateBenes) {
-    BigDecimal maxReferenceYear = new BigDecimal(-0001);
-    String maxReferenceYearMatchingBeneficiaryId = null;
+    Short maxReferenceYear = Short.MIN_VALUE;
+    BigInteger maxReferenceYearMatchingBeneficiaryId = null;
 
     // loop through matching bene ids looking for max rfrnc_yr
     for (Beneficiary duplicateBene : duplicateBenes) {
       // bene record found but reference year is null - still process
       if (!duplicateBene.getBeneEnrollmentReferenceYear().isPresent()) {
-        duplicateBene.setBeneEnrollmentReferenceYear(Optional.of(new BigDecimal(0)));
+        continue;
       }
-      // bene reference year is > than prior reference year
+      // check if bene reference year > than prior reference year
       if (duplicateBene.getBeneEnrollmentReferenceYear().get().compareTo(maxReferenceYear) > 0) {
         maxReferenceYear = duplicateBene.getBeneEnrollmentReferenceYear().get();
         maxReferenceYearMatchingBeneficiaryId = duplicateBene.getBeneficiaryId();

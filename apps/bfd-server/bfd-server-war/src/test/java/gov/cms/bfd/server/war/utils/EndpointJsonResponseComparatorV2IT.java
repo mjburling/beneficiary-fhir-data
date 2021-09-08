@@ -409,7 +409,11 @@ public final class EndpointJsonResponseComparatorV2IT {
     IGenericClient fhirClient = createFhirClientAndSetEncoding();
     JsonInterceptor jsonInterceptor = createAndRegisterJsonInterceptor(fhirClient);
 
-    fhirClient.read().resource(Patient.class).withId(beneficiary.getBeneficiaryId()).execute();
+    fhirClient
+        .read()
+        .resource(Patient.class)
+        .withId(beneficiary.getBeneficiaryId().toString())
+        .execute();
     return sortPatientIdentifiers(jsonInterceptor.getResponse());
   }
 
@@ -440,7 +444,11 @@ public final class EndpointJsonResponseComparatorV2IT {
     fhirClient.registerInterceptor(extraParamsInterceptor);
     JsonInterceptor jsonInterceptor = createAndRegisterJsonInterceptor(fhirClient);
 
-    fhirClient.read().resource(Patient.class).withId(beneficiary.getBeneficiaryId()).execute();
+    fhirClient
+        .read()
+        .resource(Patient.class)
+        .withId(beneficiary.getBeneficiaryId().toString())
+        .execute();
     return sortPatientIdentifiers(jsonInterceptor.getResponse());
   }
 
@@ -465,7 +473,10 @@ public final class EndpointJsonResponseComparatorV2IT {
     fhirClient
         .search()
         .forResource(Patient.class)
-        .where(Patient.RES_ID.exactly().systemAndIdentifier(null, beneficiary.getBeneficiaryId()))
+        .where(
+            Patient.RES_ID
+                .exactly()
+                .systemAndIdentifier(null, beneficiary.getBeneficiaryId().toString()))
         .returnBundle(Bundle.class)
         .execute();
     return sortPatientIdentifiers(jsonInterceptor.getResponse());
@@ -502,7 +513,10 @@ public final class EndpointJsonResponseComparatorV2IT {
     fhirClient
         .search()
         .forResource(Patient.class)
-        .where(Patient.RES_ID.exactly().systemAndIdentifier(null, beneficiary.getBeneficiaryId()))
+        .where(
+            Patient.RES_ID
+                .exactly()
+                .systemAndIdentifier(null, beneficiary.getBeneficiaryId().toString()))
         .returnBundle(Bundle.class)
         .execute();
     return sortPatientIdentifiers(jsonInterceptor.getResponse());
@@ -1012,7 +1026,7 @@ public final class EndpointJsonResponseComparatorV2IT {
     fhirClient
         .read()
         .resource(ExplanationOfBenefit.class)
-        .withId(TransformerUtilsV2.buildEobId(ClaimTypeV2.PDE, pdeClaim.getEventId()))
+        .withId(TransformerUtilsV2.buildEobId(ClaimTypeV2.PDE, pdeClaim.getClaimId()))
         .execute();
     return jsonInterceptor.getResponse();
   }

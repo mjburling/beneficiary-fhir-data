@@ -62,7 +62,7 @@ public final class SNFClaimTransformerTest {
         claim.getClaimId(),
         claim.getBeneficiaryId(),
         ClaimType.SNF,
-        claim.getClaimGroupId().toPlainString(),
+        claim.getClaimGroupId(),
         MedicareSegment.PART_A,
         Optional.of(claim.getDateFrom()),
         Optional.of(claim.getDateThrough()),
@@ -119,7 +119,7 @@ public final class SNFClaimTransformerTest {
         eob,
         claim.getClaimAdmissionDate(),
         claim.getBeneficiaryDischargeDate(),
-        Optional.of(claim.getUtilizationDayCount()));
+        Optional.of(Short.valueOf(claim.getUtilizationDayCount())));
 
     // Test to ensure common group fields between Inpatient, Outpatient and SNF
     TransformerTestUtils.assertEobCommonGroupInpOutSNFEquals(
@@ -193,7 +193,7 @@ public final class SNFClaimTransformerTest {
         claimLine1.getRateAmount(),
         claimLine1.getTotalChargeAmount(),
         claimLine1.getNonCoveredChargeAmount(),
-        BigDecimal.valueOf(claimLine1.getUnitCount()),
+        Short.valueOf(claimLine1.getUnitCount()),
         claimControlNumber,
         claimLine1.getNationalDrugCodeQuantity(),
         claimLine1.getNationalDrugCodeQualifierCode(),

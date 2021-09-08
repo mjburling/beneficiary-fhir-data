@@ -65,7 +65,7 @@ public final class InpatientClaimTransformerTest {
         claim.getClaimId(),
         claim.getBeneficiaryId(),
         ClaimType.INPATIENT,
-        claim.getClaimGroupId().toPlainString(),
+        claim.getClaimGroupId(),
         MedicareSegment.PART_A,
         Optional.of(claim.getDateFrom()),
         Optional.of(claim.getDateThrough()),
@@ -99,7 +99,7 @@ public final class InpatientClaimTransformerTest {
         eob,
         claim.getClaimAdmissionDate(),
         claim.getBeneficiaryDischargeDate(),
-        Optional.of(claim.getUtilizationDayCount()));
+        Optional.of(Short.valueOf(claim.getUtilizationDayCount())));
 
     // test common benefit components between SNF and Inpatient claims are set as expected
     TransformerTestUtils.assertCommonGroupInpatientSNF(

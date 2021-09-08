@@ -11,6 +11,7 @@ import gov.cms.bfd.pipeline.sharedutils.PipelineTestUtils;
 import gov.cms.bfd.server.war.ServerTestUtils;
 import gov.cms.bfd.server.war.commons.MedicareSegment;
 import gov.cms.bfd.server.war.commons.TransformerConstants;
+import java.math.BigInteger;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
@@ -318,7 +319,9 @@ public final class CoverageResourceProviderIT {
         fhirClient
             .search()
             .forResource(Coverage.class)
-            .where(Coverage.BENEFICIARY.hasId(TransformerUtils.buildPatientId("1234")))
+            .where(
+                Coverage.BENEFICIARY.hasId(
+                    TransformerUtils.buildPatientId(BigInteger.valueOf(1234))))
             .returnBundle(Bundle.class)
             .execute();
 

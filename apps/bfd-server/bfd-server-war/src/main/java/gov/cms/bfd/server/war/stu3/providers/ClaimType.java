@@ -18,6 +18,7 @@ import gov.cms.bfd.model.rif.PartDEvent_;
 import gov.cms.bfd.model.rif.SNFClaim;
 import gov.cms.bfd.model.rif.SNFClaim_;
 import gov.cms.bfd.server.war.commons.ClaimTypeTransformer;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collection;
@@ -86,7 +87,7 @@ public enum ClaimType {
 
   PDE(
       PartDEvent.class,
-      PartDEvent_.eventId,
+      PartDEvent_.claimId,
       PartDEvent_.beneficiaryId,
       (entity) -> ((PartDEvent) entity).getPrescriptionFillDate(),
       PartDEventTransformer::transform),
@@ -100,8 +101,8 @@ public enum ClaimType {
       SNFClaim_.lines);
 
   private final Class<?> entityClass;
-  private final SingularAttribute<?, ?> entityIdAttribute;
-  private final SingularAttribute<?, String> entityBeneficiaryIdAttribute;
+  private final SingularAttribute<?, BigInteger> entityIdAttribute;
+  private final SingularAttribute<?, BigInteger> entityBeneficiaryIdAttribute;
   private final Function<Object, LocalDate> serviceEndAttributeFunction;
   private final ClaimTypeTransformer transformer;
   private final Collection<PluralAttribute<?, ?, ?>> entityLazyAttributes;
@@ -118,8 +119,8 @@ public enum ClaimType {
    */
   private ClaimType(
       Class<?> entityClass,
-      SingularAttribute<?, ?> entityIdAttribute,
-      SingularAttribute<?, String> entityBeneficiaryIdAttribute,
+      SingularAttribute<?, BigInteger> entityIdAttribute,
+      SingularAttribute<?, BigInteger> entityBeneficiaryIdAttribute,
       Function<Object, LocalDate> serviceEndAttributeFunction,
       ClaimTypeTransformer transformer,
       PluralAttribute<?, ?, ?>... entityLazyAttributes) {
@@ -143,7 +144,7 @@ public enum ClaimType {
   }
 
   /** @return the JPA {@link Entity} field used as the entity's {@link Id} */
-  public SingularAttribute<?, ?> getEntityIdAttribute() {
+  public SingularAttribute<?, BigInteger> getEntityIdAttribute() {
     return entityIdAttribute;
   }
 
@@ -151,7 +152,7 @@ public enum ClaimType {
    * @return the JPA {@link Entity} field that is a (foreign keyed) reference to {@link
    *     Beneficiary#getBeneficiaryId()}
    */
-  public SingularAttribute<?, String> getEntityBeneficiaryIdAttribute() {
+  public SingularAttribute<?, BigInteger> getEntityBeneficiaryIdAttribute() {
     return entityBeneficiaryIdAttribute;
   }
 

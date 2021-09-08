@@ -18,7 +18,6 @@ import gov.cms.bfd.model.rif.samples.StaticRifResourceGroup;
 import gov.cms.bfd.server.war.ServerTestUtils;
 import gov.cms.bfd.server.war.commons.ProfileConstants;
 import gov.cms.bfd.server.war.commons.RequestHeaders;
-import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -377,7 +376,7 @@ public final class BeneficiaryTransformerV2Test {
 
     IBaseDatatype compare =
         TransformerUtilsV2.createExtensionDate(
-                CcwCodebookVariable.RFRNC_YR, Optional.of(new BigDecimal(3)))
+                CcwCodebookVariable.RFRNC_YR, Optional.of(new Short((short) 3)))
             .getValue();
 
     Assert.assertEquals(ex.toString().length(), compare.toString().length());

@@ -9,7 +9,6 @@ import gov.cms.bfd.model.rif.samples.StaticRifResourceGroup;
 import gov.cms.bfd.server.war.ServerTestUtils;
 import gov.cms.bfd.server.war.commons.MedicareSegment;
 import gov.cms.bfd.server.war.commons.TransformerConstants;
-import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -67,7 +66,7 @@ public final class DMEClaimTransformerTest {
         claim.getClaimId(),
         claim.getBeneficiaryId(),
         ClaimType.DME,
-        claim.getClaimGroupId().toPlainString(),
+        claim.getClaimGroupId(),
         MedicareSegment.PART_B,
         Optional.of(claim.getDateFrom()),
         Optional.of(claim.getDateThrough()),
@@ -96,7 +95,7 @@ public final class DMEClaimTransformerTest {
     Assert.assertEquals(1, eob.getItem().size());
     ItemComponent eobItem0 = eob.getItem().get(0);
     DMEClaimLine claimLine1 = claim.getLines().get(0);
-    Assert.assertEquals(claimLine1.getLineNumber(), new BigDecimal(eobItem0.getSequence()));
+    Assert.assertEquals(claimLine1.getLineNumber(), eobItem0.getSequence());
 
     TransformerTestUtils.assertExtensionIdentifierEquals(
         CcwCodebookVariable.SUPLRNUM, claimLine1.getProviderBillingNumber(), eobItem0);
@@ -200,7 +199,7 @@ public final class DMEClaimTransformerTest {
     TransformerTestUtils.assertEobCommonItemCarrierDMEEquals(
         eobItem0,
         eob,
-        claimLine1.getServiceCount(),
+        Short.valueOf(claimLine1.getServiceCount()),
         claimLine1.getPlaceOfServiceCode(),
         claimLine1.getFirstExpenseDate(),
         claimLine1.getLastExpenseDate(),

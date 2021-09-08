@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -120,11 +121,33 @@ public final class RifParsingUtils {
    *     empty Optional if not
    */
   public static Optional<Integer> parseOptionalInteger(String intText) {
-    if (intText.isEmpty()) {
-      return Optional.empty();
-    } else {
-      return Optional.of(parseInteger(intText));
+    return intText.isEmpty() ? Optional.empty() : Optional.of(parseInteger(intText));
+  }
+
+  /**
+   * @param shortText the number string to parse
+   * @return the specified text parsed into an {@link Integer}
+   */
+  public static Short parseShort(String shortText) {
+    /*
+     * Might seem silly to pull this out, but it makes the code a bit easier
+     * to read, and ensures that this parsing is standardized.
+     */
+    try {
+      return Short.parseShort(shortText);
+    } catch (NumberFormatException e) {
+      throw new InvalidRifValueException(
+          String.format("Unable to parse short value: '%s'.", shortText), e);
     }
+  }
+
+  /**
+   * @param shortText the number string to parse
+   * @return an {@link Optional} populated with an {@link Short} if the input has data, or an empty
+   *     Optional if not
+   */
+  public static Optional<Short> parseOptionalShort(String shortText) {
+    return shortText.isEmpty() ? Optional.empty() : Optional.of(parseShort(shortText));
   }
 
   /**
@@ -154,11 +177,37 @@ public final class RifParsingUtils {
    *     empty Optional if it is empty
    */
   public static Optional<BigDecimal> parseOptionalDecimal(String decimalText) {
-    if (decimalText.isEmpty()) {
-      return Optional.empty();
+    return decimalText.isEmpty() ? Optional.empty() : Optional.of(parseDecimal(decimalText));
+  }
+
+  /**
+   * @param bigIntText the decimal string to parse
+   * @return the specified text parsed into a {@link BigDecimal}
+   */
+  public static BigInteger parseBigInteger(String bigIntText) {
+    /*
+     * Might seem silly to pull this out, but it makes the code a bit easier
+     * to read, and ensures that this parsing is standardized.
+     */
+    if (bigIntText.isEmpty()) {
+      return BigInteger.ZERO;
     } else {
-      return Optional.of(parseDecimal(decimalText));
+      try {
+        return new BigInteger(bigIntText);
+      } catch (NumberFormatException e) {
+        throw new InvalidRifValueException(
+            String.format("Unable to parse BigInteger value: '%s'.", bigIntText), e);
+      }
     }
+  }
+
+  /**
+   * @param bigIntText the decimal string to parse
+   * @return the result of {@link #parseDecimal(String)} if the specified text isn't empty, or an
+   *     empty Optional if it is empty
+   */
+  public static Optional<BigInteger> parseOptionalBigInteger(String bigIntText) {
+    return bigIntText.isEmpty() ? Optional.empty() : Optional.of(parseBigInteger(bigIntText));
   }
 
   /**

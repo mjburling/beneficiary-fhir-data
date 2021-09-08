@@ -2,6 +2,7 @@ package gov.cms.bfd.server.war.commons;
 
 import ca.uhn.fhir.rest.api.Constants;
 import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
+import java.math.BigInteger;
 import java.util.List;
 import org.hl7.fhir.dstu3.model.Bundle;
 import org.hl7.fhir.dstu3.model.Bundle.BundleEntryComponent;
@@ -15,7 +16,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 public final class PatientLinkBuilder implements LinkBuilder {
   private final UriComponents components;
   private final Integer count;
-  private final String cursor;
+  private final BigInteger cursor;
   private final boolean hasAnotherPage;
 
   public static final String PARAM_CURSOR = "cursor";
@@ -96,7 +97,7 @@ public final class PatientLinkBuilder implements LinkBuilder {
     }
   }
 
-  public String getCursor() {
+  public BigInteger getCursor() {
     return cursor;
   }
 
@@ -110,10 +111,14 @@ public final class PatientLinkBuilder implements LinkBuilder {
     }
   }
 
-  private String extractCursorParam(UriComponents components) {
+  private BigInteger extractCursorParam(UriComponents components) {
     String cursorText = components.getQueryParams().getFirst(PARAM_CURSOR);
     if (cursorText != null && cursorText.length() == 0) return null;
-    return cursorText;
+    try {
+      return new BigInteger(cursorText);
+    } catch (NumberFormatException ex) {
+      throw new InvalidRequestException("Invalid " + PARAM_CURSOR + " parameter: " + cursorText);
+    }
   }
 
   private String buildUrl(String cursor) {

@@ -39,6 +39,7 @@ import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -157,8 +158,8 @@ public final class TransformerUtilsV2 {
    * @return the {@link Patient#getId()} value that will be used for the specified {@link
    *     Beneficiary}
    */
-  public static IdDt buildPatientId(String beneficiaryId) {
-    return new IdDt(Patient.class.getSimpleName(), beneficiaryId);
+  public static IdDt buildPatientId(BigInteger beneficiaryId) {
+    return new IdDt(Patient.class.getSimpleName(), beneficiaryId.toString());
   }
 
   /**
@@ -403,8 +404,7 @@ public final class TransformerUtilsV2 {
    * @return the output {@link Extension}, with {@link Extension#getValue()} set to represent the
    *     specified input values
    */
-  static Extension createExtensionDate(
-      CcwCodebookInterface ccwVariable, Optional<BigDecimal> dateYear) {
+  static Extension createExtensionDate(CcwCodebookInterface ccwVariable, Optional<Short> dateYear) {
 
     Extension extension = null;
     if (!dateYear.isPresent()) {
@@ -1130,8 +1130,8 @@ public final class TransformerUtilsV2 {
    * @return a {@link Reference} to the {@link Patient} resource that matches the specified
    *     parameters
    */
-  static Reference referencePatient(String patientId) {
-    return new Reference(String.format("Patient/%s", patientId));
+  static Reference referencePatient(BigInteger patientId) {
+    return new Reference(String.format("Patient/%s", patientId.toString()));
   }
 
   /**
@@ -1194,8 +1194,9 @@ public final class TransformerUtilsV2 {
    * @param dateThrough through date {@link LocalDate} to verify
    */
   static void validatePeriodDates(LocalDate dateFrom, LocalDate dateThrough) {
-    if (dateFrom == null) return;
-    if (dateThrough == null) return;
+    if (dateFrom == null || dateThrough == null) {
+      return;
+    }
     // FIXME see CBBD-236 (ETL service fails on some Hospice claims "From
     // date is after the Through Date")
     // We are seeing this scenario in production where the from date is
@@ -1214,8 +1215,9 @@ public final class TransformerUtilsV2 {
    * @param <Optional>dateThrough through date {@link <Optional>LocalDate} to verify
    */
   static void validatePeriodDates(Optional<LocalDate> dateFrom, Optional<LocalDate> dateThrough) {
-    if (!dateFrom.isPresent()) return;
-    if (!dateThrough.isPresent()) return;
+    if (!dateFrom.isPresent() || !dateThrough.isPresent()) {
+      return;
+    }
     validatePeriodDates(dateFrom.get(), dateThrough.get());
   }
 
@@ -1665,8 +1667,8 @@ public final class TransformerUtilsV2 {
    * @return a {@link Reference} to the {@link Coverage} resource where {@link Coverage#getPlan()}
    *     matches {@link #COVERAGE_PLAN} and the other parameters specified also match
    */
-  static Reference referenceCoverage(String beneficiaryPatientId, MedicareSegment coverageType) {
-    return new Reference(buildCoverageId(coverageType, beneficiaryPatientId));
+  static Reference referenceCoverage(String coverageId, MedicareSegment coverageType) {
+    return new Reference(buildCoverageId(coverageType, coverageId));
   }
 
   /**
@@ -1675,7 +1677,16 @@ public final class TransformerUtilsV2 {
    * @return the {@link Coverage#getId()} value to use for the specified values
    */
   public static IdDt buildCoverageId(MedicareSegment medicareSegment, Beneficiary beneficiary) {
-    return buildCoverageId(medicareSegment, beneficiary.getBeneficiaryId());
+    return buildCoverageId(medicareSegment, beneficiary.getBeneficiaryId().toString());
+  }
+
+  /**
+   * @param medicareSegment the {@link MedicareSegment} to compute a {@link Coverage#getId()} for
+   * @param BigInteger the {@link BigInter} identifier to compute a {@link Coverage#getId()} for
+   * @return the {@link Coverage#getId()} value to use for the specified values
+   */
+  public static IdDt buildCoverageId(MedicareSegment medicareSegment, BigInteger id) {
+    return buildCoverageId(medicareSegment, id.toString());
   }
 
   /**
@@ -1684,10 +1695,10 @@ public final class TransformerUtilsV2 {
    *     Coverage#getId()} for
    * @return the {@link Coverage#getId()} value to use for the specified values
    */
-  public static IdDt buildCoverageId(MedicareSegment medicareSegment, String beneficiaryId) {
+  public static IdDt buildCoverageId(MedicareSegment medicareSegment, String coverageId) {
     return new IdDt(
         Coverage.class.getSimpleName(),
-        String.format("%s-%s", medicareSegment.getUrlPrefix(), beneficiaryId));
+        String.format("%s-%s", medicareSegment.getUrlPrefix(), coverageId));
   }
 
   /**
@@ -1748,10 +1759,10 @@ public final class TransformerUtilsV2 {
    */
   static void mapEobCommonClaimHeaderData(
       ExplanationOfBenefit eob,
-      String claimId,
-      String beneficiaryId,
+      BigInteger claimId,
+      BigInteger beneficiaryId,
       ClaimTypeV2 claimType,
-      String claimGroupId,
+      BigInteger claimGroupId,
       MedicareSegment coverageType,
       Optional<LocalDate> dateFrom,
       Optional<LocalDate> dateThrough,
@@ -1769,20 +1780,20 @@ public final class TransformerUtilsV2 {
 
     if (claimType.equals(ClaimTypeV2.PDE)) {
       // PDE_ID => ExplanationOfBenefit.identifier
-      eob.addIdentifier(createClaimIdentifier(CcwCodebookVariable.PDE_ID, claimId));
+      eob.addIdentifier(createClaimIdentifier(CcwCodebookVariable.PDE_ID, claimId.toString()));
     } else {
       // CLM_ID => ExplanationOfBenefit.identifier
-      eob.addIdentifier(createClaimIdentifier(CcwCodebookVariable.CLM_ID, claimId));
+      eob.addIdentifier(createClaimIdentifier(CcwCodebookVariable.CLM_ID, claimId.toString()));
     }
 
     // CLM_GRP_ID => ExplanationOfBenefit.identifier
     eob.addIdentifier()
         .setSystem(TransformerConstants.IDENTIFIER_SYSTEM_BBAPI_CLAIM_GROUP_ID)
-        .setValue(claimGroupId)
+        .setValue(claimGroupId.toString())
         .setType(createC4BBClaimCodeableConcept());
 
     // BENE_ID + Coverage Type => ExplanationOfBenefit.insurance.coverage (ref)
-    eob.addInsurance().setCoverage(referenceCoverage(beneficiaryId, coverageType));
+    eob.addInsurance().setCoverage(referenceCoverage(beneficiaryId.toString(), coverageType));
 
     // BENE_ID => ExplanationOfBenefit.patient (reference)
     eob.setPatient(referencePatient(beneficiaryId));
@@ -2081,8 +2092,8 @@ public final class TransformerUtilsV2 {
    * @return the {@link ExplanationOfBenefit#getId()} value to use for the specified <code>claimId
    *     </code> value
    */
-  public static String buildEobId(ClaimTypeV2 claimType, String claimId) {
-    return String.format("%s-%s", claimType.name().toLowerCase(), claimId);
+  public static String buildEobId(ClaimTypeV2 claimType, BigInteger claimId) {
+    return String.format("%s-%s", claimType.name().toLowerCase(), claimId.toString());
   }
 
   /**
@@ -2292,7 +2303,7 @@ public final class TransformerUtilsV2 {
    */
   static void mapEobCommonGroupCarrierDME(
       ExplanationOfBenefit eob,
-      String beneficiaryId,
+      BigInteger beneficiaryId,
       String carrierNumber,
       Optional<String> clinicalTrialNumber,
       BigDecimal beneficiaryPartBDeductAmount,
@@ -2425,11 +2436,11 @@ public final class TransformerUtilsV2 {
    */
   static void addCommonGroupInpatientSNF(
       ExplanationOfBenefit eob,
-      BigDecimal coinsuranceDayCount,
-      BigDecimal nonUtilizationDayCount,
+      Short coinsuranceDayCount,
+      Short nonUtilizationDayCount,
       BigDecimal deductibleAmount,
       BigDecimal partACoinsuranceLiabilityAmount,
-      BigDecimal bloodPintsFurnishedQty,
+      Short bloodPintsFurnishedQty,
       BigDecimal noncoveredCharge,
       BigDecimal totalDeductionAmount,
       Optional<BigDecimal> claimPPSCapitalDisproportionateShareAmt,
@@ -2441,15 +2452,15 @@ public final class TransformerUtilsV2 {
 
     // BENE_TOT_COINSRNC_DAYS_CNT => ExplanationOfBenefit.benefitBalance.financial
     addBenefitBalanceFinancialMedicalInt(
-        eob, CcwCodebookVariable.BENE_TOT_COINSRNC_DAYS_CNT, coinsuranceDayCount);
+        eob, CcwCodebookVariable.BENE_TOT_COINSRNC_DAYS_CNT, Optional.of(coinsuranceDayCount));
 
     // CLM_NON_UTLZTN_DAYS_CNT => ExplanationOfBenefit.benefitBalance.financial
     addBenefitBalanceFinancialMedicalInt(
-        eob, CcwCodebookVariable.CLM_NON_UTLZTN_DAYS_CNT, nonUtilizationDayCount);
+        eob, CcwCodebookVariable.CLM_NON_UTLZTN_DAYS_CNT, Optional.of(nonUtilizationDayCount));
 
     // NCH_BENE_IP_DDCTBL_AMT => ExplanationOfBenefit.benefitBalance.financial
     addBenefitBalanceFinancialMedicalAmt(
-        eob, CcwCodebookVariable.NCH_BENE_IP_DDCTBL_AMT, deductibleAmount);
+        eob, CcwCodebookVariable.NCH_BENE_IP_DDCTBL_AMT, Optional.of(deductibleAmount));
 
     // NCH_BENE_PTA_COINSRNC_LBLTY_AMT =>
     // ExplanationOfBenefit.benefitBalance.financial
@@ -2625,23 +2636,11 @@ public final class TransformerUtilsV2 {
         amt -> addBenefitBalanceFinancialMedicalAmt(eob, financialType, amount.get()));
   }
 
-  /**
-   * Adds a {@link BenefitComponent} that has the passed in amount encoded in {@link
-   * BenefitComponent#getUsedUnsignedIntType()}
-   *
-   * @param eob the {@link ExplanationOfBenefit} that the {@link BenefitComponent} should be part of
-   * @param financialType the {@link CcwCodebookInterface} to map to {@link
-   *     BenefitComponent#getType()}
-   * @param value Integral amount to map to {@link BenefitComponent#getUsedUnsignedIntType()}
-   * @return the new {@link BenefitComponent} which will have already been added to the appropriate
-   *     {@link ExplanationOfBenefit#getBenefitBalance()} entry
-   */
-  static BenefitComponent addBenefitBalanceFinancialMedicalInt(
-      ExplanationOfBenefit eob, CcwCodebookInterface financialType, BigDecimal amount) {
+  private static Optional<BenefitComponent> addBenefitBalanceFinancialMedicalInt(
+      ExplanationOfBenefit eob, CcwCodebookInterface financialType, UnsignedIntType amount) {
     // "1" is the code for MEDICAL in ExBenefitcategory
-    return addBenefitBalanceFinancial(eob, ExBenefitcategory._1, financialType)
-        // TODO: intValueExact() not working?
-        .setUsed(new UnsignedIntType(amount.intValue()));
+    return Optional.ofNullable(
+        addBenefitBalanceFinancial(eob, ExBenefitcategory._1, financialType).setUsed(amount));
   }
 
   /**
@@ -2657,8 +2656,21 @@ public final class TransformerUtilsV2 {
    *     set.
    */
   static Optional<BenefitComponent> addBenefitBalanceFinancialMedicalInt(
-      ExplanationOfBenefit eob, CcwCodebookInterface financialType, Optional<BigDecimal> value) {
-    return value.map(val -> addBenefitBalanceFinancialMedicalInt(eob, financialType, value.get()));
+      ExplanationOfBenefit eob, CcwCodebookInterface financialType, Optional<Object> value) {
+
+    if (value.isPresent()) {
+      UnsignedIntType uint = null;
+      if (value.get() instanceof Integer) {
+        uint = new UnsignedIntType((Integer) value.get());
+      } else if (value.get() instanceof Short) {
+        uint = new UnsignedIntType(((Short) value.get()).intValue());
+      } else if (value.get() instanceof BigDecimal) {
+        uint = new UnsignedIntType(((BigDecimal) value.get()).intValue());
+      }
+      return addBenefitBalanceFinancialMedicalInt(eob, financialType, uint);
+    } else {
+      return Optional.empty();
+    }
   }
 
   /**
@@ -3038,9 +3050,9 @@ public final class TransformerUtilsV2 {
   static ItemComponent mapEobCommonItemCarrierDME(
       ItemComponent item,
       ExplanationOfBenefit eob,
-      String claimId,
+      BigInteger claimId,
       int sequence,
-      BigDecimal serviceCount,
+      Short serviceCount,
       String placeOfServiceCode,
       Optional<LocalDate> firstExpenseDate,
       Optional<LocalDate> lastExpenseDate,
@@ -3463,7 +3475,7 @@ public final class TransformerUtilsV2 {
       BigDecimal rateAmount,
       BigDecimal totalChargeAmount,
       Optional<BigDecimal> nonCoveredChargeAmount,
-      Optional<BigDecimal> nationalDrugCodeQuantity,
+      Optional<Integer> nationalDrugCodeQuantity,
       Optional<String> nationalDrugCodeQualifierCode) {
 
     // REV_CNTR => ExplanationOfBenefit.item.revenue

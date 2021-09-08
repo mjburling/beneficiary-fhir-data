@@ -1065,7 +1065,7 @@ public class CarrierClaimTransformerV2Test {
         claim.getClaimId(),
         claim.getBeneficiaryId(),
         ClaimTypeV2.CARRIER,
-        claim.getClaimGroupId().toPlainString(),
+        claim.getClaimGroupId(),
         MedicareSegment.PART_B,
         Optional.of(claim.getDateFrom()),
         Optional.of(claim.getDateThrough()),

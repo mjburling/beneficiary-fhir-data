@@ -11,6 +11,7 @@ import gov.cms.bfd.sharedutils.exceptions.BadCodeMonkeyException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.Instant;
@@ -62,10 +63,10 @@ public final class TransformerTestUtilsV2 {
    */
   static void assertEobCommonClaimHeaderData(
       ExplanationOfBenefit eob,
-      String claimId,
-      String beneficiaryId,
+      BigInteger claimId,
+      BigInteger beneficiaryId,
       ClaimTypeV2 claimType,
-      String claimGroupId,
+      BigInteger claimGroupId,
       MedicareSegment coverageType,
       Optional<LocalDate> dateFrom,
       Optional<LocalDate> dateThrough,
@@ -78,14 +79,14 @@ public final class TransformerTestUtilsV2 {
         TransformerUtilsV2.buildEobId(claimType, claimId), eob.getIdElement().getIdPart());
 
     if (claimType.equals(ClaimTypeV2.PDE)) {
-      assertHasIdentifier(CcwCodebookVariable.PDE_ID, claimId, eob.getIdentifier());
+      assertHasIdentifier(CcwCodebookVariable.PDE_ID, claimId.toString(), eob.getIdentifier());
     } else {
-      assertHasIdentifier(CcwCodebookVariable.CLM_ID, claimId, eob.getIdentifier());
+      assertHasIdentifier(CcwCodebookVariable.CLM_ID, claimId.toString(), eob.getIdentifier());
     }
 
     assertIdentifierExists(
         TransformerConstants.IDENTIFIER_SYSTEM_BBAPI_CLAIM_GROUP_ID,
-        claimGroupId,
+        claimGroupId.toString(),
         eob.getIdentifier());
 
     Assert.assertEquals(
@@ -93,7 +94,7 @@ public final class TransformerTestUtilsV2 {
         eob.getPatient().getReference());
 
     Assert.assertEquals(
-        TransformerUtilsV2.referenceCoverage(beneficiaryId, coverageType).getReference(),
+        TransformerUtilsV2.referenceCoverage(beneficiaryId.toString(), coverageType).getReference(),
         eob.getInsuranceFirstRep().getCoverage().getReference());
 
     switch (finalAction) {

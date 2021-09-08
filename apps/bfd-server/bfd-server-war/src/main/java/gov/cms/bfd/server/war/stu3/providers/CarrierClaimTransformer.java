@@ -11,7 +11,6 @@ import gov.cms.bfd.server.war.commons.IdentifierType;
 import gov.cms.bfd.server.war.commons.MedicareSegment;
 import gov.cms.bfd.server.war.commons.TransformerConstants;
 import gov.cms.bfd.sharedutils.exceptions.BadCodeMonkeyException;
-import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Optional;
 import org.hl7.fhir.dstu3.model.ExplanationOfBenefit;
@@ -61,7 +60,7 @@ final class CarrierClaimTransformer {
         claimGroup.getClaimId(),
         claimGroup.getBeneficiaryId(),
         ClaimType.CARRIER,
-        claimGroup.getClaimGroupId().toPlainString(),
+        claimGroup.getClaimGroupId(),
         MedicareSegment.PART_B,
         Optional.of(claimGroup.getDateFrom()),
         Optional.of(claimGroup.getDateThrough()),
@@ -116,7 +115,7 @@ final class CarrierClaimTransformer {
 
     for (CarrierClaimLine claimLine : claimGroup.getLines()) {
       ItemComponent item = eob.addItem();
-      item.setSequence(claimLine.getLineNumber().intValue());
+      item.setSequence(claimLine.getLineNumber());
 
       /*
        * Per Michelle at GDIT, and also Tony Dean at OEDA, the performing provider _should_ always
@@ -197,7 +196,7 @@ final class CarrierClaimTransformer {
           Arrays.asList(
               claimLine.getHcpcsInitialModifierCode(), claimLine.getHcpcsSecondModifierCode()));
 
-      if (claimLine.getAnesthesiaUnitCount().compareTo(BigDecimal.ZERO) > 0) {
+      if (claimLine.getAnesthesiaUnitCount() > 0) {
         item.getService()
             .addExtension(
                 TransformerUtils.createExtensionQuantity(
@@ -211,7 +210,7 @@ final class CarrierClaimTransformer {
                 eob, CcwCodebookVariable.CARR_LINE_MTUS_CD, claimLine.getMtusCode()));
       }
 
-      if (!claimLine.getMtusCount().equals(BigDecimal.ZERO)) {
+      if (claimLine.getMtusCount() != 0) {
         item.addExtension(
             TransformerUtils.createExtensionQuantity(
                 CcwCodebookVariable.CARR_LINE_MTUS_CNT, claimLine.getMtusCount()));

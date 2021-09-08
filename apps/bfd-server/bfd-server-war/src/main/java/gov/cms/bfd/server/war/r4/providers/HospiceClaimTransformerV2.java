@@ -73,7 +73,7 @@ public class HospiceClaimTransformerV2 {
         claimGroup.getClaimId(),
         claimGroup.getBeneficiaryId(),
         ClaimTypeV2.HOSPICE,
-        claimGroup.getClaimGroupId().toPlainString(),
+        claimGroup.getClaimGroupId(),
         MedicareSegment.PART_A,
         Optional.of(claimGroup.getDateFrom()),
         Optional.of(claimGroup.getDateThrough()),
@@ -124,7 +124,9 @@ public class HospiceClaimTransformerV2 {
 
     // CLM_UTLZTN_DAY_CNT => ExplanationOfBenefit.benefitBalance.financial
     TransformerUtilsV2.addBenefitBalanceFinancialMedicalInt(
-        eob, CcwCodebookVariable.CLM_UTLZTN_DAY_CNT, claimGroup.getUtilizationDayCount());
+        eob,
+        CcwCodebookVariable.CLM_UTLZTN_DAY_CNT,
+        Optional.ofNullable(claimGroup.getUtilizationDayCount()));
 
     // ORG_NPI_NUM              => ExplanationOfBenefit.provider
     // CLM_FAC_TYPE_CD          => ExplanationOfBenefit.facility.extension
@@ -182,7 +184,7 @@ public class HospiceClaimTransformerV2 {
 
       // Override the default sequence
       // CLM_LINE_NUM => item.sequence
-      item.setSequence(line.getLineNumber().intValue());
+      item.setSequence(line.getLineNumber());
 
       // PRVDR_STATE_CD => item.location
       TransformerUtilsV2.addLocationState(item, claimGroup.getProviderStateCode());

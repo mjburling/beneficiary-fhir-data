@@ -57,7 +57,7 @@ final class HospiceClaimTransformer {
         claimGroup.getClaimId(),
         claimGroup.getBeneficiaryId(),
         ClaimType.HOSPICE,
-        claimGroup.getClaimGroupId().toPlainString(),
+        claimGroup.getClaimGroupId(),
         MedicareSegment.PART_A,
         Optional.of(claimGroup.getDateFrom()),
         Optional.of(claimGroup.getDateThrough()),
@@ -196,7 +196,7 @@ final class HospiceClaimTransformer {
 
     for (HospiceClaimLine claimLine : claimGroup.getLines()) {
       ItemComponent item = eob.addItem();
-      item.setSequence(claimLine.getLineNumber().intValue());
+      item.setSequence(claimLine.getLineNumber());
 
       item.setLocation(new Address().setState((claimGroup.getProviderStateCode())));
 

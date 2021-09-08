@@ -275,7 +275,7 @@ public final class RifFilesProcessorTest {
     PartDEvent pdeRow = (PartDEvent) rifRecordEvent.getRecord();
     Assert.assertEquals(RecordAction.INSERT, rifRecordEvent.getRecordAction());
     Assert.assertEquals(pdeRow.getBeneficiaryId(), rifRecordEvent.getBeneficiaryId());
-    Assert.assertEquals("89", pdeRow.getEventId());
+    Assert.assertEquals("89", pdeRow.getClaimId());
     Assert.assertEquals(new BigDecimal(900), pdeRow.getClaimGroupId());
     Assert.assertEquals("567834", pdeRow.getBeneficiaryId());
     Assert.assertEquals(LocalDate.of(2015, Month.MAY, 12), pdeRow.getPrescriptionFillDate());

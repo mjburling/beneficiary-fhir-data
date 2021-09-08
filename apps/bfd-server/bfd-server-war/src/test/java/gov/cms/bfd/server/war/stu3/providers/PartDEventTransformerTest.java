@@ -117,10 +117,10 @@ public final class PartDEventTransformerTest {
     // Test to ensure group level fields between all claim types match
     TransformerTestUtils.assertEobCommonClaimHeaderData(
         eob,
-        claim.getEventId(),
+        claim.getClaimId(),
         claim.getBeneficiaryId(),
         ClaimType.PDE,
-        claim.getClaimGroupId().toPlainString(),
+        claim.getClaimGroupId(),
         MedicareSegment.PART_D,
         Optional.empty(),
         Optional.empty(),

@@ -105,17 +105,25 @@ public final class RifLayout {
 
       // FIXME remove workarounds once CBBD-283 is resolved
       if ("HHA,Hospice,Inpatient,Outpatient,SNF".contains(sheetName)
-          && "AT_PHYSN_UPIN".equals(rifColumnName)) rifColumnLength = Optional.of(9);
-      if ("Inpatient,Outpatient,SNF".contains(sheetName) && "OP_PHYSN_UPIN".equals(rifColumnName))
+          && "AT_PHYSN_UPIN".equals(rifColumnName)) {
         rifColumnLength = Optional.of(9);
-      if ("Hospice".contains(sheetName) && "BENE_HOSPC_PRD_CNT".equals(rifColumnName))
+      }
+      if ("Inpatient,Outpatient,SNF".contains(sheetName) && "OP_PHYSN_UPIN".equals(rifColumnName)) {
+        rifColumnLength = Optional.of(9);
+      }
+      if ("Hospice".contains(sheetName) && "BENE_HOSPC_PRD_CNT".equals(rifColumnName)) {
         rifColumnLength = Optional.of(2);
-      if ("Inpatient,Outpatient,SNF".contains(sheetName) && "OT_PHYSN_UPIN".equals(rifColumnName))
+      }
+      if ("Inpatient,Outpatient,SNF".contains(sheetName) && "OT_PHYSN_UPIN".equals(rifColumnName)) {
         rifColumnLength = Optional.of(9);
+      }
       if ("HHA,Hospice,Inpatient,Outpatient,SNF".contains(sheetName)
-          && "PRVDR_NUM".equals(rifColumnName)) rifColumnLength = Optional.of(9);
-      if ("HHA".contains(sheetName) && "CLM_HHA_TOT_VISIT_CNT".equals(rifColumnName))
+          && "PRVDR_NUM".equals(rifColumnName)) {
+        rifColumnLength = Optional.of(9);
+      }
+      if ("HHA".contains(sheetName) && "CLM_HHA_TOT_VISIT_CNT".equals(rifColumnName)) {
         rifColumnLength = Optional.of(4);
+      }
 
       rifFields.add(
           new RifField(
@@ -196,17 +204,26 @@ public final class RifLayout {
         URL dataDictionaryEntry,
         String rifColumnLabel,
         String javaFieldName) {
-      if (Strings.isNullOrEmpty(rifColumnName))
+      if (Strings.isNullOrEmpty(rifColumnName)) {
         throw new IllegalArgumentException("Missing 'Column Name'.");
-      if (rifColumnType == null) throw new IllegalArgumentException("Missing 'Type'.");
-      if (rifColumnLength.isPresent() && rifColumnLength.get() < 0)
-        throw new IllegalArgumentException("Invalid 'Length'.");
-      if (rifColumnScale.isPresent() && rifColumnScale.get() < 0)
-        throw new IllegalArgumentException("Invalid 'Scale'.");
-      if (Objects.isNull(javaFieldName))
-        throw new IllegalArgumentException("Missing 'Column Label/Value'.");
-      if (Strings.isNullOrEmpty(javaFieldName))
-        throw new IllegalArgumentException("Missing 'Java Field Name'.");
+      }
+      if (rifColumnType == null) {
+        throw new IllegalArgumentException("Missing 'Type' for colum name: " + rifColumnName);
+      }
+      if (rifColumnLength.isPresent() && rifColumnLength.get() < 0) {
+        throw new IllegalArgumentException("Invalid 'Length' for colum name: " + rifColumnName);
+      }
+      if (rifColumnScale.isPresent() && rifColumnScale.get() < 0) {
+        throw new IllegalArgumentException("Invalid 'Scale' for colum name: " + rifColumnName);
+      }
+      if (Objects.isNull(javaFieldName)) {
+        throw new IllegalArgumentException(
+            "Missing 'Column Label/Value' for colum name: " + rifColumnName);
+      }
+      if (Strings.isNullOrEmpty(javaFieldName)) {
+        throw new IllegalArgumentException(
+            "Missing 'Java Field Name' for colum name: " + rifColumnName);
+      }
 
       this.rifColumnName = rifColumnName;
       this.rifColumnType = rifColumnType;
@@ -278,6 +295,12 @@ public final class RifLayout {
     DATE,
 
     NUM,
+
+    BIGINT,
+
+    SMALLINT,
+
+    INTEGER,
 
     TIMESTAMP;
   }

@@ -796,7 +796,7 @@ final class CoverageTransformerV2 {
    * @param optVal The {@link BigDecimal} value associated with the Coverage
    */
   static void addCoverageDecimalExtension(
-      Coverage coverage, CcwCodebookVariable ccwVariable, Optional<BigDecimal> optVal) {
+      Coverage coverage, CcwCodebookVariable ccwVariable, Optional<Short> optVal) {
     coverage.addExtension(TransformerUtilsV2.createExtensionDate(ccwVariable, optVal));
   }
 

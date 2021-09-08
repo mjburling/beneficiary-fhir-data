@@ -71,7 +71,7 @@ public class SNFClaimTransformerV2 {
         claimGroup.getClaimId(),
         claimGroup.getBeneficiaryId(),
         ClaimTypeV2.SNF,
-        claimGroup.getClaimGroupId().toPlainString(),
+        claimGroup.getClaimGroupId(),
         MedicareSegment.PART_A,
         Optional.of(claimGroup.getDateFrom()),
         Optional.of(claimGroup.getDateThrough()),
@@ -142,7 +142,9 @@ public class SNFClaimTransformerV2 {
 
     // CLM_UTLZTN_DAY_CNT => ExplanationOfBenefit.benefitBalance.financial
     TransformerUtilsV2.addBenefitBalanceFinancialMedicalInt(
-        eob, CcwCodebookVariable.CLM_UTLZTN_DAY_CNT, claimGroup.getUtilizationDayCount());
+        eob,
+        CcwCodebookVariable.CLM_UTLZTN_DAY_CNT,
+        Optional.of(Short.valueOf(claimGroup.getUtilizationDayCount())));
 
     // This is messy but appears to be specific to SNF.  Maybe revisit and clean in the future
     // NCH_QLFYD_STAY_FROM_DT => ExplanationOfBenefit.supportingInfo
@@ -296,7 +298,7 @@ public class SNFClaimTransformerV2 {
 
       // Override the default sequence
       // CLM_LINE_NUM => item.sequence
-      item.setSequence(line.getLineNumber().intValue());
+      item.setSequence(line.getLineNumber());
 
       // PRVDR_STATE_CD => item.location
       TransformerUtilsV2.addLocationState(item, claimGroup.getProviderStateCode());

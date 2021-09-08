@@ -19,6 +19,7 @@ import gov.cms.bfd.server.war.ServerTestUtils;
 import gov.cms.bfd.server.war.commons.CommonHeaders;
 import gov.cms.bfd.server.war.commons.RequestHeaders;
 import gov.cms.bfd.server.war.commons.TransformerConstants;
+import java.math.BigInteger;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Year;
@@ -60,7 +61,11 @@ public final class PatientResourceProviderIT {
             .findFirst()
             .get();
     Patient patient =
-        fhirClient.read().resource(Patient.class).withId(beneficiary.getBeneficiaryId()).execute();
+        fhirClient
+            .read()
+            .resource(Patient.class)
+            .withId(beneficiary.getBeneficiaryId().toString())
+            .execute();
 
     Assert.assertNotNull(patient);
     BeneficiaryTransformerTest.assertMatches(
@@ -230,7 +235,11 @@ public final class PatientResourceProviderIT {
             .findFirst()
             .get();
     Patient patient =
-        fhirClient.read().resource(Patient.class).withId(beneficiary.getBeneficiaryId()).execute();
+        fhirClient
+            .read()
+            .resource(Patient.class)
+            .withId(beneficiary.getBeneficiaryId().toString())
+            .execute();
 
     Assert.assertNotNull(patient);
     BeneficiaryTransformerTest.assertMatches(beneficiary, patient, requestHeader);
@@ -284,7 +293,11 @@ public final class PatientResourceProviderIT {
             .findFirst()
             .get();
     Patient patient =
-        fhirClient.read().resource(Patient.class).withId(beneficiary.getBeneficiaryId()).execute();
+        fhirClient
+            .read()
+            .resource(Patient.class)
+            .withId(beneficiary.getBeneficiaryId().toString())
+            .execute();
 
     Assert.assertNotNull(patient);
     BeneficiaryTransformerTest.assertMatches(beneficiary, patient, requestHeader);
@@ -344,7 +357,9 @@ public final class PatientResourceProviderIT {
             .search()
             .forResource(Patient.class)
             .where(
-                Patient.RES_ID.exactly().systemAndIdentifier(null, beneficiary.getBeneficiaryId()))
+                Patient.RES_ID
+                    .exactly()
+                    .systemAndIdentifier(null, beneficiary.getBeneficiaryId().toString()))
             .returnBundle(Bundle.class)
             .execute();
 
@@ -388,7 +403,9 @@ public final class PatientResourceProviderIT {
             .search()
             .forResource(Patient.class)
             .where(
-                Patient.RES_ID.exactly().systemAndIdentifier(null, beneficiary.getBeneficiaryId()))
+                Patient.RES_ID
+                    .exactly()
+                    .systemAndIdentifier(null, beneficiary.getBeneficiaryId().toString()))
             .returnBundle(Bundle.class)
             .execute();
 
@@ -439,7 +456,9 @@ public final class PatientResourceProviderIT {
             .search()
             .forResource(Patient.class)
             .where(
-                Patient.RES_ID.exactly().systemAndIdentifier(null, beneficiary.getBeneficiaryId()))
+                Patient.RES_ID
+                    .exactly()
+                    .systemAndIdentifier(null, beneficiary.getBeneficiaryId().toString()))
             .returnBundle(Bundle.class)
             .execute();
 
@@ -489,7 +508,9 @@ public final class PatientResourceProviderIT {
             .search()
             .forResource(Patient.class)
             .where(
-                Patient.RES_ID.exactly().systemAndIdentifier(null, beneficiary.getBeneficiaryId()))
+                Patient.RES_ID
+                    .exactly()
+                    .systemAndIdentifier(null, beneficiary.getBeneficiaryId().toString()))
             .count(1)
             .returnBundle(Bundle.class)
             .execute();
@@ -1906,8 +1927,8 @@ public final class PatientResourceProviderIT {
    * @param expectedValue number of matches
    */
   private void testLastUpdatedUrls(
-      IGenericClient fhirClient, String id, List<String> urls, int expectedValue) {
-    String baseResourceUrl = "Patient?_id=" + id + "&_format=application%2Fjson%2Bfhir";
+      IGenericClient fhirClient, BigInteger id, List<String> urls, int expectedValue) {
+    String baseResourceUrl = "Patient?_id=" + id.toString() + "&_format=application%2Fjson%2Bfhir";
 
     // Search for each lastUpdated value
     for (String lastUpdatedValue : urls) {

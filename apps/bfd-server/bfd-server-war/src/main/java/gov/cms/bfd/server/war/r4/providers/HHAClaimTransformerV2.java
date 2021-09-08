@@ -69,7 +69,7 @@ public class HHAClaimTransformerV2 {
         claimGroup.getClaimId(),
         claimGroup.getBeneficiaryId(),
         ClaimTypeV2.HHA,
-        claimGroup.getClaimGroupId().toPlainString(),
+        claimGroup.getClaimGroupId(),
         MedicareSegment.PART_B,
         Optional.of(claimGroup.getDateFrom()),
         Optional.of(claimGroup.getDateThrough()),
@@ -182,7 +182,7 @@ public class HHAClaimTransformerV2 {
 
     // CLM_HHA_TOT_VISIT_CNT => ExplanationOfBenefit.supportinginfo.value[x]
     TransformerUtilsV2.addInformation(eob, CcwCodebookVariable.CLM_HHA_TOT_VISIT_CNT)
-        .setValue(new Quantity(claimGroup.getTotalVisitCount().intValue()));
+        .setValue(new Quantity(claimGroup.getTotalVisitCount()));
 
     // CLM_ADMSN_DT => ExplanationOfBenefit.supportingInfo:admissionperiod
     TransformerUtilsV2.addInformation(
@@ -195,7 +195,7 @@ public class HHAClaimTransformerV2 {
 
       // Override the default sequence
       // CLM_LINE_NUM => item.sequence
-      item.setSequence(line.getLineNumber().intValue());
+      item.setSequence(line.getLineNumber());
 
       // PRVDR_STATE_CD => item.location
       TransformerUtilsV2.addLocationState(item, claimGroup.getProviderStateCode());

@@ -51,6 +51,7 @@ import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -597,8 +598,8 @@ public final class TransformerUtils {
    * @return the {@link ExplanationOfBenefit#getId()} value to use for the specified <code>claimId
    *     </code> value
    */
-  public static String buildEobId(ClaimType claimType, String claimId) {
-    return String.format("%s-%s", claimType.name().toLowerCase(), claimId);
+  public static String buildEobId(ClaimType claimType, BigInteger claimId) {
+    return String.format("%s-%s", claimType.name().toLowerCase(), claimId.toString());
   }
 
   /**
@@ -644,8 +645,17 @@ public final class TransformerUtils {
    * @return the {@link Patient#getId()} value that will be used for the specified {@link
    *     Beneficiary}
    */
-  public static IdDt buildPatientId(String beneficiaryId) {
-    return new IdDt(Patient.class.getSimpleName(), beneficiaryId);
+  public static IdDt buildPatientId(BigInteger beneficiaryId) {
+    return new IdDt(Patient.class.getSimpleName(), beneficiaryId.toString());
+  }
+
+  /**
+   * @param patientId the {@link String} to calculate the {@link Patient#getId()} value for
+   * @return the {@link Patient#getId()} value that will be used for the specified {@link
+   *     Beneficiary}
+   */
+  public static IdDt buildPatientId(String patientId) {
+    return new IdDt(Patient.class.getSimpleName(), patientId);
   }
 
   /**
@@ -654,7 +664,16 @@ public final class TransformerUtils {
    * @return the {@link Coverage#getId()} value to use for the specified values
    */
   public static IdDt buildCoverageId(MedicareSegment medicareSegment, Beneficiary beneficiary) {
-    return buildCoverageId(medicareSegment, beneficiary.getBeneficiaryId());
+    return buildCoverageId(medicareSegment, beneficiary.getBeneficiaryId().toString());
+  }
+
+  /**
+   * @param medicareSegment the {@link MedicareSegment} to compute a {@link Coverage#getId()} for
+   * @param BigInteger the {@link BigInter} identifier to compute a {@link Coverage#getId()} for
+   * @return the {@link Coverage#getId()} value to use for the specified values
+   */
+  public static IdDt buildCoverageId(MedicareSegment medicareSegment, BigInteger id) {
+    return buildCoverageId(medicareSegment, id.toString());
   }
 
   /**
@@ -663,10 +682,10 @@ public final class TransformerUtils {
    *     Coverage#getId()} for
    * @return the {@link Coverage#getId()} value to use for the specified values
    */
-  public static IdDt buildCoverageId(MedicareSegment medicareSegment, String beneficiaryId) {
+  public static IdDt buildCoverageId(MedicareSegment medicareSegment, String coverageId) {
     return new IdDt(
         Coverage.class.getSimpleName(),
-        String.format("%s-%s", medicareSegment.getUrlPrefix(), beneficiaryId));
+        String.format("%s-%s", medicareSegment.getUrlPrefix(), coverageId));
   }
 
   /**
@@ -855,21 +874,20 @@ public final class TransformerUtils {
    * @return the output {@link Extension}, with {@link Extension#getValue()} set to represent the
    *     specified input values
    */
-  static Extension createExtensionDate(
-      CcwCodebookInterface ccwVariable, Optional<BigDecimal> dateYear) {
+  static Extension createExtensionDate(CcwCodebookInterface ccwVariable, Optional<Short> dateYear) {
 
     Extension extension = null;
     if (!dateYear.isPresent()) {
       throw new NoSuchElementException();
     }
     try {
-      String stringDate = String.format("%04d", dateYear.get().intValue());
+      String stringDate = String.format("%04d", dateYear.get());
       DateType dateYearValue = new DateType(stringDate);
       String extensionUrl = calculateVariableReferenceUrl(ccwVariable);
       extension = new Extension(extensionUrl, dateYearValue);
     } catch (DataFormatException e) {
       throw new InvalidRifValueException(
-          String.format("Unable to create DateType with reference year: '%s'.", dateYear.get()), e);
+          String.format("Unable to create DateType with reference year: '%d'.", dateYear.get()), e);
     }
     return extension;
   }
@@ -1283,7 +1301,7 @@ public final class TransformerUtils {
    *     Beneficiary}
    */
   static Reference referencePatient(Beneficiary beneficiary) {
-    return referencePatient(beneficiary.getBeneficiaryId());
+    return referencePatient(beneficiary.getBeneficiaryId().toString());
   }
 
   /**
@@ -1394,11 +1412,11 @@ public final class TransformerUtils {
    */
   static void addCommonGroupInpatientSNF(
       ExplanationOfBenefit eob,
-      BigDecimal coinsuranceDayCount,
-      BigDecimal nonUtilizationDayCount,
+      Short coinsuranceDayCount,
+      Short nonUtilizationDayCount,
       BigDecimal deductibleAmount,
       BigDecimal partACoinsuranceLiabilityAmount,
-      BigDecimal bloodPintsFurnishedQty,
+      Short bloodPintsFurnishedQty,
       BigDecimal noncoveredCharge,
       BigDecimal totalDeductionAmount,
       Optional<BigDecimal> claimPPSCapitalDisproportionateShareAmt,
@@ -1410,14 +1428,12 @@ public final class TransformerUtils {
     BenefitComponent beneTotCoinsrncDaysCntFinancial =
         addBenefitBalanceFinancial(
             eob, BenefitCategory.MEDICAL, CcwCodebookVariable.BENE_TOT_COINSRNC_DAYS_CNT);
-    beneTotCoinsrncDaysCntFinancial.setUsed(
-        new UnsignedIntType(coinsuranceDayCount.intValueExact()));
+    beneTotCoinsrncDaysCntFinancial.setUsed(new UnsignedIntType(coinsuranceDayCount));
 
     BenefitComponent clmNonUtlztnDaysCntFinancial =
         addBenefitBalanceFinancial(
             eob, BenefitCategory.MEDICAL, CcwCodebookVariable.CLM_NON_UTLZTN_DAYS_CNT);
-    clmNonUtlztnDaysCntFinancial.setUsed(
-        new UnsignedIntType(nonUtilizationDayCount.intValueExact()));
+    clmNonUtlztnDaysCntFinancial.setUsed(new UnsignedIntType(nonUtilizationDayCount));
 
     addAdjudicationTotal(eob, CcwCodebookVariable.NCH_BENE_IP_DDCTBL_AMT, deductibleAmount);
     addAdjudicationTotal(
@@ -1650,10 +1666,10 @@ public final class TransformerUtils {
    */
   static void mapEobCommonClaimHeaderData(
       ExplanationOfBenefit eob,
-      String claimId,
-      String beneficiaryId,
+      BigInteger claimId,
+      BigInteger beneficiaryId,
       ClaimType claimType,
-      String claimGroupId,
+      BigInteger claimGroupId,
       MedicareSegment coverageType,
       Optional<LocalDate> dateFrom,
       Optional<LocalDate> dateThrough,
@@ -1663,15 +1679,15 @@ public final class TransformerUtils {
     eob.setId(buildEobId(claimType, claimId));
 
     if (claimType.equals(ClaimType.PDE))
-      eob.addIdentifier(createIdentifier(CcwCodebookVariable.PDE_ID, claimId));
-    else eob.addIdentifier(createIdentifier(CcwCodebookVariable.CLM_ID, claimId));
+      eob.addIdentifier(createIdentifier(CcwCodebookVariable.PDE_ID, claimId.toString()));
+    else eob.addIdentifier(createIdentifier(CcwCodebookVariable.CLM_ID, claimId.toString()));
 
     eob.addIdentifier()
         .setSystem(TransformerConstants.IDENTIFIER_SYSTEM_BBAPI_CLAIM_GROUP_ID)
-        .setValue(claimGroupId);
+        .setValue(claimGroupId.toString());
 
-    eob.getInsurance().setCoverage(referenceCoverage(beneficiaryId, coverageType));
-    eob.setPatient(referencePatient(beneficiaryId));
+    eob.getInsurance().setCoverage(referenceCoverage(beneficiaryId.toString(), coverageType));
+    eob.setPatient(referencePatient(beneficiaryId.toString()));
     switch (finalAction) {
       case 'F':
         eob.setStatus(ExplanationOfBenefitStatus.ACTIVE);
@@ -1722,7 +1738,7 @@ public final class TransformerUtils {
    */
   static void mapEobCommonGroupCarrierDME(
       ExplanationOfBenefit eob,
-      String beneficiaryId,
+      BigInteger beneficiaryId,
       String carrierNumber,
       Optional<String> clinicalTrialNumber,
       BigDecimal beneficiaryPartBDeductAmount,
@@ -1758,7 +1774,7 @@ public final class TransformerUtils {
     if (referringPhysicianNpi.isPresent()) {
       ReferralRequest referral = new ReferralRequest();
       referral.setStatus(ReferralRequestStatus.COMPLETED);
-      referral.setSubject(referencePatient(beneficiaryId));
+      referral.setSubject(referencePatient(beneficiaryId.toString()));
       referral.setRequester(
           new ReferralRequestRequesterComponent(
               referencePractitioner(referringPhysicianNpi.get())));
@@ -1825,8 +1841,8 @@ public final class TransformerUtils {
   static ItemComponent mapEobCommonItemCarrierDME(
       ItemComponent item,
       ExplanationOfBenefit eob,
-      String claimId,
-      BigDecimal serviceCount,
+      BigInteger claimId,
+      Short serviceCount,
       String placeOfServiceCode,
       Optional<LocalDate> firstExpenseDate,
       Optional<LocalDate> lastExpenseDate,
@@ -1983,8 +1999,8 @@ public final class TransformerUtils {
       BigDecimal rateAmount,
       BigDecimal totalChargeAmount,
       BigDecimal nonCoveredChargeAmount,
-      BigDecimal unitCount,
-      Optional<BigDecimal> nationalDrugCodeQuantity,
+      Short unitCount,
+      Optional<Integer> nationalDrugCodeQuantity,
       Optional<String> nationalDrugCodeQualifierCode,
       Optional<String> revenueCenterRenderingPhysicianNPI) {
 
@@ -2254,7 +2270,7 @@ public final class TransformerUtils {
       ExplanationOfBenefit eob,
       Optional<LocalDate> claimAdmissionDate,
       Optional<LocalDate> beneficiaryDischargeDate,
-      Optional<BigDecimal> utilizedDays) {
+      Optional<Short> utilizedDays) {
 
     if (claimAdmissionDate.isPresent() || beneficiaryDischargeDate.isPresent()) {
       TransformerUtils.validatePeriodDates(claimAdmissionDate, beneficiaryDischargeDate);
@@ -2276,7 +2292,7 @@ public final class TransformerUtils {
       BenefitComponent clmUtlztnDayCntFinancial =
           TransformerUtils.addBenefitBalanceFinancial(
               eob, BenefitCategory.MEDICAL, CcwCodebookVariable.CLM_UTLZTN_DAY_CNT);
-      clmUtlztnDayCntFinancial.setUsed(new UnsignedIntType(utilizedDays.get().intValue()));
+      clmUtlztnDayCntFinancial.setUsed(new UnsignedIntType(utilizedDays.get()));
     }
 
     return eob;

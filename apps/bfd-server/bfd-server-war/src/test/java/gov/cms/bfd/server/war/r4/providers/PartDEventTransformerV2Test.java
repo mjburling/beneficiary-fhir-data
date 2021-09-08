@@ -70,7 +70,7 @@ public final class PartDEventTransformerV2Test {
 
   @Test
   public void shouldSetID() {
-    Assert.assertEquals("pde-" + claim.getEventId(), eob.getId());
+    Assert.assertEquals("pde-" + claim.getClaimId(), eob.getId());
   }
 
   @Test

@@ -71,10 +71,10 @@ final class PartDEventTransformerV2 {
     // FINAL_ACTION     => ExplanationOfBenefit.status
     TransformerUtilsV2.mapEobCommonClaimHeaderData(
         eob,
-        claimGroup.getEventId(),
+        claimGroup.getClaimId(),
         claimGroup.getBeneficiaryId(),
         ClaimTypeV2.PDE,
-        claimGroup.getClaimGroupId().toPlainString(),
+        claimGroup.getClaimGroupId(),
         MedicareSegment.PART_D,
         Optional.empty(),
         Optional.empty(),
@@ -85,7 +85,7 @@ final class PartDEventTransformerV2 {
     eob.addIdentifier(
         TransformerUtilsV2.createClaimIdentifier(
             CcwCodebookVariable.RX_SRVC_RFRNC_NUM,
-            claimGroup.getPrescriptionReferenceNumber().toPlainString()));
+            claimGroup.getPrescriptionReferenceNumber().toString()));
 
     // map eob type codes into FHIR
     // EOB Type               => ExplanationOfBenefit.type.coding

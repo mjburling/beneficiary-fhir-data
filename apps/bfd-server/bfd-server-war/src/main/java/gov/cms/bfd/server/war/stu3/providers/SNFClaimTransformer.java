@@ -11,7 +11,6 @@ import gov.cms.bfd.server.war.commons.CCWProcedure;
 import gov.cms.bfd.server.war.commons.Diagnosis;
 import gov.cms.bfd.server.war.commons.MedicareSegment;
 import gov.cms.bfd.sharedutils.exceptions.BadCodeMonkeyException;
-import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Optional;
 import org.hl7.fhir.dstu3.model.Address;
@@ -59,7 +58,7 @@ final class SNFClaimTransformer {
         claimGroup.getClaimId(),
         claimGroup.getBeneficiaryId(),
         ClaimType.SNF,
-        claimGroup.getClaimGroupId().toPlainString(),
+        claimGroup.getClaimGroupId(),
         MedicareSegment.PART_A,
         Optional.of(claimGroup.getDateFrom()),
         Optional.of(claimGroup.getDateThrough()),
@@ -329,8 +328,7 @@ final class SNFClaimTransformer {
 
     for (SNFClaimLine claimLine : claimGroup.getLines()) {
       ItemComponent item = eob.addItem();
-      item.setSequence(claimLine.getLineNumber().intValue());
-
+      item.setSequence(claimLine.getLineNumber());
       item.setLocation(new Address().setState((claimGroup.getProviderStateCode())));
 
       TransformerUtils.mapHcpcs(
@@ -344,7 +342,7 @@ final class SNFClaimTransformer {
           claimLine.getRateAmount(),
           claimLine.getTotalChargeAmount(),
           claimLine.getNonCoveredChargeAmount(),
-          BigDecimal.valueOf(claimLine.getUnitCount()),
+          claimLine.getUnitCount(),
           claimLine.getNationalDrugCodeQuantity(),
           claimLine.getNationalDrugCodeQualifierCode(),
           claimLine.getRevenueCenterRenderingPhysicianNPI());

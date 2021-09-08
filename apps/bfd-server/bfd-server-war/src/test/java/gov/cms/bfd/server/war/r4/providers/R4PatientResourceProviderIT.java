@@ -52,7 +52,11 @@ public final class R4PatientResourceProviderIT {
             .get();
 
     Patient patient =
-        fhirClient.read().resource(Patient.class).withId(beneficiary.getBeneficiaryId()).execute();
+        fhirClient
+            .read()
+            .resource(Patient.class)
+            .withId(beneficiary.getBeneficiaryId().toString())
+            .execute();
 
     comparePatient(beneficiary, patient);
   }
@@ -181,7 +185,11 @@ public final class R4PatientResourceProviderIT {
             .findFirst()
             .get();
     Patient patient =
-        fhirClient.read().resource(Patient.class).withId(beneficiary.getBeneficiaryId()).execute();
+        fhirClient
+            .read()
+            .resource(Patient.class)
+            .withId(beneficiary.getBeneficiaryId().toString())
+            .execute();
 
     comparePatient(beneficiary, patient, requestHeader);
 
@@ -237,7 +245,9 @@ public final class R4PatientResourceProviderIT {
             .search()
             .forResource(Patient.class)
             .where(
-                Patient.RES_ID.exactly().systemAndIdentifier(null, beneficiary.getBeneficiaryId()))
+                Patient.RES_ID
+                    .exactly()
+                    .systemAndIdentifier(null, beneficiary.getBeneficiaryId().toString()))
             .returnBundle(Bundle.class)
             .execute();
 
@@ -281,7 +291,9 @@ public final class R4PatientResourceProviderIT {
             .search()
             .forResource(Patient.class)
             .where(
-                Patient.RES_ID.exactly().systemAndIdentifier(null, beneficiary.getBeneficiaryId()))
+                Patient.RES_ID
+                    .exactly()
+                    .systemAndIdentifier(null, beneficiary.getBeneficiaryId().toString()))
             .returnBundle(Bundle.class)
             .execute();
 
@@ -327,7 +339,9 @@ public final class R4PatientResourceProviderIT {
             .search()
             .forResource(Patient.class)
             .where(
-                Patient.RES_ID.exactly().systemAndIdentifier(null, beneficiary.getBeneficiaryId()))
+                Patient.RES_ID
+                    .exactly()
+                    .systemAndIdentifier(null, beneficiary.getBeneficiaryId().toString()))
             .returnBundle(Bundle.class)
             .execute();
 
@@ -372,7 +386,9 @@ public final class R4PatientResourceProviderIT {
             .search()
             .forResource(Patient.class)
             .where(
-                Patient.RES_ID.exactly().systemAndIdentifier(null, beneficiary.getBeneficiaryId()))
+                Patient.RES_ID
+                    .exactly()
+                    .systemAndIdentifier(null, beneficiary.getBeneficiaryId().toString()))
             .count(1)
             .returnBundle(Bundle.class)
             .execute();
@@ -1142,12 +1158,12 @@ public final class R4PatientResourceProviderIT {
             "_lastUpdated=le" + nowDateTime,
             "_lastUpdated=ge" + earlyDateTime + "&_lastUpdated=le" + nowDateTime,
             "_lastUpdated=gt" + earlyDateTime + "&_lastUpdated=lt" + nowDateTime);
-    testLastUpdatedUrls(fhirClient, beneficiary.getBeneficiaryId(), allUrls, 1);
+    testLastUpdatedUrls(fhirClient, beneficiary.getBeneficiaryId().toString(), allUrls, 1);
 
     // Empty searches
     List<String> emptyUrls =
         Arrays.asList("_lastUpdated=lt" + earlyDateTime, "_lastUpdated=le" + earlyDateTime);
-    testLastUpdatedUrls(fhirClient, beneficiary.getBeneficiaryId(), emptyUrls, 0);
+    testLastUpdatedUrls(fhirClient, beneficiary.getBeneficiaryId().toString(), emptyUrls, 0);
   }
 
   @Test
@@ -1301,7 +1317,11 @@ public final class R4PatientResourceProviderIT {
 
     IGenericClient fhirClient = createFhirClient(requestHeader);
     Patient patient =
-        fhirClient.read().resource(Patient.class).withId(beneficiary.getBeneficiaryId()).execute();
+        fhirClient
+            .read()
+            .resource(Patient.class)
+            .withId(beneficiary.getBeneficiaryId().toString())
+            .execute();
 
     // Because of how transform doesn't go through R4PatientResourceProvider, `expected` won't have
     // the historical MBI data.

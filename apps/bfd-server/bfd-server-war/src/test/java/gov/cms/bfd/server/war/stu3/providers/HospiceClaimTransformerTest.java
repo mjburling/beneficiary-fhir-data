@@ -8,7 +8,6 @@ import gov.cms.bfd.model.rif.samples.StaticRifResource;
 import gov.cms.bfd.model.rif.samples.StaticRifResourceGroup;
 import gov.cms.bfd.server.war.ServerTestUtils;
 import gov.cms.bfd.server.war.commons.MedicareSegment;
-import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -60,7 +59,7 @@ public final class HospiceClaimTransformerTest {
         claim.getClaimId(),
         claim.getBeneficiaryId(),
         ClaimType.HOSPICE,
-        claim.getClaimGroupId().toPlainString(),
+        claim.getClaimGroupId(),
         MedicareSegment.PART_A,
         Optional.of(claim.getDateFrom()),
         Optional.of(claim.getDateThrough()),
@@ -105,13 +104,13 @@ public final class HospiceClaimTransformerTest {
         eob,
         claim.getClaimHospiceStartDate(),
         claim.getBeneficiaryDischargeDate(),
-        Optional.of(claim.getUtilizationDayCount()));
+        Optional.of(Short.valueOf(claim.getUtilizationDayCount())));
 
     Assert.assertEquals(4, eob.getDiagnosis().size());
     Assert.assertEquals(1, eob.getItem().size());
     ItemComponent eobItem0 = eob.getItem().get(0);
     HospiceClaimLine claimLine1 = claim.getLines().get(0);
-    Assert.assertEquals(claimLine1.getLineNumber(), new BigDecimal(eobItem0.getSequence()));
+    Assert.assertEquals(claimLine1.getLineNumber(), eobItem0.getSequence());
 
     TransformerTestUtils.assertExtensionQuantityEquals(
         CcwCodebookVariable.BENE_HOSPC_PRD_CNT,

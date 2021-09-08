@@ -14,7 +14,6 @@ import gov.cms.bfd.server.war.commons.carin.C4BBAdjudication;
 import gov.cms.bfd.server.war.commons.carin.C4BBClaimProfessionalAndNonClinicianCareTeamRole;
 import gov.cms.bfd.server.war.commons.carin.C4BBPractitionerIdentifierType;
 import gov.cms.bfd.sharedutils.exceptions.BadCodeMonkeyException;
-import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Optional;
 import org.hl7.fhir.r4.model.ExplanationOfBenefit;
@@ -81,7 +80,7 @@ public class CarrierClaimTransformerV2 {
         claimGroup.getClaimId(),
         claimGroup.getBeneficiaryId(),
         ClaimTypeV2.CARRIER,
-        claimGroup.getClaimGroupId().toPlainString(),
+        claimGroup.getClaimGroupId(),
         MedicareSegment.PART_B,
         Optional.of(claimGroup.getDateFrom()),
         Optional.of(claimGroup.getDateThrough()),
@@ -173,7 +172,7 @@ public class CarrierClaimTransformerV2 {
     for (CarrierClaimLine line : claimGroup.getLines()) {
       ItemComponent item = eob.addItem();
       // LINE_NUM => ExplanationOfBenefit.item.sequence
-      item.setSequence(line.getLineNumber().intValue());
+      item.setSequence(line.getLineNumber());
 
       // PRF_PHYSN_NPI => ExplanationOfBenefit.careTeam.provider
       Optional<CareTeamComponent> performing =
@@ -253,14 +252,14 @@ public class CarrierClaimTransformerV2 {
       }
 
       // CARR_LINE_ANSTHSA_UNIT_CNT => ExplanationOfBenefit.item.extension
-      if (line.getAnesthesiaUnitCount().compareTo(BigDecimal.ZERO) > 0) {
+      if (line.getAnesthesiaUnitCount() > 0) {
         item.addExtension(
             TransformerUtilsV2.createExtensionQuantity(
                 CcwCodebookVariable.CARR_LINE_ANSTHSA_UNIT_CNT, line.getAnesthesiaUnitCount()));
       }
 
       // CARR_LINE_MTUS_CNT => ExplanationOfBenefit.item.extension
-      if (!line.getMtusCount().equals(BigDecimal.ZERO)) {
+      if (line.getMtusCount() != 0) {
         item.addExtension(
             TransformerUtilsV2.createExtensionQuantity(
                 CcwCodebookVariable.CARR_LINE_MTUS_CNT, line.getMtusCount()));

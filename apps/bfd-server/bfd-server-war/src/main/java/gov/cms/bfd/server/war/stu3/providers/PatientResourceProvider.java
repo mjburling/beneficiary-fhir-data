@@ -33,7 +33,7 @@ import gov.cms.bfd.server.war.commons.PatientLinkBuilder;
 import gov.cms.bfd.server.war.commons.QueryUtils;
 import gov.cms.bfd.server.war.commons.RequestHeaders;
 import gov.cms.bfd.server.war.commons.TransformerConstants;
-import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.Year;
 import java.time.YearMonth;
@@ -428,7 +428,7 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
      */
 
     // Fetch the Beneficiary.id values that we will get results for.
-    List<String> ids =
+    List<BigInteger> ids =
         queryBeneficiaryIdsByPartDContractCodeAndYearMonth(yearMonth, contractCode, paging);
     if (ids.isEmpty()) {
       return Collections.emptyList();
@@ -488,12 +488,13 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
    * @return the {@link List} of matching {@link Beneficiary#getBeneficiaryId()} values
    */
   @Trace
-  private List<String> queryBeneficiaryIdsByPartDContractCodeAndYearMonth(
+  private List<BigInteger> queryBeneficiaryIdsByPartDContractCodeAndYearMonth(
       LocalDate yearMonth, String contractId, PatientLinkBuilder paging) {
     // Create the query to run.
     CriteriaBuilder builder = entityManager.getCriteriaBuilder();
-    CriteriaQuery<String> beneIdCriteria = builder.createQuery(String.class);
+    CriteriaQuery<BigInteger> beneIdCriteria = builder.createQuery(BigInteger.class);
     Root<BeneficiaryMonthly> beneMonthlyRoot = beneIdCriteria.from(BeneficiaryMonthly.class);
+
     beneIdCriteria.select(
         beneMonthlyRoot.get(BeneficiaryMonthly_.parentBeneficiary).get(Beneficiary_.beneficiaryId));
 
@@ -502,6 +503,7 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
         builder.equal(beneMonthlyRoot.get(BeneficiaryMonthly_.yearMonth), yearMonth));
     wherePredicates.add(
         builder.equal(beneMonthlyRoot.get(BeneficiaryMonthly_.partDContractNumberId), contractId));
+
     if (paging.isPagingRequested() && !paging.isFirstPage()) {
       wherePredicates.add(
           builder.greaterThan(
@@ -510,12 +512,14 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
                   .get(Beneficiary_.beneficiaryId),
               paging.getCursor()));
     }
+
     beneIdCriteria.where(
         builder.and(wherePredicates.toArray(new Predicate[wherePredicates.size()])));
+
     beneIdCriteria.orderBy(builder.asc(beneMonthlyRoot.get(BeneficiaryMonthly_.parentBeneficiary)));
 
     // Run the query and return the results.
-    List<String> matchingBeneIds = null;
+    List<BigInteger> matchingBeneIds = null;
     Long beneHistoryMatchesTimerQueryNanoSeconds = null;
     Timer.Context beneIdMatchesTimer =
         metricRegistry
@@ -525,6 +529,7 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
                     "query",
                     "bene_ids_by_year_month_part_d_contract_id"))
             .time();
+
     try {
       matchingBeneIds =
           entityManager
@@ -548,7 +553,7 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
    * @return the matching {@link Beneficiary}s
    */
   @Trace
-  private List<Beneficiary> queryBeneficiariesByIdsWithBeneficiaryMonthlys(List<String> ids) {
+  private List<Beneficiary> queryBeneficiariesByIdsWithBeneficiaryMonthlys(List<BigInteger> ids) {
     // Create the query to run.
     CriteriaBuilder builder = entityManager.getCriteriaBuilder();
     CriteriaQuery<Beneficiary> beneCriteria = builder.createQuery(Beneficiary.class).distinct(true);
@@ -752,14 +757,17 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
     CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 
     // First, find all matching hashes from BeneficiariesHistory.
-    CriteriaQuery<String> beneHistoryMatches = builder.createQuery(String.class);
+    CriteriaQuery<BigInteger> beneHistoryMatches = builder.createQuery(BigInteger.class);
     Root<BeneficiaryHistory> beneHistoryMatchesRoot =
         beneHistoryMatches.from(BeneficiaryHistory.class);
+
     beneHistoryMatches.select(beneHistoryMatchesRoot.get(BeneficiaryHistory_.beneficiaryId));
     beneHistoryMatches.where(
         builder.equal(beneHistoryMatchesRoot.get(beneficiaryHistoryHashField), hash));
-    List<String> matchingIdsFromBeneHistory = null;
+
+    List<BigInteger> matchingIdsFromBeneHistory = null;
     Long hicnsFromHistoryQueryNanoSeconds = null;
+
     Timer.Context beneHistoryMatchesTimer =
         metricRegistry
             .timer(
@@ -769,6 +777,7 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
                     "bene_by_" + hashType,
                     hashType + "s_from_beneficiarieshistory"))
             .time();
+
     try {
       matchingIdsFromBeneHistory = entityManager.createQuery(beneHistoryMatches).getResultList();
     } finally {
@@ -866,16 +875,16 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
    */
   @Trace
   private Beneficiary selectBeneWithLatestReferenceYear(List<Beneficiary> duplicateBenes) {
-    BigDecimal maxReferenceYear = new BigDecimal(-0001);
-    String maxReferenceYearMatchingBeneficiaryId = null;
+    Short maxReferenceYear = Short.MIN_VALUE;
+    BigInteger maxReferenceYearMatchingBeneficiaryId = null;
 
     // loop through matching bene ids looking for max rfrnc_yr
     for (Beneficiary duplicateBene : duplicateBenes) {
       // bene record found but reference year is null - still process
       if (!duplicateBene.getBeneEnrollmentReferenceYear().isPresent()) {
-        duplicateBene.setBeneEnrollmentReferenceYear(Optional.of(new BigDecimal(0)));
+        continue;
       }
-      // bene reference year is > than prior reference year
+      // check if bene reference year > than prior reference year
       if (duplicateBene.getBeneEnrollmentReferenceYear().get().compareTo(maxReferenceYear) > 0) {
         maxReferenceYear = duplicateBene.getBeneEnrollmentReferenceYear().get();
         maxReferenceYearMatchingBeneficiaryId = duplicateBene.getBeneficiaryId();

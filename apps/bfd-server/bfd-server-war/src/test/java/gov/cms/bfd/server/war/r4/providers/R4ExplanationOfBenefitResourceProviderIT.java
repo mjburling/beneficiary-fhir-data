@@ -29,6 +29,7 @@ import gov.cms.bfd.server.war.commons.RequestHeaders;
 import gov.cms.bfd.server.war.commons.TransformerConstants;
 import gov.cms.bfd.server.war.stu3.providers.ExplanationOfBenefitResourceProvider;
 import gov.cms.bfd.server.war.stu3.providers.SamhsaMatcherTest;
+import java.math.BigInteger;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -107,7 +108,7 @@ public final class R4ExplanationOfBenefitResourceProviderIT {
     fhirClient
         .read()
         .resource(ExplanationOfBenefit.class)
-        .withId(TransformerUtilsV2.buildEobId(ClaimTypeV2.CARRIER, "1234"))
+        .withId(TransformerUtilsV2.buildEobId(ClaimTypeV2.CARRIER, BigInteger.valueOf(1234)))
         .execute();
   }
 
@@ -159,7 +160,7 @@ public final class R4ExplanationOfBenefitResourceProviderIT {
     fhirClient
         .read()
         .resource(ExplanationOfBenefit.class)
-        .withId(TransformerUtilsV2.buildEobId(ClaimTypeV2.DME, "1234"))
+        .withId(TransformerUtilsV2.buildEobId(ClaimTypeV2.DME, BigInteger.valueOf(1234)))
         .execute();
   }
 
@@ -212,7 +213,7 @@ public final class R4ExplanationOfBenefitResourceProviderIT {
     fhirClient
         .read()
         .resource(ExplanationOfBenefit.class)
-        .withId(TransformerUtilsV2.buildEobId(ClaimTypeV2.HHA, "1234"))
+        .withId(TransformerUtilsV2.buildEobId(ClaimTypeV2.HHA, BigInteger.valueOf(1234)))
         .execute();
   }
 
@@ -264,7 +265,7 @@ public final class R4ExplanationOfBenefitResourceProviderIT {
     fhirClient
         .read()
         .resource(ExplanationOfBenefit.class)
-        .withId(TransformerUtilsV2.buildEobId(ClaimTypeV2.HOSPICE, "1234"))
+        .withId(TransformerUtilsV2.buildEobId(ClaimTypeV2.HOSPICE, BigInteger.valueOf(1234)))
         .execute();
   }
 
@@ -316,7 +317,7 @@ public final class R4ExplanationOfBenefitResourceProviderIT {
     fhirClient
         .read()
         .resource(ExplanationOfBenefit.class)
-        .withId(TransformerUtilsV2.buildEobId(ClaimTypeV2.INPATIENT, "1234"))
+        .withId(TransformerUtilsV2.buildEobId(ClaimTypeV2.INPATIENT, BigInteger.valueOf(1234)))
         .execute();
   }
 
@@ -373,7 +374,7 @@ public final class R4ExplanationOfBenefitResourceProviderIT {
     fhirClient
         .read()
         .resource(ExplanationOfBenefit.class)
-        .withId(TransformerUtilsV2.buildEobId(ClaimTypeV2.OUTPATIENT, "1234"))
+        .withId(TransformerUtilsV2.buildEobId(ClaimTypeV2.OUTPATIENT, BigInteger.valueOf(1234)))
         .execute();
   }
 
@@ -403,7 +404,7 @@ public final class R4ExplanationOfBenefitResourceProviderIT {
         fhirClient
             .read()
             .resource(ExplanationOfBenefit.class)
-            .withId(TransformerUtilsV2.buildEobId(ClaimTypeV2.PDE, claim.getEventId()))
+            .withId(TransformerUtilsV2.buildEobId(ClaimTypeV2.PDE, claim.getClaimId()))
             .execute();
 
     Assert.assertNotNull(eob);
@@ -425,7 +426,7 @@ public final class R4ExplanationOfBenefitResourceProviderIT {
     fhirClient
         .read()
         .resource(ExplanationOfBenefit.class)
-        .withId(TransformerUtilsV2.buildEobId(ClaimTypeV2.PDE, "1234"))
+        .withId(TransformerUtilsV2.buildEobId(ClaimTypeV2.PDE, BigInteger.valueOf(1234)))
         .execute();
   }
 
@@ -443,26 +444,7 @@ public final class R4ExplanationOfBenefitResourceProviderIT {
     fhirClient
         .read()
         .resource(ExplanationOfBenefit.class)
-        .withId(TransformerUtilsV2.buildEobId(ClaimTypeV2.PDE, "-1234"))
-        .execute();
-  }
-
-  /**
-   * Verifies that {@link
-   * gov.cms.bfd.server.war.r4.providers.ExplanationOfBenefitResourceProvider#read(org.hl7.fhir.r4.model.IdType)}
-   * works as expected for a {@link PartDEvent}-derived {@link ExplanationOfBenefit} that has an
-   * invalid {@link
-   * gov.cms.bfd.server.war.r4.providers.ExplanationOfBenefitResourceProvider#IdParam} parameter.
-   */
-  @Test(expected = InvalidRequestException.class)
-  public void readEobForInvalidIdParamPartDEvent() {
-    IGenericClient fhirClient = ServerTestUtils.get().createFhirClientV2();
-
-    // The IdParam is not valid, so this should return an exception.
-    fhirClient
-        .read()
-        .resource(ExplanationOfBenefit.class)
-        .withId(TransformerUtilsV2.buildEobId(ClaimTypeV2.PDE, "-1?234"))
+        .withId(TransformerUtilsV2.buildEobId(ClaimTypeV2.PDE, BigInteger.valueOf(-1234)))
         .execute();
   }
 
@@ -514,7 +496,7 @@ public final class R4ExplanationOfBenefitResourceProviderIT {
     fhirClient
         .read()
         .resource(ExplanationOfBenefit.class)
-        .withId(TransformerUtilsV2.buildEobId(ClaimTypeV2.SNF, "1234"))
+        .withId(TransformerUtilsV2.buildEobId(ClaimTypeV2.SNF, BigInteger.valueOf(1234)))
         .execute();
   }
 
@@ -1220,12 +1202,12 @@ public final class R4ExplanationOfBenefitResourceProviderIT {
             "_lastUpdated=ge" + earlyDateTime + "&_lastUpdated=le" + nowDateTime,
             "_lastUpdated=gt" + earlyDateTime + "&_lastUpdated=lt" + nowDateTime);
 
-    testLastUpdatedUrls(fhirClient, beneficiary.getBeneficiaryId(), allUrls, 8);
+    testLastUpdatedUrls(fhirClient, beneficiary.getBeneficiaryId().toString(), allUrls, 8);
 
     // Empty searches
     List<String> emptyUrls =
         Arrays.asList("_lastUpdated=lt" + earlyDateTime, "_lastUpdated=le" + earlyDateTime);
-    testLastUpdatedUrls(fhirClient, beneficiary.getBeneficiaryId(), emptyUrls, 0);
+    testLastUpdatedUrls(fhirClient, beneficiary.getBeneficiaryId().toString(), emptyUrls, 0);
   }
 
   /**
@@ -1286,7 +1268,7 @@ public final class R4ExplanationOfBenefitResourceProviderIT {
     List<Object> loadedRecords =
         ServerTestUtils.get()
             .loadData(Arrays.asList(StaticRifResourceGroup.SAMPLE_A.getResources()));
-    String claimId =
+    BigInteger claimId =
         loadedRecords.stream()
             .filter(r -> r instanceof CarrierClaim)
             .map(r -> (CarrierClaim) r)
@@ -1294,7 +1276,7 @@ public final class R4ExplanationOfBenefitResourceProviderIT {
             .get()
             .getClaimId();
 
-    String beneId = findFirstBeneficary(loadedRecords).getBeneficiaryId();
+    BigInteger beneId = findFirstBeneficary(loadedRecords).getBeneficiaryId();
 
     // Clear lastupdated in the database
     ServerTestUtils.get()
@@ -1772,10 +1754,10 @@ public final class R4ExplanationOfBenefitResourceProviderIT {
   }
 
   private Bundle fetchWithServiceDate(
-      IGenericClient fhirClient, String id, String serviceEndParam) {
+      IGenericClient fhirClient, BigInteger id, String serviceEndParam) {
     String url =
         "ExplanationOfBenefit?patient=Patient%2F"
-            + id
+            + id.toString()
             + (serviceEndParam.isEmpty() ? "" : "&" + serviceEndParam)
             + "&_format=application%2Fjson%2Bfhir";
     return fhirClient.search().byUrl(url).returnBundle(Bundle.class).execute();

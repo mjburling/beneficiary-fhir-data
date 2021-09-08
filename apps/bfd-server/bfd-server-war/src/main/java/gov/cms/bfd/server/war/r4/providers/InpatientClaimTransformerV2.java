@@ -73,7 +73,7 @@ public class InpatientClaimTransformerV2 {
         claimGroup.getClaimId(),
         claimGroup.getBeneficiaryId(),
         ClaimTypeV2.INPATIENT,
-        claimGroup.getClaimGroupId().toPlainString(),
+        claimGroup.getClaimGroupId(),
         MedicareSegment.PART_A,
         Optional.of(claimGroup.getDateFrom()),
         Optional.of(claimGroup.getDateThrough()),
@@ -254,7 +254,7 @@ public class InpatientClaimTransformerV2 {
     TransformerUtilsV2.addBenefitBalanceFinancialMedicalInt(
         eob,
         CcwCodebookVariable.CLM_UTLZTN_DAY_CNT,
-        Optional.of(claimGroup.getUtilizationDayCount()));
+        Optional.ofNullable(claimGroup.getUtilizationDayCount()));
 
     // Handle Diagnosis
     // ADMTG_DGNS_CD            => diagnosis.diagnosisCodeableConcept
@@ -296,11 +296,13 @@ public class InpatientClaimTransformerV2 {
     TransformerUtilsV2.addBenefitBalanceFinancialMedicalInt(
         eob,
         CcwCodebookVariable.CLM_PPS_CPTL_DRG_WT_NUM,
-        claimGroup.getClaimPPSCapitalDrgWeightNumber());
+        Optional.ofNullable(claimGroup.getClaimPPSCapitalDrgWeightNumber()));
 
     // BENE_LRD_USED_CNT => ExplanationOfBenefit.benefitBalance.financial
     TransformerUtilsV2.addBenefitBalanceFinancialMedicalInt(
-        eob, CcwCodebookVariable.BENE_LRD_USED_CNT, claimGroup.getLifetimeReservedDaysUsedCount());
+        eob,
+        CcwCodebookVariable.BENE_LRD_USED_CNT,
+        Optional.ofNullable(claimGroup.getLifetimeReservedDaysUsedCount()));
 
     // ClaimLine => ExplanationOfBenefit.item
     for (InpatientClaimLine line : claimGroup.getLines()) {
@@ -308,7 +310,7 @@ public class InpatientClaimTransformerV2 {
 
       // Override the default sequence
       // CLM_LINE_NUM => item.sequence
-      item.setSequence(line.getLineNumber().intValue());
+      item.setSequence(line.getLineNumber());
 
       // PRVDR_STATE_CD => item.location
       TransformerUtilsV2.addLocationState(item, claimGroup.getProviderStateCode());

@@ -58,10 +58,10 @@ final class PartDEventTransformer {
     // Common group level fields between all claim types
     TransformerUtils.mapEobCommonClaimHeaderData(
         eob,
-        claimGroup.getEventId(),
+        claimGroup.getClaimId(),
         claimGroup.getBeneficiaryId(),
         ClaimType.PDE,
-        claimGroup.getClaimGroupId().toPlainString(),
+        claimGroup.getClaimGroupId(),
         MedicareSegment.PART_D,
         Optional.empty(),
         Optional.empty(),
@@ -71,7 +71,7 @@ final class PartDEventTransformer {
     eob.addIdentifier(
         TransformerUtils.createIdentifier(
             CcwCodebookVariable.RX_SRVC_RFRNC_NUM,
-            claimGroup.getPrescriptionReferenceNumber().toPlainString()));
+            claimGroup.getPrescriptionReferenceNumber().toString()));
 
     // map eob type codes into FHIR
     TransformerUtils.mapEobType(eob, ClaimType.PDE, Optional.empty(), Optional.empty());

@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -1220,11 +1221,11 @@ final class TransformerTestUtils {
    */
   static void assertCommonGroupInpatientSNF(
       ExplanationOfBenefit eob,
-      BigDecimal coinsuranceDayCount,
-      BigDecimal nonUtilizationDayCount,
+      Short coinsuranceDayCount,
+      Short nonUtilizationDayCount,
       BigDecimal deductibleAmount,
       BigDecimal partACoinsuranceLiabilityAmount,
-      BigDecimal bloodPintsFurnishedQty,
+      Short bloodPintsFurnishedQty,
       BigDecimal noncoveredCharge,
       BigDecimal totalDeductionAmount,
       Optional<BigDecimal> claimPPSCapitalDisproportionateShareAmt,
@@ -1255,8 +1256,8 @@ final class TransformerTestUtils {
     SupportingInformationComponent nchBloodPntsFrnshdQtyInfo =
         TransformerTestUtils.assertHasInfo(CcwCodebookVariable.NCH_BLOOD_PNTS_FRNSHD_QTY, eob);
     Assert.assertEquals(
-        bloodPintsFurnishedQty.intValueExact(),
-        nchBloodPntsFrnshdQtyInfo.getValueQuantity().getValue().intValueExact());
+        bloodPintsFurnishedQty.intValue(),
+        nchBloodPntsFrnshdQtyInfo.getValueQuantity().getValue().intValue());
 
     TransformerTestUtils.assertAdjudicationTotalAmountEquals(
         CcwCodebookVariable.NCH_IP_NCVRD_CHRG_AMT, noncoveredCharge, eob);
@@ -1464,10 +1465,10 @@ final class TransformerTestUtils {
    */
   static void assertEobCommonClaimHeaderData(
       ExplanationOfBenefit eob,
-      String claimId,
-      String beneficiaryId,
+      BigInteger claimId,
+      BigInteger beneficiaryId,
       ClaimType claimType,
-      String claimGroupId,
+      BigInteger claimGroupId,
       MedicareSegment coverageType,
       Optional<LocalDate> dateFrom,
       Optional<LocalDate> dateThrough,
@@ -1479,19 +1480,20 @@ final class TransformerTestUtils {
     Assert.assertEquals(
         TransformerUtils.buildEobId(claimType, claimId), eob.getIdElement().getIdPart());
 
-    if (claimType.equals(ClaimType.PDE))
-      assertHasIdentifier(CcwCodebookVariable.PDE_ID, claimId, eob.getIdentifier());
-    else assertHasIdentifier(CcwCodebookVariable.CLM_ID, claimId, eob.getIdentifier());
+    assertHasIdentifier(
+        claimType.equals(ClaimType.PDE) ? CcwCodebookVariable.PDE_ID : CcwCodebookVariable.CLM_ID,
+        claimId.toString(),
+        eob.getIdentifier());
 
     assertIdentifierExists(
         TransformerConstants.IDENTIFIER_SYSTEM_BBAPI_CLAIM_GROUP_ID,
-        claimGroupId,
+        claimGroupId.toString(),
         eob.getIdentifier());
     Assert.assertEquals(
-        TransformerUtils.referencePatient(beneficiaryId).getReference(),
+        TransformerUtils.referencePatient(beneficiaryId.toString()).getReference(),
         eob.getPatient().getReference());
     Assert.assertEquals(
-        TransformerUtils.referenceCoverage(beneficiaryId, coverageType).getReference(),
+        TransformerUtils.referenceCoverage(beneficiaryId.toString(), coverageType).getReference(),
         eob.getInsurance().getCoverage().getReference());
 
     switch (finalAction) {
@@ -1536,7 +1538,7 @@ final class TransformerTestUtils {
    */
   static void assertEobCommonGroupCarrierDMEEquals(
       ExplanationOfBenefit eob,
-      String beneficiaryId,
+      BigInteger beneficiaryId,
       String carrierNumber,
       Optional<String> clinicalTrialNumber,
       BigDecimal beneficiaryPartBDeductAmount,
@@ -1552,7 +1554,7 @@ final class TransformerTestUtils {
 
     ReferralRequest referral = (ReferralRequest) eob.getReferral().getResource();
     Assert.assertEquals(
-        TransformerUtils.referencePatient(beneficiaryId).getReference(),
+        TransformerUtils.referencePatient(beneficiaryId.toString()).getReference(),
         referral.getSubject().getReference());
     assertReferenceIdentifierEquals(
         TransformerConstants.CODING_NPI_US,
@@ -1617,7 +1619,7 @@ final class TransformerTestUtils {
   static void assertEobCommonItemCarrierDMEEquals(
       ItemComponent item,
       ExplanationOfBenefit eob,
-      BigDecimal serviceCount,
+      Short serviceCount,
       String placeOfServiceCode,
       Optional<LocalDate> firstExpenseDate,
       Optional<LocalDate> lastExpenseDate,
@@ -1801,9 +1803,9 @@ final class TransformerTestUtils {
       BigDecimal rateAmount,
       BigDecimal totalChargeAmount,
       BigDecimal nonCoveredChargeAmount,
-      BigDecimal unitCount,
+      Short unitCount,
       String claimControlNum,
-      Optional<BigDecimal> nationalDrugCodeQuantity,
+      Optional<Integer> nationalDrugCodeQuantity,
       Optional<String> nationalDrugCodeQualifierCode,
       Optional<String> revenueCenterRenderingPhysicianNPI,
       int index) {
@@ -1900,7 +1902,7 @@ final class TransformerTestUtils {
       ExplanationOfBenefit eob,
       Optional<LocalDate> claimAdmissionDate,
       Optional<LocalDate> beneficiaryDischargeDate,
-      Optional<BigDecimal> utilizedDays) {
+      Optional<Short> utilizedDays) {
 
     TransformerTestUtils.assertDateEquals(
         claimAdmissionDate.get(), eob.getHospitalization().getStartElement());
@@ -1909,12 +1911,11 @@ final class TransformerTestUtils {
       TransformerTestUtils.assertDateEquals(
           beneficiaryDischargeDate.get(), eob.getHospitalization().getEndElement());
     }
-
     if (utilizedDays.isPresent()) {
       TransformerTestUtils.assertBenefitBalanceUsedIntEquals(
           BenefitCategory.MEDICAL,
           CcwCodebookVariable.CLM_UTLZTN_DAY_CNT,
-          utilizedDays.get().intValue(),
+          Integer.valueOf(utilizedDays.get().intValue()),
           eob);
     }
   }

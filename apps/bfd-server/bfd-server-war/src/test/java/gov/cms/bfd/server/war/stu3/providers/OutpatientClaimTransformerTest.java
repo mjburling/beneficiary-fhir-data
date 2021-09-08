@@ -134,7 +134,7 @@ public final class OutpatientClaimTransformerTest {
         claim.getClaimId(),
         claim.getBeneficiaryId(),
         ClaimType.OUTPATIENT,
-        claim.getClaimGroupId().toPlainString(),
+        claim.getClaimGroupId(),
         MedicareSegment.PART_B,
         Optional.of(claim.getDateFrom()),
         Optional.of(claim.getDateThrough()),
@@ -205,7 +205,7 @@ public final class OutpatientClaimTransformerTest {
     ItemComponent eobItem0 = eob.getItem().get(0);
     OutpatientClaimLine claimLine1 = claim.getLines().get(0);
     Assert.assertEquals(
-        new Integer(claimLine1.getLineNumber().intValue()), new Integer(eobItem0.getSequence()));
+        new Integer(claimLine1.getLineNumber()), new Integer(eobItem0.getSequence()));
 
     Assert.assertEquals(claim.getProviderStateCode(), eobItem0.getLocationAddress().getState());
 

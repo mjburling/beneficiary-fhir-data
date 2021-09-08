@@ -23,6 +23,7 @@ import java.io.StringWriter;
 import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Instant;
@@ -1244,26 +1245,36 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
 
       // Determine which parsing utility method to use.
       String parseUtilsMethodName;
-      if (rifField.getRifColumnType() == RifColumnType.CHAR
-          && rifField.getRifColumnLength().orElse(Integer.MAX_VALUE) > 1) {
-        // Handle a String field.
+      if (rifField.getRifColumnType() == RifColumnType.CHAR) {
+        if (rifField.getRifColumnLength().orElse(Integer.MAX_VALUE) > 1) {
+          // Handle a String field.
+          parseUtilsMethodName =
+              rifField.isRifColumnOptional() ? "parseOptionalString" : "parseString";
+        } else {
+          // Handle a Character field.
+          parseUtilsMethodName =
+              rifField.isRifColumnOptional() ? "parseOptionalCharacter" : "parseCharacter";
+        }
+      } else if (rifField.getRifColumnType() == RifColumnType.BIGINT) {
+        // Handle an BigInteger field.
         parseUtilsMethodName =
-            rifField.isRifColumnOptional() ? "parseOptionalString" : "parseString";
-      } else if (rifField.getRifColumnType() == RifColumnType.CHAR
-          && rifField.getRifColumnLength().orElse(Integer.MAX_VALUE) == 1) {
-        // Handle a Character field.
-        parseUtilsMethodName =
-            rifField.isRifColumnOptional() ? "parseOptionalCharacter" : "parseCharacter";
-      } else if (rifField.getRifColumnType() == RifColumnType.NUM
-          && rifField.getRifColumnScale().orElse(Integer.MAX_VALUE) == 0) {
+            rifField.isRifColumnOptional() ? "parseOptionalBigInteger" : "parseBigInteger";
+      } else if (rifField.getRifColumnType() == RifColumnType.SMALLINT) {
+        // Handle an Short field.
+        parseUtilsMethodName = rifField.isRifColumnOptional() ? "parseOptionalShort" : "parseShort";
+      } else if (rifField.getRifColumnType() == RifColumnType.INTEGER) {
         // Handle an Integer field.
         parseUtilsMethodName =
             rifField.isRifColumnOptional() ? "parseOptionalInteger" : "parseInteger";
-      } else if (rifField.getRifColumnType() == RifColumnType.NUM
-          && rifField.getRifColumnScale().orElse(Integer.MAX_VALUE) > 0) {
-        // Handle a Decimal field.
-        parseUtilsMethodName =
-            rifField.isRifColumnOptional() ? "parseOptionalDecimal" : "parseDecimal";
+      } else if (rifField.getRifColumnType() == RifColumnType.NUM) {
+        if (rifField.getRifColumnScale().orElse(Integer.MAX_VALUE) == 0) {
+          // Handle an Integer field.
+          parseUtilsMethodName =
+              rifField.isRifColumnOptional() ? "parseOptionalInteger" : "parseInteger";
+        } else {
+          parseUtilsMethodName =
+              rifField.isRifColumnOptional() ? "parseOptionalDecimal" : "parseDecimal";
+        }
       } else if (rifField.getRifColumnType() == RifColumnType.DATE) {
         // Handle a LocalDate field.
         parseUtilsMethodName = rifField.isRifColumnOptional() ? "parseOptionalDate" : "parseDate";
@@ -1978,26 +1989,27 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
       boolean isColumnOptional,
       Optional<Integer> columnLength,
       Optional<Integer> columnScale) {
-    if (type == RifColumnType.CHAR
-        && columnLength.orElse(Integer.MAX_VALUE) == 1
-        && !isColumnOptional) return TypeName.CHAR;
-    else if (type == RifColumnType.CHAR
-        && columnLength.orElse(Integer.MAX_VALUE) == 1
-        && isColumnOptional) return ClassName.get(Character.class);
-    else if (type == RifColumnType.CHAR) return ClassName.get(String.class);
-    else if (type == RifColumnType.DATE && columnLength.orElse(0) == 8)
+    if (type == RifColumnType.CHAR) {
+      if (columnLength.orElse(Integer.MAX_VALUE) == 1) {
+        return isColumnOptional ? ClassName.get(Character.class) : TypeName.CHAR;
+      } else {
+        return ClassName.get(String.class);
+      }
+    } else if (type == RifColumnType.DATE) {
       return ClassName.get(LocalDate.class);
-    else if (type == RifColumnType.TIMESTAMP && columnLength.orElse(0) == 20)
+    } else if (type == RifColumnType.TIMESTAMP) {
       return ClassName.get(Instant.class);
-    else if (type == RifColumnType.NUM && columnScale.orElse(Integer.MAX_VALUE) > 0)
-      return ClassName.get(BigDecimal.class);
-    else if (type == RifColumnType.NUM
-        && columnScale.orElse(Integer.MAX_VALUE) == 0
-        && !isColumnOptional) return TypeName.INT;
-    else if (type == RifColumnType.NUM
-        && columnScale.orElse(Integer.MAX_VALUE) == 0
-        && isColumnOptional) return ClassName.get(Integer.class);
-    else throw new IllegalArgumentException("Unhandled field type: " + type.name());
+    } else if (type == RifColumnType.BIGINT) {
+      return ClassName.get(BigInteger.class);
+    } else if (type == RifColumnType.SMALLINT) {
+      return isColumnOptional ? ClassName.get(Short.class) : TypeName.SHORT;
+    } else if (type == RifColumnType.INTEGER) {
+      return isColumnOptional ? ClassName.get(Integer.class) : TypeName.INT;
+    } else if (type == RifColumnType.NUM) {
+      return columnScale.orElse(Integer.MAX_VALUE) > 0
+          ? ClassName.get(BigDecimal.class)
+          : isColumnOptional ? ClassName.get(Integer.class) : TypeName.INT;
+    } else throw new IllegalArgumentException("Unhandled field type: " + type.name());
   }
 
   /**

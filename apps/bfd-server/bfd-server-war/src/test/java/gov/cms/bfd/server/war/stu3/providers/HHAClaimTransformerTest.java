@@ -8,7 +8,6 @@ import gov.cms.bfd.model.rif.samples.StaticRifResource;
 import gov.cms.bfd.model.rif.samples.StaticRifResourceGroup;
 import gov.cms.bfd.server.war.ServerTestUtils;
 import gov.cms.bfd.server.war.commons.MedicareSegment;
-import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -60,7 +59,7 @@ public final class HHAClaimTransformerTest {
         claim.getClaimId(),
         claim.getBeneficiaryId(),
         ClaimType.HHA,
-        claim.getClaimGroupId().toPlainString(),
+        claim.getClaimGroupId(),
         MedicareSegment.PART_B,
         Optional.of(claim.getDateFrom()),
         Optional.of(claim.getDateThrough()),
@@ -106,13 +105,13 @@ public final class HHAClaimTransformerTest {
     TransformerTestUtils.assertBenefitBalanceUsedIntEquals(
         BenefitCategory.MEDICAL,
         CcwCodebookVariable.CLM_HHA_TOT_VISIT_CNT,
-        claim.getTotalVisitCount().intValue(),
+        Integer.valueOf(claim.getTotalVisitCount()),
         eob);
 
     Assert.assertEquals(1, eob.getItem().size());
     ItemComponent eobItem0 = eob.getItem().get(0);
     HHAClaimLine claimLine1 = claim.getLines().get(0);
-    Assert.assertEquals(claimLine1.getLineNumber(), new BigDecimal(eobItem0.getSequence()));
+    Assert.assertEquals(claimLine1.getLineNumber(), eobItem0.getSequence());
 
     Assert.assertEquals(claim.getProviderStateCode(), eobItem0.getLocationAddress().getState());
 

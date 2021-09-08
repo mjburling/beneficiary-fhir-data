@@ -75,7 +75,7 @@ final class DMEClaimTransformerV2 {
         claimGroup.getClaimId(),
         claimGroup.getBeneficiaryId(),
         ClaimTypeV2.DME,
-        claimGroup.getClaimGroupId().toPlainString(),
+        claimGroup.getClaimGroupId(),
         MedicareSegment.PART_A,
         Optional.of(claimGroup.getDateFrom()),
         Optional.of(claimGroup.getDateThrough()),
@@ -169,7 +169,7 @@ final class DMEClaimTransformerV2 {
 
       // Override the default sequence
       // CLM_LINE_NUM => item.sequence
-      item.setSequence(line.getLineNumber().intValue());
+      item.setSequence(line.getLineNumber());
 
       // add an extension for the provider billing number as there is not a good place
       // to map this in the existing FHIR specification
@@ -453,7 +453,7 @@ final class DMEClaimTransformerV2 {
    * @param optVal The {@link BigDecimal} value associated with the ExplanationOfBenefit
    */
   static void addDecimalExtension(
-      ExplanationOfBenefit eob, CcwCodebookVariable ccwVariable, Optional<BigDecimal> optVal) {
+      ExplanationOfBenefit eob, CcwCodebookVariable ccwVariable, Optional<Short> optVal) {
     eob.addExtension(TransformerUtilsV2.createExtensionDate(ccwVariable, optVal));
   }
 }
