@@ -13,9 +13,10 @@ import gov.cms.bfd.model.rda.PreAdjFissClaim;
 import gov.cms.bfd.pipeline.rda.grpc.ProcessingException;
 import gov.cms.bfd.pipeline.rda.grpc.RdaChange;
 import gov.cms.bfd.pipeline.rda.grpc.RdaSink;
-import gov.cms.bfd.pipeline.rda.grpc.server.EmptyClaimSource;
-import gov.cms.bfd.pipeline.rda.grpc.server.JsonClaimSource;
+import gov.cms.bfd.pipeline.rda.grpc.server.EmptyMessageSource;
+import gov.cms.bfd.pipeline.rda.grpc.server.JsonMessageSource;
 import gov.cms.bfd.pipeline.rda.grpc.server.RdaServer;
+import gov.cms.bfd.pipeline.rda.grpc.server.WrappedClaimSource;
 import gov.cms.bfd.pipeline.sharedutils.IdHasher;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -25,6 +26,7 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
@@ -102,8 +104,12 @@ public class GrpcRdaSourceIT {
       final String claimsJson = SOURCE_CLAIM_1 + System.lineSeparator() + SOURCE_CLAIM_2;
       server =
           RdaServer.startLocal(
-              () -> new JsonClaimSource<>(claimsJson, JsonClaimSource::parseFissClaim),
-              EmptyClaimSource::new);
+              sequenceNumber ->
+                  WrappedClaimSource.wrapFissClaims(
+                      new JsonMessageSource<>(claimsJson, JsonMessageSource::parseFissClaim),
+                      clock,
+                      sequenceNumber),
+              EmptyMessageSource.factory());
       final ManagedChannel channel =
           ManagedChannelBuilder.forAddress("localhost", server.getPort())
               .usePlaintext()
@@ -114,7 +120,7 @@ public class GrpcRdaSourceIT {
       FissClaimStreamCaller streamCaller =
           new FissClaimStreamCaller(new FissClaimTransformer(clock, hasher));
       try (GrpcRdaSource<RdaChange<PreAdjFissClaim>> source =
-          new GrpcRdaSource<>(channel, streamCaller, appMetrics)) {
+          new GrpcRdaSource<>(channel, streamCaller, appMetrics, "fiss", Optional.empty())) {
         count = source.retrieveAndProcessObjects(3, sink);
       }
       assertEquals(2, count);
@@ -122,6 +128,7 @@ public class GrpcRdaSourceIT {
       assertEquals(
           "{\n"
               + "  \"dcn\" : \"63843470\",\n"
+              + "  \"sequenceNumber\" : 0,\n"
               + "  \"hicNo\" : \"916689703543\",\n"
               + "  \"currStatus\" : \"P\",\n"
               + "  \"currLoc1\" : \"M\",\n"
@@ -159,12 +166,14 @@ public class GrpcRdaSourceIT {
               + "    \"procFlag\" : \"nli\",\n"
               + "    \"lastUpdated\" : \"2021-06-03T18:02:37Z\"\n"
               + "  } ],\n"
-              + "  \"diagCodes\" : [ ]\n"
+              + "  \"diagCodes\" : [ ],\n"
+              + "  \"payers\" : [ ]\n"
               + "}",
           sink.getValues().get(0));
       assertEquals(
           "{\n"
               + "  \"dcn\" : \"2643602\",\n"
+              + "  \"sequenceNumber\" : 1,\n"
               + "  \"hicNo\" : \"640930211775\",\n"
               + "  \"currStatus\" : \"R\",\n"
               + "  \"currLoc1\" : \"O\",\n"
@@ -197,7 +206,8 @@ public class GrpcRdaSourceIT {
               + "    \"procDate\" : \"2021-05-13\",\n"
               + "    \"lastUpdated\" : \"2021-06-03T18:02:37Z\"\n"
               + "  } ],\n"
-              + "  \"diagCodes\" : [ ]\n"
+              + "  \"diagCodes\" : [ ],\n"
+              + "  \"payers\" : [ ]\n"
               + "}",
           sink.getValues().get(1));
     } finally {

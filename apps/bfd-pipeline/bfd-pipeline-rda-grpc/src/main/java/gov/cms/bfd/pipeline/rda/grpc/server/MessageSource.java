@@ -5,7 +5,7 @@ package gov.cms.bfd.pipeline.rda.grpc.server;
  * database, etc). Mirrors the Iterator protocol but allows for unwrapped exceptions to be passed
  * through to the caller and adds a close() method for proper cleanup.
  */
-public interface ClaimSource<T> extends AutoCloseable {
+public interface MessageSource<T> extends AutoCloseable {
   /**
    * Checks to determine if there is another object available. Always call this before calling
    * next(). A true value here indicates that there is data remaining to be consumed but does not
@@ -27,4 +27,23 @@ public interface ClaimSource<T> extends AutoCloseable {
    *     false
    */
   T next() throws Exception;
+
+  /**
+   * Used when creating random or json based sources to skip past some records to reach a specific
+   * desired sequence number record.
+   *
+   * @param numberToSkip number of records to skip past
+   * @return this source after skipping the records
+   */
+  default MessageSource<T> skip(long numberToSkip) throws Exception {
+    while (numberToSkip-- > 0 && hasNext()) {
+      next();
+    }
+    return this;
+  }
+
+  @FunctionalInterface
+  interface Factory<T> {
+    MessageSource<T> apply(long sequenceNumber) throws Exception;
+  }
 }
