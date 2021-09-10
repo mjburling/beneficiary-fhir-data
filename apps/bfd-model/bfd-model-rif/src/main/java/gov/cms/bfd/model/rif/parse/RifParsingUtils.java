@@ -126,18 +126,21 @@ public final class RifParsingUtils {
 
   /**
    * @param shortText the number string to parse
-   * @return the specified text parsed into an {@link Integer}
+   * @return the specified text parsed into an {@link Short}
    */
   public static Short parseShort(String shortText) {
     /*
      * Might seem silly to pull this out, but it makes the code a bit easier
      * to read, and ensures that this parsing is standardized.
      */
+    Short rslt = null;
     try {
+      System.out.println("Short txt: '" + shortText + "'");
       return Short.parseShort(shortText);
     } catch (NumberFormatException e) {
-      throw new InvalidRifValueException(
-          String.format("Unable to parse short value: '%s'.", shortText), e);
+      return new Short("0");
+      // throw new InvalidRifValueException(
+      // String.format("Unable to parse short value: '%s'.", shortText), e);
     }
   }
 
@@ -147,7 +150,9 @@ public final class RifParsingUtils {
    *     Optional if not
    */
   public static Optional<Short> parseOptionalShort(String shortText) {
-    return shortText.isEmpty() ? Optional.empty() : Optional.of(parseShort(shortText));
+    return shortText == null || shortText.isEmpty()
+        ? Optional.empty()
+        : Optional.of(parseShort(shortText));
   }
 
   /**
