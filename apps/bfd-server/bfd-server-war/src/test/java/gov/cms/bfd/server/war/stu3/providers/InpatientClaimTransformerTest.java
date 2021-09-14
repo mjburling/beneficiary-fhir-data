@@ -10,7 +10,6 @@ import gov.cms.bfd.server.war.ServerTestUtils;
 import gov.cms.bfd.server.war.commons.CCWProcedure;
 import gov.cms.bfd.server.war.commons.Diagnosis;
 import gov.cms.bfd.server.war.commons.MedicareSegment;
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
@@ -197,7 +196,7 @@ public final class InpatientClaimTransformerTest {
     Assert.assertEquals(1, eob.getItem().size());
     ItemComponent eobItem0 = eob.getItem().get(0);
     InpatientClaimLine claimLine1 = claim.getLines().get(0);
-    Assert.assertEquals(claimLine1.getLineNumber(), new BigDecimal(eobItem0.getSequence()));
+    Assert.assertEquals(claimLine1.getLineNumber(), eobItem0.getSequence());
 
     Assert.assertEquals(claim.getProviderStateCode(), eobItem0.getLocationAddress().getState());
 

@@ -436,7 +436,11 @@ public final class TransformerUtilsV2 {
     }
 
     Quantity quantity;
-    if (quantityValue.get() instanceof BigDecimal) {
+    if (quantityValue.get() instanceof Integer) {
+      quantity = new Quantity().setValue((Integer) quantityValue.get());
+    } else if (quantityValue.get() instanceof Short) {
+      quantity = new Quantity().setValue((Short) quantityValue.get());
+    } else if (quantityValue.get() instanceof BigDecimal) {
       quantity = new Quantity().setValue((BigDecimal) quantityValue.get());
     } else {
       throw new BadCodeMonkeyException();
@@ -2656,21 +2660,22 @@ public final class TransformerUtilsV2 {
    *     set.
    */
   static Optional<BenefitComponent> addBenefitBalanceFinancialMedicalInt(
-      ExplanationOfBenefit eob, CcwCodebookInterface financialType, Optional<Object> value) {
+      ExplanationOfBenefit eob, CcwCodebookInterface financialType, Object value) {
 
-    if (value.isPresent()) {
-      UnsignedIntType uint = null;
-      if (value.get() instanceof Integer) {
-        uint = new UnsignedIntType((Integer) value.get());
-      } else if (value.get() instanceof Short) {
-        uint = new UnsignedIntType(((Short) value.get()).intValue());
-      } else if (value.get() instanceof BigDecimal) {
-        uint = new UnsignedIntType(((BigDecimal) value.get()).intValue());
+    UnsignedIntType uint = null;
+    if (value != null) {
+      Object tstVal = value instanceof Optional ? ((Optional) value).get() : value;
+      if (tstVal instanceof Integer) {
+        uint = new UnsignedIntType((Integer) tstVal);
+      } else if (tstVal instanceof Short) {
+        uint = new UnsignedIntType(((Short) tstVal).intValue());
+      } else if (tstVal instanceof BigDecimal) {
+        uint = new UnsignedIntType(((BigDecimal) tstVal).intValue());
       }
-      return addBenefitBalanceFinancialMedicalInt(eob, financialType, uint);
-    } else {
-      return Optional.empty();
     }
+    return uint != null
+        ? addBenefitBalanceFinancialMedicalInt(eob, financialType, uint)
+        : Optional.empty();
   }
 
   /**

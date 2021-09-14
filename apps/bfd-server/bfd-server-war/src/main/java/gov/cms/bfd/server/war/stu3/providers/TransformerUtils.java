@@ -904,9 +904,15 @@ public final class TransformerUtils {
     if (!quantityValue.isPresent()) throw new IllegalArgumentException();
 
     Quantity quantity;
-    if (quantityValue.get() instanceof BigDecimal)
+    if (quantityValue.get() instanceof Integer) {
+      quantity = new Quantity().setValue((Integer) quantityValue.get());
+    } else if (quantityValue.get() instanceof Short) {
+      quantity = new Quantity().setValue((Short) quantityValue.get());
+    } else if (quantityValue.get() instanceof BigDecimal) {
       quantity = new Quantity().setValue((BigDecimal) quantityValue.get());
-    else throw new BadCodeMonkeyException();
+    } else {
+      throw new BadCodeMonkeyException();
+    }
 
     String extensionUrl = calculateVariableReferenceUrl(ccwVariable);
     Extension extension = new Extension(extensionUrl, quantity);

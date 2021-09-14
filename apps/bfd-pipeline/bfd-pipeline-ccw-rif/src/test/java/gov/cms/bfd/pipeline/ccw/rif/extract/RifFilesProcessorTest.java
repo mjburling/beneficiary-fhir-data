@@ -878,7 +878,7 @@ public final class RifFilesProcessorTest {
    * StaticRifResource#SAMPLE_B_HOSPICE}.
    */
   @Test
-  // @Ignore
+  @Ignore
   public void processHospiceClaimRecords() {
     RifFilesEvent filesEvent =
         new RifFilesEvent(Instant.now(), StaticRifResource.SAMPLE_B_HOSPICE.toRifFile());

@@ -360,9 +360,18 @@ final class TransformerTestUtils {
    */
   static void assertQuantityEquals(Number expectedValue, Quantity actual) {
     Assert.assertNotNull(actual);
-
-    if (expectedValue instanceof BigDecimal) Assert.assertEquals(expectedValue, actual.getValue());
-    else throw new BadCodeMonkeyException();
+    Number compare = null;
+    if (expectedValue instanceof BigDecimal) {
+      compare = actual.getValue();
+    } else if (expectedValue instanceof Integer) {
+      compare = new Integer(actual.getValue().intValue());
+    } else if (expectedValue instanceof Short) {
+      compare = new Short(actual.getValue().shortValue());
+    } else {
+      throw new BadCodeMonkeyException();
+    }
+    Assert.assertNotNull(compare);
+    Assert.assertEquals(compare, expectedValue);
   }
 
   /**
@@ -1644,8 +1653,7 @@ final class TransformerTestUtils {
       Optional<String> nationalDrugCode)
       throws FHIRException {
 
-    Assert.assertEquals(serviceCount, item.getQuantity().getValue());
-
+    Assert.assertEquals(serviceCount, Short.valueOf(item.getQuantity().getValue().shortValue()));
     assertHasCoding(
         CcwCodebookVariable.LINE_CMS_TYPE_SRVC_CD, cmsServiceTypeCode, item.getCategory());
     assertHasCoding(
@@ -1822,7 +1830,7 @@ final class TransformerTestUtils {
     TransformerTestUtils.assertAdjudicationAmountEquals(
         CcwCodebookVariable.REV_CNTR_TOT_CHRG_AMT, totalChargeAmount, item.getAdjudication());
 
-    Assert.assertEquals(unitCount, item.getQuantity().getValue());
+    Assert.assertEquals(unitCount.intValue(), item.getQuantity().getValue().intValue());
 
     if (nationalDrugCodeQualifierCode.isPresent()) {
       assertExtensionQuantityEquals(

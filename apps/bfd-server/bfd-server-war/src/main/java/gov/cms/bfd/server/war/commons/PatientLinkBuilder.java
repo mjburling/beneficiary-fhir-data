@@ -113,7 +113,7 @@ public final class PatientLinkBuilder implements LinkBuilder {
 
   private BigInteger extractCursorParam(UriComponents components) {
     String cursorText = components.getQueryParams().getFirst(PARAM_CURSOR);
-    if (cursorText != null && cursorText.length() == 0) return null;
+    if (cursorText == null || cursorText.length() == 0) return null;
     try {
       return new BigInteger(cursorText);
     } catch (NumberFormatException ex) {

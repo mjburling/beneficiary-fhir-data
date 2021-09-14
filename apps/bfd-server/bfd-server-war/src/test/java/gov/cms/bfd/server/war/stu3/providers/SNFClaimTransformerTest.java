@@ -9,7 +9,6 @@ import gov.cms.bfd.model.rif.samples.StaticRifResourceGroup;
 import gov.cms.bfd.server.war.ServerTestUtils;
 import gov.cms.bfd.server.war.commons.CCWProcedure;
 import gov.cms.bfd.server.war.commons.MedicareSegment;
-import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -164,7 +163,7 @@ public final class SNFClaimTransformerTest {
     Assert.assertEquals(1, eob.getItem().size());
     SNFClaimLine claimLine1 = claim.getLines().get(0);
     ItemComponent eobItem0 = eob.getItem().get(0);
-    Assert.assertEquals(claimLine1.getLineNumber(), new BigDecimal(eobItem0.getSequence()));
+    Assert.assertEquals(claimLine1.getLineNumber(), eobItem0.getSequence());
 
     Assert.assertEquals(claim.getProviderStateCode(), eobItem0.getLocationAddress().getState());
 

@@ -74,6 +74,9 @@ public final class InpatientClaimTransformerV2Test {
     claim = generateClaim();
     ExplanationOfBenefit genEob =
         InpatientClaimTransformerV2.transform(new MetricRegistry(), claim, Optional.empty());
+
+    System.out.println(fhirContext.newJsonParser().encodeResourceToString(genEob));
+
     IParser parser = fhirContext.newJsonParser();
     String json = parser.encodeResourceToString(genEob);
     eob = parser.parseResource(ExplanationOfBenefit.class, json);

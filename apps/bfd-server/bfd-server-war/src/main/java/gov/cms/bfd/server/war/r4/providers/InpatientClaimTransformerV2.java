@@ -296,13 +296,11 @@ public class InpatientClaimTransformerV2 {
     TransformerUtilsV2.addBenefitBalanceFinancialMedicalInt(
         eob,
         CcwCodebookVariable.CLM_PPS_CPTL_DRG_WT_NUM,
-        Optional.ofNullable(claimGroup.getClaimPPSCapitalDrgWeightNumber()));
+        claimGroup.getClaimPPSCapitalDrgWeightNumber());
 
     // BENE_LRD_USED_CNT => ExplanationOfBenefit.benefitBalance.financial
     TransformerUtilsV2.addBenefitBalanceFinancialMedicalInt(
-        eob,
-        CcwCodebookVariable.BENE_LRD_USED_CNT,
-        Optional.ofNullable(claimGroup.getLifetimeReservedDaysUsedCount()));
+        eob, CcwCodebookVariable.BENE_LRD_USED_CNT, claimGroup.getLifetimeReservedDaysUsedCount());
 
     // ClaimLine => ExplanationOfBenefit.item
     for (InpatientClaimLine line : claimGroup.getLines()) {

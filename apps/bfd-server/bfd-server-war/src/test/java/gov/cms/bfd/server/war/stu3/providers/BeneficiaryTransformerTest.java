@@ -392,7 +392,8 @@ public final class BeneficiaryTransformerTest {
       Beneficiary beneficiary, Patient patient, RequestHeaders requestHeader) {
     TransformerTestUtils.assertNoEncodedOptionals(patient);
 
-    Assert.assertEquals(beneficiary.getBeneficiaryId(), patient.getIdElement().getIdPart());
+    Assert.assertEquals(
+        beneficiary.getBeneficiaryId().toString(), patient.getIdElement().getIdPart());
 
     Assert.assertEquals(java.sql.Date.valueOf(beneficiary.getBirthDate()), patient.getBirthDate());
 
