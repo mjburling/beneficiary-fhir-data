@@ -55,7 +55,6 @@ import org.hl7.fhir.r4.model.ExplanationOfBenefit;
 import org.hl7.fhir.r4.model.IdType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 
 /**
@@ -347,9 +346,16 @@ public final class R4ExplanationOfBenefitResourceProvider implements IResourcePr
     eobs.sort(R4ExplanationOfBenefitResourceProvider::compareByClaimIdThenClaimType);
 
     // Add bene_id to MDC logs
-    MDC.put("bene_id", beneficiaryId);
+    TransformerUtilsV2.logStringToMDC("bene_id", beneficiaryId);
+    TransformerUtilsV2.logStringToMDC("start_index", startIndex);
+    TransformerUtilsV2.logStringToMDC("exclude_Samhsa", excludeSamhsa);
+    TransformerUtilsV2.logDateRangeParamToMDC("last_updated", lastUpdated);
+    TransformerUtilsV2.logDateRangeParamToMDC("service_date", serviceDate);
 
-    return TransformerUtilsV2.createBundle(paging, eobs, loadedFilterManager.getTransactionTime());
+    Bundle bundle =
+        TransformerUtilsV2.createBundle(paging, eobs, loadedFilterManager.getTransactionTime());
+    TransformerUtilsV2.logIntToMDC("num_of_records", bundle.getTotal());
+    return bundle;
   }
 
   /*

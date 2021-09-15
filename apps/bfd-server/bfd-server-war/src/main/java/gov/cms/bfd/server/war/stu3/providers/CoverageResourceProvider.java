@@ -42,7 +42,6 @@ import org.hl7.fhir.dstu3.model.IdType;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 
 /**
@@ -132,6 +131,8 @@ public final class CoverageResourceProvider implements IResourceProvider {
           new IdDt(Beneficiary.class.getSimpleName(), coverageIdBeneficiaryIdText));
     }
 
+    TransformerUtils.logStringToMDC("coverage_id", coverageId.getValueAsString());
+
     Coverage coverage =
         CoverageTransformer.transform(metricRegistry, coverageIdSegment.get(), beneficiaryEntity);
     return coverage;
@@ -187,10 +188,14 @@ public final class CoverageResourceProvider implements IResourceProvider {
     operation.publishOperationName();
 
     // Add bene_id to MDC logs
-    MDC.put("bene_id", beneficiary.getIdPart());
+    TransformerUtils.logStringToMDC("bene_id", beneficiary.getIdPart());
+    TransformerUtils.logStringToMDC("start_index", startIndex);
+    TransformerUtils.logDateRangeParamToMDC("last_updated", lastUpdated);
 
-    return TransformerUtils.createBundle(
-        paging, coverages, loadedFilterManager.getTransactionTime());
+    Bundle bundle =
+        TransformerUtils.createBundle(paging, coverages, loadedFilterManager.getTransactionTime());
+    TransformerUtils.logIntToMDC("num_of_records", bundle.getTotal());
+    return bundle;
   }
 
   /**

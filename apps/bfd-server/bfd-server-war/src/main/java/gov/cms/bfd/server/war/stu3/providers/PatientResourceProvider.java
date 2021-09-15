@@ -187,7 +187,7 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
     }
 
     // Add bene_id to MDC logs
-    MDC.put("bene_id", beneIdText);
+    TransformerUtils.logStringToMDC("bene_id", beneIdText);
 
     Patient patient = BeneficiaryTransformer.transform(metricRegistry, beneficiary, requestHeader);
     return patient;
@@ -229,7 +229,11 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
     }
     YearMonth ym = YearMonth.of(year, Integer.valueOf(contractMonthValue));
 
-    return searchByCoverageContractAndYearMonth(coverageId, ym.atDay(1), requestDetails);
+    Bundle bundle = searchByCoverageContractAndYearMonth(coverageId, ym.atDay(1), requestDetails);
+    TransformerUtils.logStringToMDC("part_d_id", coverageId.getValueNotNull());
+    TransformerUtils.logTokenParamToMDC("rfrncyr", referenceYear);
+    TransformerUtils.logIntToMDC("num_of_records", bundle.getTotal());
+    return bundle;
   }
 
   /**
@@ -308,6 +312,9 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
     OffsetLinkBuilder paging = new OffsetLinkBuilder(requestDetails, "/Patient?");
     Bundle bundle =
         TransformerUtils.createBundle(paging, patients, loadedFilterManager.getTransactionTime());
+    TransformerUtils.logTokenParamToMDC("bene_id", logicalId);
+    TransformerUtils.logStringToMDC("start_index", startIndex);
+    TransformerUtils.logIntToMDC("num_of_records", bundle.getTotal());
     return bundle;
   }
 

@@ -5,7 +5,10 @@ import ca.uhn.fhir.model.primitive.IdDt;
 import ca.uhn.fhir.parser.DataFormatException;
 import ca.uhn.fhir.rest.api.Constants;
 import ca.uhn.fhir.rest.api.server.RequestDetails;
+import ca.uhn.fhir.rest.param.DateRangeParam;
+import ca.uhn.fhir.rest.param.TokenParam;
 import com.codahale.metrics.MetricRegistry;
+import com.google.common.base.Strings;
 import gov.cms.bfd.model.codebook.data.CcwCodebookMissingVariable;
 import gov.cms.bfd.model.codebook.data.CcwCodebookVariable;
 import gov.cms.bfd.model.codebook.model.CcwCodebookInterface;
@@ -3338,5 +3341,27 @@ public final class TransformerUtils {
         }
       }
     };
+  }
+
+  public static void logStringToMDC(String key, String value) {
+    if (Strings.isNullOrEmpty(key) || Strings.isNullOrEmpty(value)) return;
+
+    MDC.put(key, value);
+  }
+
+  public static void logTokenParamToMDC(String key, TokenParam value) {
+    if (value == null) return;
+
+    logStringToMDC(key, value.getValueNotNull());
+  }
+
+  public static void logDateRangeParamToMDC(String key, DateRangeParam value) {
+    if (value == null) return;
+
+    logStringToMDC(key, value.toString());
+  }
+
+  public static void logIntToMDC(String key, int value) {
+    logStringToMDC(key, String.valueOf(value));
   }
 }
