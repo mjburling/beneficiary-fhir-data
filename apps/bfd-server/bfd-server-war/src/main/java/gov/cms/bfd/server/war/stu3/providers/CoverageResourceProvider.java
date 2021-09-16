@@ -17,6 +17,7 @@ import com.codahale.metrics.Timer;
 import com.newrelic.api.agent.Trace;
 import gov.cms.bfd.model.rif.Beneficiary;
 import gov.cms.bfd.model.rif.Beneficiary_;
+import gov.cms.bfd.server.war.MDCLogger;
 import gov.cms.bfd.server.war.Operation;
 import gov.cms.bfd.server.war.commons.LoadedFilterManager;
 import gov.cms.bfd.server.war.commons.MedicareSegment;
@@ -58,6 +59,7 @@ public final class CoverageResourceProvider implements IResourceProvider {
       Pattern.compile("(\\p{Alnum}+-\\p{Alnum})-(-?\\p{Alnum}+)");
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CoverageResourceProvider.class);
+  private static final MDCLogger MDCLOGGER = MDCLogger.Singleton();
 
   private EntityManager entityManager;
   private MetricRegistry metricRegistry;
@@ -131,7 +133,7 @@ public final class CoverageResourceProvider implements IResourceProvider {
           new IdDt(Beneficiary.class.getSimpleName(), coverageIdBeneficiaryIdText));
     }
 
-    TransformerUtils.logStringToMDC("coverage_id", coverageId.getValueAsString());
+    MDCLOGGER.Log("coverage_id", coverageId.getValueAsString());
 
     Coverage coverage =
         CoverageTransformer.transform(metricRegistry, coverageIdSegment.get(), beneficiaryEntity);
@@ -188,13 +190,13 @@ public final class CoverageResourceProvider implements IResourceProvider {
     operation.publishOperationName();
 
     // Add bene_id to MDC logs
-    TransformerUtils.logStringToMDC("bene_id", beneficiary.getIdPart());
-    TransformerUtils.logStringToMDC("start_index", startIndex);
-    TransformerUtils.logDateRangeParamToMDC("last_updated", lastUpdated);
+    MDCLOGGER.Log("bene_id", beneficiary.getIdPart());
+    MDCLOGGER.Log("start_index", startIndex);
+    MDCLOGGER.Log("last_updated", lastUpdated);
 
     Bundle bundle =
         TransformerUtils.createBundle(paging, coverages, loadedFilterManager.getTransactionTime());
-    TransformerUtils.logIntToMDC("num_of_records", bundle.getTotal());
+    MDCLOGGER.Log("num_of_records", bundle.getTotal());
     return bundle;
   }
 

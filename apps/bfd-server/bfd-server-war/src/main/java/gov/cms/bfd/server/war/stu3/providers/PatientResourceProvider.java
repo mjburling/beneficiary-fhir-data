@@ -24,6 +24,7 @@ import gov.cms.bfd.model.rif.BeneficiaryHistory_;
 import gov.cms.bfd.model.rif.BeneficiaryMonthly;
 import gov.cms.bfd.model.rif.BeneficiaryMonthly_;
 import gov.cms.bfd.model.rif.Beneficiary_;
+import gov.cms.bfd.server.war.MDCLogger;
 import gov.cms.bfd.server.war.Operation;
 import gov.cms.bfd.server.war.commons.CommonHeaders;
 import gov.cms.bfd.server.war.commons.LinkBuilder;
@@ -85,6 +86,8 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
   private EntityManager entityManager;
   private MetricRegistry metricRegistry;
   private LoadedFilterManager loadedFilterManager;
+
+  private static final MDCLogger MDCLOGGER = MDCLogger.Singleton();
 
   /** @param entityManager a JPA {@link EntityManager} connected to the application's database */
   @PersistenceContext
@@ -187,7 +190,7 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
     }
 
     // Add bene_id to MDC logs
-    TransformerUtils.logStringToMDC("bene_id", beneIdText);
+    MDCLOGGER.Log("bene_id", beneIdText);
 
     Patient patient = BeneficiaryTransformer.transform(metricRegistry, beneficiary, requestHeader);
     return patient;
@@ -230,9 +233,9 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
     YearMonth ym = YearMonth.of(year, Integer.valueOf(contractMonthValue));
 
     Bundle bundle = searchByCoverageContractAndYearMonth(coverageId, ym.atDay(1), requestDetails);
-    TransformerUtils.logStringToMDC("part_d_id", coverageId.getValueNotNull());
-    TransformerUtils.logTokenParamToMDC("rfrncyr", referenceYear);
-    TransformerUtils.logIntToMDC("num_of_records", bundle.getTotal());
+    MDCLOGGER.Log("part_d_id", coverageId.getValueNotNull());
+    MDCLOGGER.Log("rfrncyr", referenceYear);
+    MDCLOGGER.Log("num_of_records", bundle.getTotal());
     return bundle;
   }
 
@@ -312,9 +315,9 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
     OffsetLinkBuilder paging = new OffsetLinkBuilder(requestDetails, "/Patient?");
     Bundle bundle =
         TransformerUtils.createBundle(paging, patients, loadedFilterManager.getTransactionTime());
-    TransformerUtils.logTokenParamToMDC("bene_id", logicalId);
-    TransformerUtils.logStringToMDC("start_index", startIndex);
-    TransformerUtils.logIntToMDC("num_of_records", bundle.getTotal());
+    MDCLOGGER.Log("bene_id", logicalId);
+    MDCLOGGER.Log("start_index", startIndex);
+    MDCLOGGER.Log("num_of_records", bundle.getTotal());
     return bundle;
   }
 

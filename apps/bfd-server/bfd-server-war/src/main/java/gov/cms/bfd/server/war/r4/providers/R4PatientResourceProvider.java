@@ -24,6 +24,7 @@ import gov.cms.bfd.model.rif.BeneficiaryHistory_;
 import gov.cms.bfd.model.rif.BeneficiaryMonthly;
 import gov.cms.bfd.model.rif.BeneficiaryMonthly_;
 import gov.cms.bfd.model.rif.Beneficiary_;
+import gov.cms.bfd.server.war.MDCLogger;
 import gov.cms.bfd.server.war.Operation;
 import gov.cms.bfd.server.war.commons.CommonHeaders;
 import gov.cms.bfd.server.war.commons.LinkBuilder;
@@ -83,6 +84,8 @@ public final class R4PatientResourceProvider implements IResourceProvider, Commo
           TransformerConstants.CODING_BBAPI_BENE_MBI_HASH,
           TransformerConstants.CODING_BBAPI_BENE_HICN_HASH,
           TransformerConstants.CODING_BBAPI_BENE_HICN_HASH_OLD);
+
+  private static final MDCLogger MDCLOGGER = MDCLogger.Singleton();
 
   private EntityManager entityManager;
   private MetricRegistry metricRegistry;
@@ -178,7 +181,7 @@ public final class R4PatientResourceProvider implements IResourceProvider, Commo
     }
 
     // Add bene_id to MDC logs
-    TransformerUtilsV2.logStringToMDC("bene_id", beneIdText);
+    MDCLOGGER.Log("bene_id", beneIdText);
 
     return BeneficiaryTransformerV2.transform(metricRegistry, beneficiary, requestHeader);
   }
@@ -259,10 +262,10 @@ public final class R4PatientResourceProvider implements IResourceProvider, Commo
     OffsetLinkBuilder paging = new OffsetLinkBuilder(requestDetails, "/Patient?");
     Bundle bundle =
         TransformerUtilsV2.createBundle(paging, patients, loadedFilterManager.getTransactionTime());
-    TransformerUtilsV2.logTokenParamToMDC("bene_id", logicalId);
-    TransformerUtilsV2.logStringToMDC("start_index", startIndex);
-    TransformerUtilsV2.logDateRangeParamToMDC("last_updated", lastUpdated);
-    TransformerUtilsV2.logIntToMDC("num_of_records", bundle.getTotal());
+    MDCLOGGER.Log("bene_id", logicalId);
+    MDCLOGGER.Log("start_index", startIndex);
+    MDCLOGGER.Log("last_updated", lastUpdated);
+    MDCLOGGER.Log("num_of_records", bundle.getTotal());
     return bundle;
   }
 
@@ -303,9 +306,9 @@ public final class R4PatientResourceProvider implements IResourceProvider, Commo
 
     YearMonth ym = YearMonth.of(year, Integer.valueOf(contractMonthValue));
     Bundle bundle = searchByCoverageContractAndYearMonth(coverageId, ym.atDay(1), requestDetails);
-    TransformerUtilsV2.logStringToMDC("part_d_id", coverageId.getValue());
-    TransformerUtilsV2.logTokenParamToMDC("rfrncyr", referenceYear);
-    TransformerUtilsV2.logIntToMDC("num_of_records", bundle.getTotal());
+    MDCLOGGER.Log("part_d_id", coverageId.getValue());
+    MDCLOGGER.Log("rfrncyr", referenceYear);
+    MDCLOGGER.Log("num_of_records", bundle.getTotal());
     return bundle;
   }
 

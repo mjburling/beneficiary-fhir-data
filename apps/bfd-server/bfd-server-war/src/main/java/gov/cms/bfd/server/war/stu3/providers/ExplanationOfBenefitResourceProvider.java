@@ -21,6 +21,7 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import com.newrelic.api.agent.Trace;
 import gov.cms.bfd.model.rif.Beneficiary;
+import gov.cms.bfd.server.war.MDCLogger;
 import gov.cms.bfd.server.war.Operation;
 import gov.cms.bfd.server.war.commons.LoadedFilterManager;
 import gov.cms.bfd.server.war.commons.OffsetLinkBuilder;
@@ -65,6 +66,7 @@ import org.springframework.stereotype.Component;
 public final class ExplanationOfBenefitResourceProvider implements IResourceProvider {
   private static final Logger LOGGER =
       LoggerFactory.getLogger(ExplanationOfBenefitResourceProvider.class);
+  private static final MDCLogger MDCLOGGER = MDCLogger.Singleton();
 
   /**
    * A {@link Pattern} that will match the {@link ExplanationOfBenefit#getId()}s used in this
@@ -326,15 +328,15 @@ public final class ExplanationOfBenefitResourceProvider implements IResourceProv
     eobs.sort(ExplanationOfBenefitResourceProvider::compareByClaimIdThenClaimType);
 
     // Add bene_id to MDC logs
-    TransformerUtils.logStringToMDC("bene_id", beneficiaryId);
-    TransformerUtils.logStringToMDC("start_index", startIndex);
-    TransformerUtils.logStringToMDC("exclude_Samhsa", excludeSamhsa);
-    TransformerUtils.logDateRangeParamToMDC("last_updated", lastUpdated);
-    TransformerUtils.logDateRangeParamToMDC("service_date", serviceDate);
+    MDCLOGGER.Log("bene_id", beneficiaryId);
+    MDCLOGGER.Log("start_index", startIndex);
+    MDCLOGGER.Log("exclude_Samhsa", excludeSamhsa);
+    MDCLOGGER.Log("last_updated", lastUpdated);
+    MDCLOGGER.Log("service_date", serviceDate);
 
     Bundle bundle =
         TransformerUtils.createBundle(paging, eobs, loadedFilterManager.getTransactionTime());
-    TransformerUtils.logIntToMDC("num_of_records", bundle.getTotal());
+    MDCLOGGER.Log("num_of_records", bundle.getTotal());
 
     return bundle;
   }
