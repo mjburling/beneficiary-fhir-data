@@ -149,7 +149,7 @@ final class BeneficiaryTransformerV2 {
           new HashMap<LocalDate, MedicareBeneficiaryIdHistory>();
 
       for (MedicareBeneficiaryIdHistory mbiHistory :
-          beneficiary.getMedicareBeneficiaryIdHistories()) {
+          beneficiary.getMedicareBeneficiaryidHistory()) {
 
         // if rcd does not have an end date, then it's probably still active
         // and will have been previously provided as the CURRENT rcd.

@@ -150,7 +150,7 @@ public final class HospiceClaimTransformerTest {
         claimLine1.getRateAmount(),
         claimLine1.getTotalChargeAmount(),
         claimLine1.getNonCoveredChargeAmount().get(),
-        claimLine1.getUnitCount(),
+        claimLine1.getUnitCount().get().shortValue(),
         claimControlNumber,
         claimLine1.getNationalDrugCodeQuantity(),
         claimLine1.getNationalDrugCodeQualifierCode(),

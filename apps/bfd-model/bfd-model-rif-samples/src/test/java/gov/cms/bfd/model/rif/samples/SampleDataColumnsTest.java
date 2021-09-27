@@ -115,6 +115,10 @@ public final class SampleDataColumnsTest {
         for (int col = 0; col < columnsInSample.length; col++) {
           String columnNameFromEnum = columnsInEnum[col].name();
           String columnNameFromSample = columnsInSample[col];
+          // we're treating PDE_ID as a claim ID (CLM_ID) in the db schema
+          if (columnNameFromSample.equals("PDE_ID")) {
+            columnNameFromSample = "CLM_ID";
+          }
           Assert.assertEquals(
               String.format(
                   "Unable to match column '%d' from sample data for '%s'.\nSample Columns: %s\nEnum Columns:   %s\n",

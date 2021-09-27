@@ -83,7 +83,7 @@ public final class RifLoaderTest {
     String hicn = "2332j3l2";
     Optional<String> hicnUnhased = Optional.of("323232");
     char sex = 'M';
-    Optional<String> medicareBeneficiaryId = Optional.of("beneficiaryId");
+    Optional<String> medicareBeneficiaryId = Optional.of("somenumber");
     Optional<String> mbiHash = Optional.of("mbiHash");
     Optional<LocalDate> mbiEffectiveDate = Optional.of(LocalDate.of(2020, 1, 1));
     Optional<LocalDate> mbiObsoleteDate = Optional.of(LocalDate.of(2020, 1, 8));

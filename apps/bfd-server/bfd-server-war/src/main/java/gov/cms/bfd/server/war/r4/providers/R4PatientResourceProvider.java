@@ -125,8 +125,9 @@ public final class R4PatientResourceProvider implements IResourceProvider, Commo
     if (patientId == null || patientId.getVersionIdPartAsLong() != null) {
       throw new IllegalArgumentException();
     }
-    String beneIdText = patientId.getIdPart();
-    if (beneIdText == null || beneIdText.trim().isEmpty()) {
+
+    BigInteger beneId = new BigInteger(patientId.getIdPart());
+    if (beneId == null || beneId.longValue() < 1) {
       throw new IllegalArgumentException();
     }
 
@@ -144,10 +145,10 @@ public final class R4PatientResourceProvider implements IResourceProvider, Commo
 
     // commented out as in V2 code;  keep it that way for now
     // if (requestHeader.isMBIinIncludeIdentifiers())
-    root.fetch(Beneficiary_.medicareBeneficiaryIdHistories, JoinType.LEFT);
+    root.fetch(Beneficiary_.medicare_beneficiaryid_history, JoinType.LEFT);
 
     criteria.select(root);
-    criteria.where(builder.equal(root.get(Beneficiary_.beneficiaryId), beneIdText));
+    criteria.where(builder.equal(root.get(Beneficiary_.BENE_ID), beneId));
 
     Beneficiary beneficiary = null;
     Long beneByIdQueryNanoSeconds = null;
@@ -172,7 +173,7 @@ public final class R4PatientResourceProvider implements IResourceProvider, Commo
     }
 
     // Add bene_id to MDC logs
-    MDC.put("bene_id", beneIdText);
+    MDC.put("bene_id", beneId.toString());
 
     return BeneficiaryTransformerV2.transform(metricRegistry, beneficiary, requestHeader);
   }
@@ -471,11 +472,11 @@ public final class R4PatientResourceProvider implements IResourceProvider, Commo
       String field, String value, PatientLinkBuilder paging) {
     if (paging.isPagingRequested() && !paging.isFirstPage()) {
       String query =
-          "select b.beneficiaryId from Beneficiary b "
+          "select b.bene_id from beneficiary b "
               + "where b."
               + field
-              + " = :value and b.beneficiaryId > :cursor "
-              + "order by b.beneficiaryId asc";
+              + " = :value and b.bene_id > :cursor "
+              + "order by b.bene_id asc";
 
       return entityManager
           .createQuery(query, String.class)
@@ -483,11 +484,11 @@ public final class R4PatientResourceProvider implements IResourceProvider, Commo
           .setParameter("cursor", paging.getCursor());
     } else {
       String query =
-          "select b.beneficiaryId from Beneficiary b "
+          "select b.bene_id from beneficiary b "
               + "where b."
               + field
               + " = :value "
-              + "order by b.beneficiaryId asc";
+              + "order by b.bene_id asc";
 
       return entityManager.createQuery(query, String.class).setParameter("value", value);
     }
@@ -510,10 +511,10 @@ public final class R4PatientResourceProvider implements IResourceProvider, Commo
     }
 
     String query =
-        "select distinct b from Beneficiary b "
+        "select distinct b from beneficiary b "
             + joinsClause
-            + "where b.beneficiaryId in :ids "
-            + "order by b.beneficiaryId asc";
+            + "where b.bene_id in :ids "
+            + "order by b.bene_id asc";
     return entityManager
         .createQuery(query, Beneficiary.class)
         .setParameter("ids", ids)
@@ -613,7 +614,11 @@ public final class R4PatientResourceProvider implements IResourceProvider, Commo
   @Trace
   private Patient queryDatabaseByHicnHash(String hicnHash, RequestHeaders requestHeader) {
     return queryDatabaseByHash(
-        hicnHash, "hicn", Beneficiary_.hicn, BeneficiaryHistory_.hicn, requestHeader);
+        hicnHash,
+        "hicn",
+        Beneficiary_.BENE_CRNT_HIC_NUM,
+        BeneficiaryHistory_.BENE_CRNT_HIC_NUM,
+        requestHeader);
   }
 
   /**
@@ -628,7 +633,7 @@ public final class R4PatientResourceProvider implements IResourceProvider, Commo
   @Trace
   private Patient queryDatabaseByMbiHash(String mbiHash, RequestHeaders requestHeader) {
     return queryDatabaseByHash(
-        mbiHash, "mbi", Beneficiary_.mbiHash, BeneficiaryHistory_.mbiHash, requestHeader);
+        mbiHash, "mbi", Beneficiary_.MBI_HASH, BeneficiaryHistory_.MBI_HASH, requestHeader);
   }
 
   /**
@@ -694,7 +699,7 @@ public final class R4PatientResourceProvider implements IResourceProvider, Commo
         beneHistoryMatches.from(BeneficiaryHistory.class);
 
     beneHistoryMatches
-        .select(beneHistoryMatchesRoot.get(BeneficiaryHistory_.beneficiaryId))
+        .select(beneHistoryMatchesRoot.get(BeneficiaryHistory_.BENE_ID))
         .where(builder.equal(beneHistoryMatchesRoot.get(beneficiaryHistoryHashField), hash));
 
     List<BigInteger> matchingIdsFromBeneHistory = null;
@@ -726,7 +731,7 @@ public final class R4PatientResourceProvider implements IResourceProvider, Commo
 
     // BFD379: in original V2, if check is commented out
     if (requestHeader.isMBIinIncludeIdentifiers()) {
-      beneMatchesRoot.fetch(Beneficiary_.medicareBeneficiaryIdHistories, JoinType.LEFT);
+      beneMatchesRoot.fetch(Beneficiary_.medicare_beneficiaryid_history, JoinType.LEFT);
     }
 
     beneMatches.select(beneMatchesRoot);
@@ -735,7 +740,7 @@ public final class R4PatientResourceProvider implements IResourceProvider, Commo
 
     if (matchingIdsFromBeneHistory != null && !matchingIdsFromBeneHistory.isEmpty()) {
       Predicate beneHistoryHashMatches =
-          beneMatchesRoot.get(Beneficiary_.beneficiaryId).in(matchingIdsFromBeneHistory);
+          beneMatchesRoot.get(Beneficiary_.BENE_ID).in(matchingIdsFromBeneHistory);
       beneMatches.where(builder.or(beneHashMatches, beneHistoryHashMatches));
     } else {
       beneMatches.where(beneHashMatches);
@@ -937,20 +942,20 @@ public final class R4PatientResourceProvider implements IResourceProvider, Commo
       LocalDate yearMonth,
       PatientLinkBuilder paging,
       RequestHeaders requestHeader) {
-    String joinsClause = "inner join b.beneficiaryMonthlys bm ";
+    String joinsClause = "inner join b.beneficiary_monthly bm ";
     boolean passDistinctThrough = false;
     if (requestHeader.isMBIinIncludeIdentifiers()) {
-      joinsClause += "left join fetch b.medicareBeneficiaryIdHistories ";
+      joinsClause += "left join fetch b.medicare_beneficiaryid_history ";
     }
 
     if (paging.isPagingRequested() && !paging.isFirstPage()) {
       String query =
-          "select distinct b from Beneficiary b "
+          "select distinct b from beneficiary b "
               + joinsClause
-              + "where bm.partDContractNumberId = :contractCode and "
-              + "bm.yearMonth = :yearMonth "
-              + "and b.beneficiaryId > :cursor "
-              + "order by b.beneficiaryId asc";
+              + "where bm.partd_contract_number_id = :contractCode and "
+              + "bm.year_month = :yearMonth "
+              + "and b.bene_id > :cursor "
+              + "order by b.bene_id asc";
 
       return entityManager
           .createQuery(query, Beneficiary.class)
@@ -960,11 +965,11 @@ public final class R4PatientResourceProvider implements IResourceProvider, Commo
           .setHint("hibernate.query.passDistinctThrough", passDistinctThrough);
     } else {
       String query =
-          "select distinct b from Beneficiary b "
+          "select distinct b from beneficiary b "
               + joinsClause
-              + "where bm.partDContractNumberId = :contractCode and "
-              + "bm.yearMonth = :yearMonth "
-              + "order by b.beneficiaryId asc";
+              + "where bm.partd_contract_number_id = :contractCode and "
+              + "bm.year_month = :yearMonth "
+              + "order by b.bene_id asc";
 
       return entityManager
           .createQuery(query, Beneficiary.class)
@@ -986,10 +991,10 @@ public final class R4PatientResourceProvider implements IResourceProvider, Commo
       String contractCode, LocalDate yearMonth, PatientLinkBuilder paging) {
     if (paging.isPagingRequested() && !paging.isFirstPage()) {
       String query =
-          "select b.beneficiaryId from Beneficiary b inner join b.beneficiaryMonthlys bm "
-              + "where bm.partDContractNumberId = :contractCode and "
-              + "bm.yearMonth = :yearMonth and b.beneficiaryId > :cursor "
-              + "order by b.beneficiaryId asc";
+          "select b.bene_id from beneficiary b inner join b.beneficiary_monthly bm "
+              + "where bm.partd_contract_number_id = :contractCode and "
+              + "bm.year_month = :yearMonth and b.bene_id > :cursor "
+              + "order by b.bene_id asc";
 
       return entityManager
           .createQuery(query, String.class)
@@ -998,10 +1003,10 @@ public final class R4PatientResourceProvider implements IResourceProvider, Commo
           .setParameter("cursor", paging.getCursor());
     } else {
       String query =
-          "select b.beneficiaryId from Beneficiary b inner join b.beneficiaryMonthlys bm "
-              + "where bm.partDContractNumberId = :contractCode and "
-              + "bm.yearMonth = :yearMonth "
-              + "order by b.beneficiaryId asc";
+          "select b.bene_id from Beneficiary b inner join b.beneficiary_monthly bm "
+              + "where bm.partd_contract_number_id = :contractCode and "
+              + "bm.year_month = :yearMonth "
+              + "order by b.bene_id asc";
 
       return entityManager
           .createQuery(query, String.class)
@@ -1019,17 +1024,17 @@ public final class R4PatientResourceProvider implements IResourceProvider, Commo
    */
   private TypedQuery<Beneficiary> queryBeneficiariesByIdsWithBeneficiaryMonthlys(
       List<String> ids, RequestHeaders requestHeader) {
-    String joinsClause = "inner join b.beneficiaryMonthlys bm ";
+    String joinsClause = "inner join b.beneficiary_monthly bm ";
     boolean passDistinctThrough = false;
     if (requestHeader.isMBIinIncludeIdentifiers()) {
-      joinsClause += "left join fetch b.medicareBeneficiaryIdHistories ";
+      joinsClause += "left join fetch b.medicare_beneficiaryid_history ";
     }
 
     String query =
-        "select distinct b from Beneficiary b "
+        "select distinct b from beneficiary b "
             + joinsClause
-            + "where b.beneficiaryId in :ids "
-            + "order by b.beneficiaryId asc";
+            + "where b.bene_id in :ids "
+            + "order by b.bene_id asc";
     return entityManager
         .createQuery(query, Beneficiary.class)
         .setParameter("ids", ids)

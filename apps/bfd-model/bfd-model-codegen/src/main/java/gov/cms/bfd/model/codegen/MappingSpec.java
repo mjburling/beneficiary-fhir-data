@@ -196,9 +196,10 @@ public final class MappingSpec {
 
     for (int fieldIndex = 0; fieldIndex < rifLayout.getRifFields().size(); fieldIndex++) {
       RifField field = rifLayout.getRifFields().get(fieldIndex);
-      if (field.getJavaFieldName().equals(getLineEntityLineNumberField())) return fieldIndex;
+      if (field.getJavaFieldName().equalsIgnoreCase(getLineEntityLineNumberField())) {
+        return fieldIndex;
+      }
     }
-
     throw new IllegalStateException();
   }
 
@@ -251,7 +252,7 @@ public final class MappingSpec {
    */
   public String getLineEntityParentField() {
     if (!hasLines) throw new IllegalStateException();
-    return "parentClaim";
+    return "parent_claim";
   }
 
   /**
@@ -261,7 +262,7 @@ public final class MappingSpec {
    */
   public String getBeneficiaryMonthlyEntityParentField() {
     if (!hasBeneficiaryMonthly) throw new IllegalStateException();
-    return "parentBeneficiary";
+    return "parent_beneficiary";
   }
 
   /**
@@ -279,7 +280,7 @@ public final class MappingSpec {
    */
   public String getEntityBeneficiaryMonthlyField() {
     if (!hasBeneficiaryMonthly) throw new IllegalStateException();
-    return "yearMonth";
+    return "year_month";
   }
 
   /** @return the fields in {@link #getHeaderEntity()} that should be marked as {@link Transient} */
@@ -333,23 +334,22 @@ public final class MappingSpec {
   /** @see java.lang.Object#toString() */
   @Override
   public String toString() {
-    StringBuilder builder = new StringBuilder();
-    builder.append("MappingSpec [packageName=");
-    builder.append(packageName);
-    builder.append(", rifLayout=");
-    builder.append(rifLayout);
-    builder.append(", headerEntity=");
-    builder.append(headerEntity);
-    builder.append(", headerTable=");
-    builder.append(headerTable);
-    builder.append(", headerEntityIdField=");
-    builder.append(headerEntityIdField);
-    builder.append(", hasLines=");
-    builder.append(hasLines);
-    builder.append(", lineTable=");
-    builder.append(lineTable);
-    builder.append("]");
-    return builder.toString();
+    StringBuilder sb = new StringBuilder();
+    sb.append("MappingSpec [packageName=")
+        .append(packageName)
+        .append(", headerEntity=")
+        .append(headerEntity)
+        .append(", headerTable=")
+        .append(headerTable)
+        .append(", headerEntityIdField=")
+        .append(headerEntityIdField)
+        .append(", hasLines=")
+        .append(hasLines)
+        .append(", lineTable=")
+        .append(lineTable)
+        .append("]");
+
+    return sb.toString();
   }
 
   /**

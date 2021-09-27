@@ -213,7 +213,7 @@ public final class R4CoverageResourceProvider implements IResourceProvider {
     Root<Beneficiary> root = criteria.from(Beneficiary.class);
     root.fetch(Beneficiary_.beneficiaryMonthlys, JoinType.LEFT);
     criteria.select(root);
-    Predicate wherePredicate = builder.equal(root.get(Beneficiary_.beneficiaryId), beneficiaryId);
+    Predicate wherePredicate = builder.equal(root.get(Beneficiary_.BENE_ID), beneficiaryId);
     if (lastUpdatedRange != null) {
       Predicate predicate = QueryUtils.createLastUpdatedPredicate(builder, root, lastUpdatedRange);
       wherePredicate = builder.and(wherePredicate, predicate);

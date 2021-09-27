@@ -281,8 +281,8 @@ public final class BeneficiaryTransformerTest {
             .map(r -> (BeneficiaryHistory) r)
             .filter(r -> beneficiary.getBeneficiaryId().equals(r.getBeneficiaryId()))
             .collect(Collectors.toSet());
-    beneficiary.getBeneficiaryHistories().addAll(beneficiaryHistories);
-    for (BeneficiaryHistory beneficiaryHistory : beneficiary.getBeneficiaryHistories()) {
+    beneficiary.getBeneficiariesHistory().addAll(beneficiaryHistories);
+    for (BeneficiaryHistory beneficiaryHistory : beneficiary.getBeneficiariesHistory()) {
       beneficiaryHistory.setHicnUnhashed(Optional.of(beneficiaryHistory.getHicn()));
       beneficiaryHistory.setHicn("someHICNhash");
     }
@@ -294,7 +294,7 @@ public final class BeneficiaryTransformerTest {
             .map(r -> (MedicareBeneficiaryIdHistory) r)
             .filter(r -> beneficiary.getBeneficiaryId().equals(r.getBeneficiaryId().orElse(null)))
             .collect(Collectors.toSet());
-    beneficiary.getMedicareBeneficiaryIdHistories().addAll(beneficiaryMbis);
+    beneficiary.getMedicareBeneficiaryidHistory().addAll(beneficiaryMbis);
 
     return beneficiary;
   }

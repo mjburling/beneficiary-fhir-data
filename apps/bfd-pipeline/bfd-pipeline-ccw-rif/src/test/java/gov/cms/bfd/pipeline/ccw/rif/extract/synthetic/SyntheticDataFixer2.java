@@ -343,8 +343,8 @@ public final class SyntheticDataFixer2 {
             List<String> recordValues = new LinkedList<>();
             for (String value : r) recordValues.add(value);
 
-            // Make the PDE_ID negative.
-            makeColumnNegative(recordValues, PartDEventColumn.PDE_ID);
+            // Make the CLM_ID negative.
+            makeColumnNegative(recordValues, PartDEventColumn.CLM_ID);
 
             // Make the BENE_ID negative.
             makeColumnNegative(recordValues, PartDEventColumn.BENE_ID);

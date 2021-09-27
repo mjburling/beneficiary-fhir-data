@@ -228,7 +228,7 @@ final class HospiceClaimTransformer {
           claimLine.getRateAmount(),
           claimLine.getTotalChargeAmount(),
           claimLine.getNonCoveredChargeAmount().get(),
-          claimLine.getUnitCount(),
+          claimLine.getUnitCount().isPresent() ? claimLine.getUnitCount().get().shortValue() : 0,
           claimLine.getNationalDrugCodeQuantity(),
           claimLine.getNationalDrugCodeQualifierCode(),
           claimLine.getRevenueCenterRenderingPhysicianNPI());

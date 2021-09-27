@@ -555,8 +555,7 @@ public final class RifLoader {
       root.fetch(Beneficiary_.beneficiaryMonthlys, JoinType.LEFT);
       criteria.select(root);
       criteria.where(
-          builder.equal(
-              root.get(Beneficiary_.beneficiaryId), newBeneficiaryRecord.getBeneficiaryId()));
+          builder.equal(root.get(Beneficiary_.BENE_ID), newBeneficiaryRecord.getBeneficiaryId()));
 
       oldBeneficiaryRecord =
           Optional.ofNullable(entityManager.createQuery(criteria).getSingleResult());

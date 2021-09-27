@@ -133,14 +133,11 @@ public final class RifParsingUtils {
      * Might seem silly to pull this out, but it makes the code a bit easier
      * to read, and ensures that this parsing is standardized.
      */
-    Short rslt = null;
     try {
-      System.out.println("Short txt: '" + shortText + "'");
       return Short.parseShort(shortText);
     } catch (NumberFormatException e) {
-      return new Short("0");
-      // throw new InvalidRifValueException(
-      // String.format("Unable to parse short value: '%s'.", shortText), e);
+      throw new InvalidRifValueException(
+          String.format("Unable to parse short value: '%s'.", shortText), e);
     }
   }
 

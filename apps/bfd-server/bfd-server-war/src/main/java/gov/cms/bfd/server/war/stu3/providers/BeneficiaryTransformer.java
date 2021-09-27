@@ -152,7 +152,7 @@ final class BeneficiaryTransformer {
             currentIdentifier);
 
       List<String> unhashedHicns = new ArrayList<String>();
-      for (BeneficiaryHistory beneHistory : beneficiary.getBeneficiaryHistories()) {
+      for (BeneficiaryHistory beneHistory : beneficiary.getBeneficiariesHistory()) {
         Optional<String> hicnUnhashedHistoric = beneHistory.getHicnUnhashed();
         if (hicnUnhashedHistoric.isPresent()) unhashedHicns.add(hicnUnhashedHistoric.get());
         TransformerUtils.updateMaxLastUpdated(patient, beneHistory.getLastUpdated());
@@ -181,7 +181,7 @@ final class BeneficiaryTransformer {
 
       List<String> unhashedMbis = new ArrayList<String>();
       for (MedicareBeneficiaryIdHistory mbiHistory :
-          beneficiary.getMedicareBeneficiaryIdHistories()) {
+          beneficiary.getMedicareBeneficiaryidHistory()) {
         Optional<String> mbiUnhashedHistoric = mbiHistory.getMedicareBeneficiaryId();
         if (mbiUnhashedHistoric.isPresent()) unhashedMbis.add(mbiUnhashedHistoric.get());
         TransformerUtils.updateMaxLastUpdated(patient, mbiHistory.getLastUpdated());

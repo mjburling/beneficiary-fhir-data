@@ -146,13 +146,13 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
     Root<Beneficiary> root = criteria.from(Beneficiary.class);
 
     if (requestHeader.isHICNinIncludeIdentifiers())
-      root.fetch(Beneficiary_.beneficiaryHistories, JoinType.LEFT);
+      root.fetch(Beneficiary_.beneficiaries_history, JoinType.LEFT);
 
     if (requestHeader.isMBIinIncludeIdentifiers())
-      root.fetch(Beneficiary_.medicareBeneficiaryIdHistories, JoinType.LEFT);
+      root.fetch(Beneficiary_.medicare_beneficiaryid_history, JoinType.LEFT);
 
     criteria.select(root);
-    criteria.where(builder.equal(root.get(Beneficiary_.beneficiaryId), beneIdText));
+    criteria.where(builder.equal(root.get(Beneficiary_.BENE_ID), beneIdText));
 
     Beneficiary beneficiary = null;
     Long beneByIdQueryNanoSeconds = null;
@@ -453,8 +453,9 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
     Root<BeneficiaryMonthly> beneMonthlyRoot = beneCountCriteria.from(BeneficiaryMonthly.class);
     beneCountCriteria.select(builder.count(beneMonthlyRoot));
     beneCountCriteria.where(
-        builder.equal(beneMonthlyRoot.get(BeneficiaryMonthly_.yearMonth), yearMonth),
-        builder.equal(beneMonthlyRoot.get(BeneficiaryMonthly_.partDContractNumberId), contractId));
+        builder.equal(beneMonthlyRoot.get(BeneficiaryMonthly_.year_month), yearMonth),
+        builder.equal(
+            beneMonthlyRoot.get(BeneficiaryMonthly_.partd_contract_number_id), contractId));
 
     // Run the query and return the results.
     Optional<Long> matchingBeneCount = Optional.empty();
@@ -496,27 +497,27 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
     Root<BeneficiaryMonthly> beneMonthlyRoot = beneIdCriteria.from(BeneficiaryMonthly.class);
 
     beneIdCriteria.select(
-        beneMonthlyRoot.get(BeneficiaryMonthly_.parentBeneficiary).get(Beneficiary_.beneficiaryId));
+        beneMonthlyRoot.get(BeneficiaryMonthly_.parent_beneficiary).get(Beneficiary_.BENE_ID));
 
     List<Predicate> wherePredicates = new ArrayList<>();
     wherePredicates.add(
-        builder.equal(beneMonthlyRoot.get(BeneficiaryMonthly_.yearMonth), yearMonth));
+        builder.equal(beneMonthlyRoot.get(BeneficiaryMonthly_.year_month), yearMonth));
     wherePredicates.add(
-        builder.equal(beneMonthlyRoot.get(BeneficiaryMonthly_.partDContractNumberId), contractId));
+        builder.equal(
+            beneMonthlyRoot.get(BeneficiaryMonthly_.partd_contract_number_id), contractId));
 
     if (paging.isPagingRequested() && !paging.isFirstPage()) {
       wherePredicates.add(
           builder.greaterThan(
-              beneMonthlyRoot
-                  .get(BeneficiaryMonthly_.parentBeneficiary)
-                  .get(Beneficiary_.beneficiaryId),
+              beneMonthlyRoot.get(BeneficiaryMonthly_.parent_beneficiary).get(Beneficiary_.BENE_ID),
               paging.getCursor()));
     }
 
     beneIdCriteria.where(
         builder.and(wherePredicates.toArray(new Predicate[wherePredicates.size()])));
 
-    beneIdCriteria.orderBy(builder.asc(beneMonthlyRoot.get(BeneficiaryMonthly_.parentBeneficiary)));
+    beneIdCriteria.orderBy(
+        builder.asc(beneMonthlyRoot.get(BeneficiaryMonthly_.parent_beneficiary)));
 
     // Run the query and return the results.
     List<BigInteger> matchingBeneIds = null;
@@ -558,8 +559,8 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
     CriteriaBuilder builder = entityManager.getCriteriaBuilder();
     CriteriaQuery<Beneficiary> beneCriteria = builder.createQuery(Beneficiary.class).distinct(true);
     Root<Beneficiary> beneRoot = beneCriteria.from(Beneficiary.class);
-    beneRoot.fetch(Beneficiary_.medicareBeneficiaryIdHistories, JoinType.LEFT);
-    beneCriteria.where(beneRoot.get(Beneficiary_.beneficiaryId).in(ids));
+    beneRoot.fetch(Beneficiary_.medicare_beneficiaryid_history, JoinType.LEFT);
+    beneCriteria.where(beneRoot.get(Beneficiary_.BENE_ID).in(ids));
 
     // Run the query and return the results.
     List<Beneficiary> matchingBenes = null;
@@ -683,7 +684,11 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
   @Trace
   private Patient queryDatabaseByHicnHash(String hicnHash, RequestHeaders requestHeader) {
     return queryDatabaseByHash(
-        hicnHash, "hicn", Beneficiary_.hicn, BeneficiaryHistory_.hicn, requestHeader);
+        hicnHash,
+        "hicn",
+        Beneficiary_.BENE_CRNT_HIC_NUM,
+        BeneficiaryHistory_.BENE_CRNT_HIC_NUM,
+        requestHeader);
   }
 
   /**
@@ -698,7 +703,7 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
   @Trace
   private Patient queryDatabaseByMbiHash(String mbiHash, RequestHeaders requestHeader) {
     return queryDatabaseByHash(
-        mbiHash, "mbi", Beneficiary_.mbiHash, BeneficiaryHistory_.mbiHash, requestHeader);
+        mbiHash, "mbi", Beneficiary_.MBI_HASH, BeneficiaryHistory_.MBI_HASH, requestHeader);
   }
 
   /**
@@ -761,7 +766,7 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
     Root<BeneficiaryHistory> beneHistoryMatchesRoot =
         beneHistoryMatches.from(BeneficiaryHistory.class);
 
-    beneHistoryMatches.select(beneHistoryMatchesRoot.get(BeneficiaryHistory_.beneficiaryId));
+    beneHistoryMatches.select(beneHistoryMatchesRoot.get(BeneficiaryHistory_.BENE_ID));
     beneHistoryMatches.where(
         builder.equal(beneHistoryMatchesRoot.get(beneficiaryHistoryHashField), hash));
 
@@ -793,16 +798,16 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
     Root<Beneficiary> beneMatchesRoot = beneMatches.from(Beneficiary.class);
 
     if (requestHeader.isHICNinIncludeIdentifiers())
-      beneMatchesRoot.fetch(Beneficiary_.beneficiaryHistories, JoinType.LEFT);
+      beneMatchesRoot.fetch(Beneficiary_.beneficiaries_history, JoinType.LEFT);
 
     if (requestHeader.isMBIinIncludeIdentifiers())
-      beneMatchesRoot.fetch(Beneficiary_.medicareBeneficiaryIdHistories, JoinType.LEFT);
+      beneMatchesRoot.fetch(Beneficiary_.medicare_beneficiaryid_history, JoinType.LEFT);
 
     beneMatches.select(beneMatchesRoot);
     Predicate beneHashMatches = builder.equal(beneMatchesRoot.get(beneficiaryHashField), hash);
     if (matchingIdsFromBeneHistory != null && !matchingIdsFromBeneHistory.isEmpty()) {
       Predicate beneHistoryHashMatches =
-          beneMatchesRoot.get(Beneficiary_.beneficiaryId).in(matchingIdsFromBeneHistory);
+          beneMatchesRoot.get(Beneficiary_.BENE_ID).in(matchingIdsFromBeneHistory);
       beneMatches.where(builder.or(beneHashMatches, beneHistoryHashMatches));
     } else {
       beneMatches.where(beneHashMatches);

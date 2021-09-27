@@ -704,17 +704,19 @@ public final class RifLoaderIT {
               .select(from)
               .where(
                   criteriaBuilder.equal(
-                      from.get(BeneficiaryHistory_.beneficiaryId),
+                      from.get(BeneficiaryHistory_.BENE_ID),
                       beneficiaryHistoryToFind.getBeneficiaryId()),
                   criteriaBuilder.equal(
-                      from.get(BeneficiaryHistory_.birthDate),
+                      from.get(BeneficiaryHistory_.BENE_BIRTH_DT),
                       beneficiaryHistoryToFind.getBirthDate()),
                   criteriaBuilder.equal(
-                      from.get(BeneficiaryHistory_.sex), beneficiaryHistoryToFind.getSex()),
+                      from.get(BeneficiaryHistory_.BENE_SEX_IDENT_CD),
+                      beneficiaryHistoryToFind.getSex()),
                   criteriaBuilder.equal(
-                      from.get(BeneficiaryHistory_.hicn), beneficiaryHistoryToFind.getHicn()),
+                      from.get(BeneficiaryHistory_.BENE_CRNT_HIC_NUM),
+                      beneficiaryHistoryToFind.getHicn()),
                   criteriaBuilder.equal(
-                      from.get(BeneficiaryHistory_.mbiHash),
+                      from.get(BeneficiaryHistory_.MBI_HASH),
                       beneficiaryHistoryToFind.getMbiHash().orElse(null)));
 
           List<BeneficiaryHistory> beneficiaryHistoryFound =

@@ -39,63 +39,63 @@ import org.hl7.fhir.r4.model.ExplanationOfBenefit;
 public enum ClaimTypeV2 {
   CARRIER(
       CarrierClaim.class,
-      CarrierClaim_.claimId,
-      CarrierClaim_.beneficiaryId,
+      CarrierClaim_.CLM_ID,
+      CarrierClaim_.BENE_ID,
       (entity) -> ((CarrierClaim) entity).getDateThrough(),
       CarrierClaimTransformerV2::transform,
       CarrierClaim_.lines),
 
   DME(
       DMEClaim.class,
-      DMEClaim_.claimId,
-      DMEClaim_.beneficiaryId,
+      DMEClaim_.CLM_ID,
+      DMEClaim_.BENE_ID,
       (entity) -> ((DMEClaim) entity).getDateThrough(),
       DMEClaimTransformerV2::transform,
       DMEClaim_.lines),
 
   PDE(
       PartDEvent.class,
-      PartDEvent_.claimId,
-      PartDEvent_.beneficiaryId,
+      PartDEvent_.CLM_ID,
+      PartDEvent_.BENE_ID,
       (entity) -> ((PartDEvent) entity).getPrescriptionFillDate(),
       PartDEventTransformerV2::transform),
 
   INPATIENT(
       InpatientClaim.class,
-      InpatientClaim_.claimId,
-      InpatientClaim_.beneficiaryId,
+      InpatientClaim_.CLM_ID,
+      InpatientClaim_.BENE_ID,
       (entity) -> ((InpatientClaim) entity).getDateThrough(),
       InpatientClaimTransformerV2::transform,
       InpatientClaim_.lines),
 
   OUTPATIENT(
       OutpatientClaim.class,
-      OutpatientClaim_.claimId,
-      OutpatientClaim_.beneficiaryId,
+      OutpatientClaim_.CLM_ID,
+      OutpatientClaim_.BENE_ID,
       (entity) -> ((OutpatientClaim) entity).getDateThrough(),
       OutpatientClaimTransformerV2::transform,
       OutpatientClaim_.lines),
 
   HOSPICE(
       HospiceClaim.class,
-      HospiceClaim_.claimId,
-      HospiceClaim_.beneficiaryId,
+      HospiceClaim_.CLM_ID,
+      HospiceClaim_.BENE_ID,
       (entity) -> ((HospiceClaim) entity).getDateThrough(),
       HospiceClaimTransformerV2::transform,
       HospiceClaim_.lines),
 
   SNF(
       SNFClaim.class,
-      SNFClaim_.claimId,
-      SNFClaim_.beneficiaryId,
+      SNFClaim_.CLM_ID,
+      SNFClaim_.BENE_ID,
       (entity) -> ((SNFClaim) entity).getDateThrough(),
       SNFClaimTransformerV2::transform,
       SNFClaim_.lines),
 
   HHA(
       HHAClaim.class,
-      HHAClaim_.claimId,
-      HHAClaim_.beneficiaryId,
+      HHAClaim_.CLM_ID,
+      HHAClaim_.BENE_ID,
       (entity) -> ((HHAClaim) entity).getDateThrough(),
       HHAClaimTransformerV2::transform,
       HHAClaim_.lines);

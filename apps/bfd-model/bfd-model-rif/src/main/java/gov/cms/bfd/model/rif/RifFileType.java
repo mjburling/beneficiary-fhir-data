@@ -21,7 +21,7 @@ public enum RifFileType {
 
   OUTPATIENT(OutpatientClaimColumn.class, OutpatientClaimColumn.CLM_ID),
 
-  PDE(PartDEventColumn.class, PartDEventColumn.PDE_ID),
+  PDE(PartDEventColumn.class, PartDEventColumn.CLM_ID),
 
   SNF(SNFClaimColumn.class, SNFClaimColumn.CLM_ID);
 

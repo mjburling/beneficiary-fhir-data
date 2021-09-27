@@ -286,6 +286,11 @@ public final class RifLayout {
     public String getJavaFieldName() {
       return javaFieldName;
     }
+
+    @Override
+    public String toString() {
+      return String.format("RifField [ %0$35s : %1$35s ]", rifColumnName, javaFieldName);
+    }
   }
 
   /** Enumerates the various RIF column types. */

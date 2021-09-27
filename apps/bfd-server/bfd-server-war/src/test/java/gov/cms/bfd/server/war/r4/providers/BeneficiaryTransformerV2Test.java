@@ -77,7 +77,7 @@ public final class BeneficiaryTransformerV2Test {
             .filter(r -> beneficiary.getBeneficiaryId().equals(r.getBeneficiaryId()))
             .collect(Collectors.toSet());
 
-    beneficiary.getBeneficiaryHistories().addAll(beneficiaryHistories);
+    beneficiary.getBeneficiariesHistory().addAll(beneficiaryHistories);
 
     // Add the MBI history records to the Beneficiary.
     Set<MedicareBeneficiaryIdHistory> beneficiaryMbis =
@@ -86,7 +86,7 @@ public final class BeneficiaryTransformerV2Test {
             .map(r -> (MedicareBeneficiaryIdHistory) r)
             .filter(r -> beneficiary.getBeneficiaryId().equals(r.getBeneficiaryId().orElse(null)))
             .collect(Collectors.toSet());
-    beneficiary.getMedicareBeneficiaryIdHistories().addAll(beneficiaryMbis);
+    beneficiary.getMedicareBeneficiaryidHistory().addAll(beneficiaryMbis);
     assertThat(beneficiary, is(notNullValue()));
 
     createPatient(RequestHeaders.getHeaderWrapper());
