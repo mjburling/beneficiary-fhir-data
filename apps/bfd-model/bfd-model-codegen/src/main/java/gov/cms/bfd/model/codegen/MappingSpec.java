@@ -252,7 +252,7 @@ public final class MappingSpec {
    */
   public String getLineEntityParentField() {
     if (!hasLines) throw new IllegalStateException();
-    return "parent_claim";
+    return "PARENT_CLAIM";
   }
 
   /**
@@ -262,7 +262,7 @@ public final class MappingSpec {
    */
   public String getBeneficiaryMonthlyEntityParentField() {
     if (!hasBeneficiaryMonthly) throw new IllegalStateException();
-    return "parent_beneficiary";
+    return "PARENT_BENEFICIARY";
   }
 
   /**
@@ -271,6 +271,7 @@ public final class MappingSpec {
    */
   public String getLineEntityLineNumberField() {
     if (!hasLines) throw new IllegalStateException();
+    // use Java field name since there is no uniformity among column names for line #
     return "lineNumber";
   }
 
@@ -280,7 +281,7 @@ public final class MappingSpec {
    */
   public String getEntityBeneficiaryMonthlyField() {
     if (!hasBeneficiaryMonthly) throw new IllegalStateException();
-    return "year_month";
+    return "YEAR_MONTH";
   }
 
   /** @return the fields in {@link #getHeaderEntity()} that should be marked as {@link Transient} */

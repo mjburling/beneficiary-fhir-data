@@ -282,14 +282,14 @@ public final class RifLayout {
       return rifColumnLabel;
     }
 
-    /** @return the name of the JPA <code>Entity</code> field to store this RIF column's data in */
+    /** @return the (camel case) name used with getter/setter in JPA <code>Entity</code> */
     public String getJavaFieldName() {
       return javaFieldName;
     }
 
     @Override
     public String toString() {
-      return String.format("RifField [ %0$35s : %1$35s ]", rifColumnName, javaFieldName);
+      return "RifField [ db column: " + rifColumnName + ",  java name: " + javaFieldName;
     }
   }
 

@@ -393,7 +393,7 @@ public class LoadedFilterManager {
   private Optional<Instant> fetchLastLoadedBatchCreated() {
     Instant maxCreated =
         entityManager
-            .createQuery("select max(b.created) from LoadedBatch b", Instant.class)
+            .createQuery("select max(b.created) from loaded_batches b", Instant.class)
             .getSingleResult();
     return Optional.ofNullable(maxCreated);
   }
@@ -406,7 +406,7 @@ public class LoadedFilterManager {
   private Optional<Instant> fetchFirstLoadedBatchCreated() {
     Instant minBatchId =
         entityManager
-            .createQuery("select min(b.created) from LoadedBatch b", Instant.class)
+            .createQuery("select min(b.created) from loaded_batches b", Instant.class)
             .getSingleResult();
     return Optional.ofNullable(minBatchId);
   }
@@ -444,7 +444,7 @@ public class LoadedFilterManager {
    */
   private List<LoadedFile> fetchLoadedFiles() {
     return entityManager
-        .createQuery("select f from LoadedFile f", LoadedFile.class)
+        .createQuery("select f from loaded_files f", LoadedFile.class)
         .getResultList();
   }
 
@@ -457,7 +457,7 @@ public class LoadedFilterManager {
   private List<LoadedBatch> fetchLoadedBatches(long loadedFileId) {
     return entityManager
         .createQuery(
-            "select b from LoadedBatch b where b.loadedFileId = :loadedFileId", LoadedBatch.class)
+            "select b from loaded_batches b where b.loaded_file_id = :loadedFileId", LoadedBatch.class)
         .setParameter("loadedFileId", loadedFileId)
         .getResultList();
   }

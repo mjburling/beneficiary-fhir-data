@@ -186,16 +186,16 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
               .setRifLayout(RifLayout.parse(spreadsheetWorkbook, annotation.beneficiarySheet()))
               .setHeaderEntity("Beneficiary")
               .setHeaderTable("beneficiaries")
-              .setHeaderEntityIdField("bene_id")
+              .setHeaderEntityIdField("BENE_ID")
               .setHeaderEntityAdditionalDatabaseFields(
                   createDetailsForAdditionalDatabaseFields(
-                      Arrays.asList("hicn_unhashed", "mbi_hash")))
+                      Arrays.asList("HICN_UNHASHED", "MBI_HASH")))
               .setInnerJoinRelationship(
                   Arrays.asList(
                       new InnerJoinRelationship(
-                          "bene_id", null, "BeneficiaryHistory", "beneficiaries_history"),
+                          "BENE_ID", null, "BeneficiaryHistory", "beneficiaries_history"),
                       new InnerJoinRelationship(
-                          "bene_id",
+                          "BENE_ID",
                           null,
                           "MedicareBeneficiaryIdHistory",
                           "medicare_beneficiaryid_history")))
@@ -212,24 +212,24 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
                   RifLayout.parse(spreadsheetWorkbook, annotation.beneficiaryHistorySheet()))
               .setHeaderEntity("BeneficiaryHistory")
               .setHeaderTable("beneficiaries_history")
-              .setHeaderEntityGeneratedIdField("beneficiary_history_id")
+              .setHeaderEntityGeneratedIdField("BENEFICIARY_HISTORY_ID")
               .setHeaderEntityTransientFields(
-                  "state_code",
-                  "bene_county_cd",
-                  "bene_zip_cd",
-                  "bene_race_cd",
-                  "bene_entlmt_rsn_orig",
-                  "bene_entlmt_rsn_curr",
-                  "bene_esrd_ind",
-                  "bene_mdcr_status_cd",
-                  "bene_pta_trmntn_cd",
-                  "bene_ptb_trmntn_cd",
-                  "bene_srnm_name",
-                  "bene_gvn_name",
-                  "bene_mdl_name")
+                  "STATE_CODE",
+                  "BENE_COUNTY_CD",
+                  "BENE_ZIP_CD",
+                  "BENE_RACE_CD",
+                  "BENE_ENTLMT_RSN_ORIG",
+                  "BENE_ENTLMT_RSN_CURR",
+                  "BENE_ESRD_IND",
+                  "BENE_MDCR_STATUS_CD",
+                  "BENE_PTA_TRMNTN_CD",
+                  "BENE_PTB_TRMNTN_CD",
+                  "BENE_SRNM_NAME",
+                  "BENE_GVN_NAME",
+                  "BENE_MDL_NAME")
               .setHeaderEntityAdditionalDatabaseFields(
                   createDetailsForAdditionalDatabaseFields(
-                      Arrays.asList("hicn_unhashed", "mbi_hash"))));
+                      Arrays.asList("HICN_UNHASHED", "MBI_HASH"))));
 
       mappingSpecs.add(
           new MappingSpec(annotatedPackage.getQualifiedName().toString())
@@ -237,7 +237,7 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
                   RifLayout.parse(spreadsheetWorkbook, annotation.medicareBeneficiaryIdSheet()))
               .setHeaderEntity("MedicareBeneficiaryIdHistory")
               .setHeaderTable("medicare_beneficiaryid_history")
-              .setHeaderEntityIdField("medicare_beneficiaryid_key"));
+              .setHeaderEntityIdField("BENE_MBI_ID"));
 
       mappingSpecs.add(
           new MappingSpec(annotatedPackage.getQualifiedName().toString())
@@ -428,20 +428,28 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
         TypeSpec.classBuilder(mappingSpec.getLineEntityIdClass())
             .addSuperinterface(Serializable.class)
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC);
-
     lineIdClass.addField(
         FieldSpec.builder(
                 long.class, "serialVersionUID", Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
             .initializer("$L", 1L)
             .build());
 
-    // Add a field to that @IdClass for the parent claim's ID.
+    String parentClaimFieldName = mappingSpec.getHeaderEntityIdField();
+    String lineNumberFieldName = mappingSpec.getLineEntityLineNumberField();
+
     RifField parentClaimRifField =
         rifLayout.getRifFields().stream()
-            .filter(
-                f -> mappingSpec.getHeaderEntityIdField().equalsIgnoreCase(f.getRifColumnName()))
+            .filter(f -> f.getRifColumnName().equalsIgnoreCase(parentClaimFieldName))
             .findAny()
             .get();
+
+    logNote("looking for rifLineNumberField using: " + lineNumberFieldName);
+    RifField rifLineNumberField =
+        rifLayout.getRifFields().stream()
+            .filter(f -> f.getJavaFieldName().equalsIgnoreCase(lineNumberFieldName))
+            .findFirst()
+            .get();
+    logNote("found rifLineNumberField: " + rifLineNumberField.toString());
 
     TypeName parentClaimIdFieldType =
         selectJavaFieldType(
@@ -450,36 +458,6 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
             parentClaimRifField.getRifColumnLength(),
             parentClaimRifField.getRifColumnScale());
 
-    logNote(mappingSpec.toString());
-
-    FieldSpec.Builder parentIdField =
-        FieldSpec.builder(
-            parentClaimIdFieldType, mappingSpec.getLineEntityParentField(), Modifier.PRIVATE);
-
-    lineIdClass.addField(parentIdField.build());
-
-    MethodSpec.Builder parentGetter =
-        MethodSpec.methodBuilder("getParentClaim")
-            .addStatement("return $N", mappingSpec.getLineEntityParentField())
-            .returns(parentClaimIdFieldType);
-
-    lineIdClass.addMethod(parentGetter.build());
-
-    // Add a field to that @IdClass class for the line number.
-    logNote("looking for rifLineNumberField using: " + mappingSpec.getLineEntityLineNumberField());
-    // dumpRifFields(mappingSpec.getRifLayout().getRifFields());
-
-    RifField rifLineNumberField =
-        rifLayout.getRifFields().stream()
-            .filter(
-                f ->
-                    f.getJavaFieldName()
-                        .equalsIgnoreCase(mappingSpec.getLineEntityLineNumberField()))
-            .findFirst()
-            .get();
-
-    logNote("found rifLineNumberField: " + rifLineNumberField.toString());
-
     TypeName lineNumberFieldType =
         selectJavaFieldType(
             rifLineNumberField.getRifColumnType(),
@@ -487,11 +465,22 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
             rifLineNumberField.getRifColumnLength(),
             rifLineNumberField.getRifColumnScale());
 
+    FieldSpec.Builder parentIdField =
+        FieldSpec.builder(
+            parentClaimIdFieldType, mappingSpec.getLineEntityParentField(), Modifier.PRIVATE);
+
     FieldSpec.Builder lineNumberIdField =
         FieldSpec.builder(
             lineNumberFieldType, rifLineNumberField.getRifColumnName(), Modifier.PRIVATE);
 
+    // Add fields to that @IdClass class
+    lineIdClass.addField(parentIdField.build());
     lineIdClass.addField(lineNumberIdField.build());
+
+    MethodSpec.Builder parentGetter =
+        MethodSpec.methodBuilder("getParentClaim")
+            .addStatement("return $N", mappingSpec.getLineEntityParentField())
+            .returns(parentClaimIdFieldType);
 
     MethodSpec.Builder lineNumberGetter =
         MethodSpec.methodBuilder("get" + capitalize(rifLineNumberField.getJavaFieldName()))
@@ -499,6 +488,7 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
             .returns(lineNumberFieldType);
 
     // Add getter, hashCode() and equals(...) to @IdClass.
+    lineIdClass.addMethod(parentGetter.build());
     lineIdClass.addMethod(lineNumberGetter.build());
     lineIdClass.addMethod(generateHashCodeMethod(parentIdField.build(), lineNumberIdField.build()));
     lineIdClass.addMethod(
@@ -525,13 +515,14 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
                         ForeignKey.class,
                         String.format(
                             "%s_%s_to_%s",
-                            mappingSpec.getLineTable(),
-                            mappingSpec.getLineEntityParentField(),
-                            mappingSpec.getHeaderTable()))
+                            mappingSpec.getLineTable().toLowerCase(),
+                            mappingSpec.getLineEntityParentField().toLowerCase(),
+                            mappingSpec.getHeaderTable().toLowerCase()))
                     .build())
             .build();
 
     lineEntity.addField(parentClaimField);
+
     MethodSpec parentClaimGetter =
         MethodSpec.methodBuilder(calculateGetterName(parentClaimField, null))
             .addModifiers(Modifier.PUBLIC)
@@ -539,15 +530,15 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
             .returns(mappingSpec.getHeaderEntity())
             .build();
 
-    lineEntity.addMethod(parentClaimGetter);
     MethodSpec.Builder parentClaimSetter =
         MethodSpec.methodBuilder(calculateSetterName(parentClaimField, null))
             .addModifiers(Modifier.PUBLIC)
             .returns(void.class)
             .addParameter(mappingSpec.getHeaderEntity(), parentClaimField.name);
 
-    addSetterStatement(false, parentClaimField, parentClaimSetter);
+    lineEntity.addMethod(parentClaimGetter);
     lineEntity.addMethod(parentClaimSetter.build());
+    addSetterStatement(false, parentClaimField, parentClaimSetter);
 
     // For each "line" RIF field, create an Entity field with accessors.
     for (int fieldIndex = mappingSpec.calculateFirstLineFieldIndex();
@@ -578,9 +569,6 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
                       rifField.getRifColumnLength(),
                       rifField.getRifColumnScale()));
 
-      addGetterStatement(rifField, lineField, lineFieldGetter);
-      lineEntity.addMethod(lineFieldGetter.build());
-
       MethodSpec.Builder lineFieldSetter =
           MethodSpec.methodBuilder(calculateSetterName(lineField, rifField.getJavaFieldName()))
               .addModifiers(Modifier.PUBLIC)
@@ -592,7 +580,10 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
                       rifField.getRifColumnLength(),
                       rifField.getRifColumnScale()),
                   lineField.name);
+
+      addGetterStatement(rifField, lineField, lineFieldGetter);
       addSetterStatement(rifField, lineField, lineFieldSetter);
+      lineEntity.addMethod(lineFieldGetter.build());
       lineEntity.addMethod(lineFieldSetter.build());
     }
 
@@ -645,24 +636,24 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
 
     TypeName parentBeneficiaryIdFieldType = ClassName.get(BigInteger.class);
     FieldSpec.Builder parentIdField =
-        FieldSpec.builder(parentBeneficiaryIdFieldType, "parent_beneficiary", Modifier.PRIVATE);
+        FieldSpec.builder(parentBeneficiaryIdFieldType, "PARENT_BENEFICIARY", Modifier.PRIVATE);
     beneficiaryMonthlyIdClass.addField(parentIdField.build());
 
     MethodSpec.Builder parentGetter =
         MethodSpec.methodBuilder("getParentBeneficiary")
-            .addStatement("return $N", "parent_beneficiary")
+            .addStatement("return $N", "PARENT_BENEFICIARY")
             .returns(parentBeneficiaryIdFieldType);
     beneficiaryMonthlyIdClass.addMethod(parentGetter.build());
 
     // Add a field to that @IdClass class for the month.
     TypeName yearMonthFieldType = ClassName.get(LocalDate.class);
     FieldSpec.Builder yearMonthIdField =
-        FieldSpec.builder(yearMonthFieldType, "year_month", Modifier.PRIVATE);
+        FieldSpec.builder(yearMonthFieldType, "YEAR_MONTH", Modifier.PRIVATE);
     beneficiaryMonthlyIdClass.addField(yearMonthIdField.build());
 
     MethodSpec.Builder yearMonthGetter =
         MethodSpec.methodBuilder("getYearMonth")
-            .addStatement("return $N", "year_month")
+            .addStatement("return $N", "YEAR_MONTH")
             .returns(yearMonthFieldType);
 
     beneficiaryMonthlyIdClass.addMethod(yearMonthGetter.build());
@@ -684,20 +675,20 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
     FieldSpec parentBeneficiaryField =
         FieldSpec.builder(
                 ClassName.get("gov.cms.bfd.model.rif", "Beneficiary"),
-                "parent_beneficiary",
+                "PARENT_BENEFICIARY",
                 Modifier.PRIVATE)
             .addAnnotation(Id.class)
             .addAnnotation(AnnotationSpec.builder(ManyToOne.class).build())
             .addAnnotation(
                 AnnotationSpec.builder(JoinColumn.class)
-                    .addMember("name", "$S", "parent_beneficiary")
+                    .addMember("name", "$S", "PARENT_BENEFICIARY")
                     .addMember(
                         "foreignKey",
                         "@$T(name = $S)",
                         ForeignKey.class,
                         String.format(
                             "%s_%s_to_%s",
-                            "beneficiary_monthly", "parent_beneficiary", "beneficiary"))
+                            "BENEFICIARY_MONTHLY", "PARENT_BENEFICIARY", "BENEFICIARY"))
                     .build())
             .build();
 
@@ -705,7 +696,7 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
     MethodSpec parentBeneficiaryGetter =
         MethodSpec.methodBuilder(calculateGetterName(parentBeneficiaryField, "parentBeneficiary"))
             .addModifiers(Modifier.PUBLIC)
-            .addStatement("return $N", "parent_beneficiary")
+            .addStatement("return $N", "PARENT_BENEFICIARY")
             .returns(ClassName.get("gov.cms.bfd.model.rif", "Beneficiary"))
             .build();
 
@@ -725,7 +716,7 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
         true,
         false,
         false,
-        "year_month",
+        "YEAR_MONTH",
         "yearMonth",
         RifColumnType.DATE,
         Optional.of(8),
@@ -736,7 +727,7 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
         false,
         false,
         true,
-        "fips_state_cnty_code",
+        "FIPS_STATE_CNTY_CODE",
         "fipsStateCntyCode",
         RifColumnType.CHAR,
         Optional.of(5),
@@ -747,7 +738,7 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
         false,
         false,
         true,
-        "medicare_status_code",
+        "MEDICARE_STATUS_CODE",
         "medicareStatusCode",
         RifColumnType.CHAR,
         Optional.of(2),
@@ -758,7 +749,7 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
         false,
         false,
         true,
-        "entitlement_buy_in_ind",
+        "ENTITLEMENT_BUY_IN_IND",
         "entitlementBuyInInd",
         RifColumnType.CHAR,
         Optional.of(1),
@@ -769,7 +760,7 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
         false,
         false,
         true,
-        "hmo_indicator_ind",
+        "HMO_INDICATOR_IND",
         "hmoIndicatorInd",
         RifColumnType.CHAR,
         Optional.of(1),
@@ -780,7 +771,7 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
         false,
         false,
         true,
-        "partc_contract_number_id",
+        "PARTC_CONTRACT_NUMBER_ID",
         "partCContractNumberId",
         RifColumnType.CHAR,
         Optional.of(5),
@@ -791,7 +782,7 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
         false,
         false,
         true,
-        "partc_pbp_number_id",
+        "PARTC_PBP_NUMBER_ID",
         "partCPbpNumberId",
         RifColumnType.CHAR,
         Optional.of(3),
@@ -802,7 +793,7 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
         false,
         false,
         true,
-        "partc_plan_type_code",
+        "PARTC_PLAN_TYPE_CODE",
         "partCPlanTypeCode",
         RifColumnType.CHAR,
         Optional.of(3),
@@ -813,7 +804,7 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
         false,
         false,
         true,
-        "partd_contract_number_id",
+        "PARTD_CONTRACT_NUMBER_ID",
         "partDContractNumberId",
         RifColumnType.CHAR,
         Optional.of(5),
@@ -824,7 +815,7 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
         false,
         false,
         true,
-        "partd_pbp_number_id",
+        "PARTD_PBP_NUMBER_ID",
         "partDPbpNumberId",
         RifColumnType.CHAR,
         Optional.of(3),
@@ -835,7 +826,7 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
         false,
         false,
         true,
-        "partd_segment_number_id",
+        "PARTD_SEGMENT_NUMBER_ID",
         "partDSegmentNumberId",
         RifColumnType.CHAR,
         Optional.of(3),
@@ -846,7 +837,7 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
         false,
         false,
         true,
-        "partd_retiree_drug_subsidy_ind",
+        "PARTD_RETIREE_DRUG_SUBSIDY_IND",
         "partDRetireeDrugSubsidyInd",
         RifColumnType.CHAR,
         Optional.of(1),
@@ -857,7 +848,7 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
         false,
         false,
         true,
-        "medicaid_dual_eligibility_code",
+        "MEDICAID_DUAL_ELIGIBILITY_CODE",
         "medicaidDualEligibilityCode",
         RifColumnType.CHAR,
         Optional.of(2),
@@ -868,7 +859,7 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
         false,
         false,
         true,
-        "partd_low_income_cost_share_group_code",
+        "PARTD_LOW_INCOME_COST_SHARE_GROUP_CODE",
         "partDLowIncomeCostShareGroupCode",
         RifColumnType.CHAR,
         Optional.of(2),
@@ -1239,14 +1230,14 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
 
     // Add a lastUpdated field.
     final FieldSpec lastUpdatedField =
-        FieldSpec.builder(Instant.class, "last_updated", Modifier.PRIVATE).build();
+        FieldSpec.builder(Instant.class, "LAST_UPDATED", Modifier.PRIVATE).build();
     headerEntityClass.addField(lastUpdatedField);
 
     // Getter method
     final MethodSpec lastUpdatedGetter =
         MethodSpec.methodBuilder("getLastUpdated")
             .addModifiers(Modifier.PUBLIC)
-            .addStatement("return Optional.ofNullable(last_updated)")
+            .addStatement("return Optional.ofNullable(LAST_UPDATED)")
             .returns(ParameterizedTypeName.get(Optional.class, Instant.class))
             .build();
     headerEntityClass.addMethod(lastUpdatedGetter);
@@ -1255,8 +1246,8 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
     final MethodSpec lastUpdatedSetter =
         MethodSpec.methodBuilder("setLastUpdated")
             .addModifiers(Modifier.PUBLIC)
-            .addParameter(ParameterSpec.builder(Instant.class, "last_updated").build())
-            .addStatement("this.last_updated = last_updated")
+            .addParameter(ParameterSpec.builder(Instant.class, "LAST_UPDATED").build())
+            .addStatement("this.LAST_UPDATED = LAST_UPDATED")
             .returns(TypeName.VOID)
             .build();
     headerEntityClass.addMethod(lastUpdatedSetter);
@@ -1737,7 +1728,7 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
         (rifField.getRifColumnName().equalsIgnoreCase(mappingSpec.getHeaderEntityIdField())
             || (mappingSpec.getHasLines()
                 && rifField
-                    .getRifColumnName()
+                    .getJavaFieldName()
                     .equalsIgnoreCase(mappingSpec.getLineEntityLineNumberField())));
 
     if (needIdField) {
@@ -1814,7 +1805,7 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
     List<RifField> addlDatabaseFields = new ArrayList<RifField>();
 
     for (String additionalDatabaseField : additionalDatabaseFields) {
-      if (additionalDatabaseField.contentEquals("hicn_unhashed")) {
+      if (additionalDatabaseField.contentEquals("HICN_UNHASHED")) {
         RifField hicnUnhashed =
             new RifField(
                 "HICN_UNHASHED",
@@ -1828,7 +1819,7 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
         addlDatabaseFields.add(hicnUnhashed);
         continue;
       }
-      if (additionalDatabaseField.contentEquals("mbi_hash")) {
+      if (additionalDatabaseField.contentEquals("MBI_HASH")) {
         RifField mbiHash =
             new RifField(
                 "MBI_HASH",
@@ -1836,7 +1827,7 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
                 Optional.of(64),
                 Optional.of(0),
                 Boolean.TRUE,
-                new URL(DATA_DICTIONARY_LINK + "mbi_hash"),
+                new URL(DATA_DICTIONARY_LINK + "MBI_HASH"),
                 "MBI_HASH",
                 "mbiHash");
         addlDatabaseFields.add(mbiHash);

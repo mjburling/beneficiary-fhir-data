@@ -1783,8 +1783,8 @@ public final class TransformerUtilsV2 {
     eob.setUse(Use.CLAIM);
 
     if (claimType.equals(ClaimTypeV2.PDE)) {
-      // PDE_ID => ExplanationOfBenefit.identifier
-      eob.addIdentifier(createClaimIdentifier(CcwCodebookVariable.PDE_ID, claimId.toString()));
+      // CLM_ID => ExplanationOfBenefit.identifier
+      eob.addIdentifier(createClaimIdentifier(CcwCodebookVariable.CLM_ID, claimId.toString()));
     } else {
       // CLM_ID => ExplanationOfBenefit.identifier
       eob.addIdentifier(createClaimIdentifier(CcwCodebookVariable.CLM_ID, claimId.toString()));

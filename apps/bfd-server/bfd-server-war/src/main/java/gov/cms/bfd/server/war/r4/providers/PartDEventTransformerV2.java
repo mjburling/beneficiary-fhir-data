@@ -63,7 +63,7 @@ final class PartDEventTransformerV2 {
     // Common group level fields between all claim types
     // Claim Type + Claim ID
     //                  => ExplanationOfBenefit.id
-    // PDE_ID           => ExplanationOfBenefit.identifier
+    // CLM_ID           => ExplanationOfBenefit.identifier
     // CLM_GRP_ID       => ExplanationOfBenefit.identifier
     // BENE_ID + Coverage Type
     //                  => ExplanationOfBenefit.insurance.coverage (reference)
