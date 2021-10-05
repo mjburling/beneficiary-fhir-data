@@ -426,14 +426,14 @@ public class LoadedFilterManager {
         query.select(
             cb.construct(
                 LoadedTuple.class,
-                f.get("loadedFileId"),
+                f.get("loaded_file_id"),
                 f.get("created"),
                 cb.max(b.get("created"))));
     if (after != null) {
       query = query.where(cb.greaterThan(b.get("created"), after));
     }
     query =
-        query.groupBy(f.get("loadedFileId"), f.get("created")).orderBy(cb.desc(f.get("created")));
+        query.groupBy(f.get("loaded_file_id"), f.get("created")).orderBy(cb.desc(f.get("created")));
     return entityManager.createQuery(query).getResultList();
   }
 
@@ -457,7 +457,8 @@ public class LoadedFilterManager {
   private List<LoadedBatch> fetchLoadedBatches(long loadedFileId) {
     return entityManager
         .createQuery(
-            "select b from loaded_batches b where b.loaded_file_id = :loadedFileId", LoadedBatch.class)
+            "select b from loaded_batches b where b.loaded_file_id = :loadedFileId",
+            LoadedBatch.class)
         .setParameter("loadedFileId", loadedFileId)
         .getResultList();
   }

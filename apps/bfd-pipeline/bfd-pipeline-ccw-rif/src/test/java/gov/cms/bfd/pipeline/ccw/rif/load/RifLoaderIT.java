@@ -17,6 +17,7 @@ import gov.cms.bfd.model.rif.samples.StaticRifResourceGroup;
 import gov.cms.bfd.pipeline.ccw.rif.extract.RifFilesProcessor;
 import gov.cms.bfd.pipeline.sharedutils.IdHasher;
 import gov.cms.bfd.pipeline.sharedutils.PipelineTestUtils;
+import java.math.BigInteger;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Month;
@@ -220,7 +221,7 @@ public final class RifLoaderIT {
                       beneficiaryHistoryCriteria.from(BeneficiaryHistory.class)))
               .getResultList();
       for (BeneficiaryHistory beneHistory : beneficiaryHistoryEntries) {
-        Assert.assertEquals("567834", beneHistory.getBeneficiaryId());
+        Assert.assertEquals(BigInteger.valueOf(567834L), beneHistory.getBeneficiaryId());
         // A recent lastUpdated timestamp
         Assert.assertTrue("Expected a lastUpdated field", beneHistory.getLastUpdated().isPresent());
         beneHistory
@@ -234,7 +235,7 @@ public final class RifLoaderIT {
       }
       Assert.assertEquals(4, beneficiaryHistoryEntries.size());
 
-      Beneficiary beneficiaryFromDb = entityManager.find(Beneficiary.class, "567834");
+      Beneficiary beneficiaryFromDb = entityManager.find(Beneficiary.class, 567834L);
       // Last Name inserted with value of "Johnson"
       Assert.assertEquals("Johnson", beneficiaryFromDb.getNameSurname());
       // Following fields were NOT changed in update record
@@ -258,7 +259,7 @@ public final class RifLoaderIT {
                     lastUpdated.isAfter(Instant.now().minus(1, ChronoUnit.MINUTES)));
               });
 
-      CarrierClaim carrierRecordFromDb = entityManager.find(CarrierClaim.class, "9991831999");
+      CarrierClaim carrierRecordFromDb = entityManager.find(CarrierClaim.class, 9991831999L);
       Assert.assertEquals('N', carrierRecordFromDb.getFinalAction());
       // DateThrough inserted with value 10-27-1999
       Assert.assertEquals(
@@ -319,7 +320,7 @@ public final class RifLoaderIT {
                       beneficiaryHistoryCriteria.from(BeneficiaryHistory.class)))
               .getResultList();
       for (BeneficiaryHistory beneHistory : beneficiaryHistoryEntries) {
-        Assert.assertEquals("567834", beneHistory.getBeneficiaryId());
+        Assert.assertEquals(BigInteger.valueOf(567834L), beneHistory.getBeneficiaryId());
         // A recent lastUpdated timestamp
         Assert.assertTrue("Expected a lastUpdated field", beneHistory.getLastUpdated().isPresent());
         long end = System.currentTimeMillis();
@@ -455,7 +456,7 @@ public final class RifLoaderIT {
     try {
       entityManager = entityManagerFactory.createEntityManager();
 
-      Beneficiary beneficiaryFromDb = entityManager.find(Beneficiary.class, "567834");
+      Beneficiary beneficiaryFromDb = entityManager.find(Beneficiary.class, 567834);
       Assert.assertEquals(20, beneficiaryFromDb.getBeneficiaryMonthlys().size());
 
       BeneficiaryMonthly augustMonthly = beneficiaryFromDb.getBeneficiaryMonthlys().get(19);
@@ -486,7 +487,7 @@ public final class RifLoaderIT {
     try {
       entityManager = entityManagerFactory.createEntityManager();
 
-      Beneficiary beneficiaryFromDb = entityManager.find(Beneficiary.class, "567834");
+      Beneficiary beneficiaryFromDb = entityManager.find(Beneficiary.class, 567834);
       Assert.assertEquals(21, beneficiaryFromDb.getBeneficiaryMonthlys().size());
       BeneficiaryMonthly augustMonthly = beneficiaryFromDb.getBeneficiaryMonthlys().get(19);
       Assert.assertEquals("2019-08-01", augustMonthly.getYearMonth().toString());

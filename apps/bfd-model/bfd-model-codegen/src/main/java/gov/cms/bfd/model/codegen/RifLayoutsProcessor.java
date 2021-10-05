@@ -1563,8 +1563,7 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
               .findAny()
               .get();
 
-      logNote("*** headerIdField " + headerIdField.toString());
-
+      logNote("headerIdField " + headerIdField.toString());
       String lineGettersList =
           lineEntity.get().fieldSpecs.stream()
               .map(
@@ -1614,14 +1613,12 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
     code.append(instanceName);
     code.append(".");
 
-    StringBuilder sb = new StringBuilder();
-    sb.append("instanceName: ").append(instanceName);
-
     Optional<RifField> rifField =
         mappingSpec.getRifLayout().getRifFields().stream()
             .filter(f -> field.name.equalsIgnoreCase(f.getRifColumnName()))
             .findAny();
 
+    StringBuilder sb = new StringBuilder(instanceName);
     if (field == parentField) {
       // This is the line-level "parent" field.
       code.append(calculateGetterName(parentField, null));

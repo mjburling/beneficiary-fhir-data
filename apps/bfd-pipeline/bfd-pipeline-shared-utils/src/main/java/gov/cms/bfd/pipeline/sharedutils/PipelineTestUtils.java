@@ -164,16 +164,10 @@ public final class PipelineTestUtils {
         }
 
         // Then, make sure we have a table name specified.
-        if (entityTableAnnotation.get().name() == null
-            || entityTableAnnotation.get().name().isEmpty()) {
+        String tableNameSpecifier = entityTableAnnotation.get().name();
+        if (tableNameSpecifier == null || tableNameSpecifier.isEmpty()) {
           throw new BadCodeMonkeyException(
               "Unable to determine table name for entity: " + entityType.getCanonicalName());
-        }
-        String tableNameSpecifier;
-        if (entityTableAnnotation.get().name().startsWith("`")) {
-          tableNameSpecifier = entityTableAnnotation.get().name().replaceAll("`", "\"");
-        } else {
-          tableNameSpecifier = entityTableAnnotation.get().name();
         }
 
         // Then, switch to the appropriate schema.
@@ -183,7 +177,8 @@ public final class PipelineTestUtils {
            * Note: This may need to be quoted on PostgreSQL. If so, since HSQL DB blows up if we
            * quote them, this code may have to first check the DB platform. TBD.
            */
-          String schemaNameSpecifier = entityTableAnnotation.get().schema().replaceAll("`", "");
+          String schemaNameSpecifier = entityTableAnnotation.get().schema();
+          System.out.println("schemaNameSpecifier: " + schemaNameSpecifier);
           connection.setSchema(schemaNameSpecifier);
         } else {
           connection.setSchema(defaultSchemaName.get());
@@ -236,7 +231,7 @@ public final class PipelineTestUtils {
   public List<LoadedFile> findLoadedFiles(EntityManager entityManager) {
     entityManager.clear();
     return entityManager
-        .createQuery("select f from LoadedFile f order by f.created desc", LoadedFile.class)
+        .createQuery("select f from loaded_files f order by f.created desc", LoadedFile.class)
         .getResultList();
   }
 

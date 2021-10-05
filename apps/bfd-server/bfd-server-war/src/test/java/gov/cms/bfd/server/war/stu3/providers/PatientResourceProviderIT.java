@@ -1740,16 +1740,16 @@ public final class PatientResourceProviderIT {
                     builder.createCriteriaUpdate(BeneficiaryMonthly.class);
                 Root<BeneficiaryMonthly> beneMonthlyRoot = update.from(BeneficiaryMonthly.class);
                 update.set(
-                    BeneficiaryMonthly_.year_month,
+                    BeneficiaryMonthly_.YEAR_MONTH,
                     LocalDate.of(
                         Year.now().getValue(),
                         yearMonth.getMonthValue(),
                         yearMonth.getDayOfMonth()));
                 update.where(
                     builder.equal(
-                        beneMonthlyRoot.get(BeneficiaryMonthly_.parent_beneficiary),
+                        beneMonthlyRoot.get(BeneficiaryMonthly_.PARENT_BENEFICIARY),
                         beneMonthly.getParentBeneficiary()),
-                    builder.equal(beneMonthlyRoot.get(BeneficiaryMonthly_.year_month), yearMonth));
+                    builder.equal(beneMonthlyRoot.get(BeneficiaryMonthly_.YEAR_MONTH), yearMonth));
 
                 entityManager.createQuery(update).executeUpdate();
               }

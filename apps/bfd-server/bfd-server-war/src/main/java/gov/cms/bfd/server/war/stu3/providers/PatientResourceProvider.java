@@ -453,9 +453,9 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
     Root<BeneficiaryMonthly> beneMonthlyRoot = beneCountCriteria.from(BeneficiaryMonthly.class);
     beneCountCriteria.select(builder.count(beneMonthlyRoot));
     beneCountCriteria.where(
-        builder.equal(beneMonthlyRoot.get(BeneficiaryMonthly_.year_month), yearMonth),
+        builder.equal(beneMonthlyRoot.get(BeneficiaryMonthly_.YEAR_MONTH), yearMonth),
         builder.equal(
-            beneMonthlyRoot.get(BeneficiaryMonthly_.partd_contract_number_id), contractId));
+            beneMonthlyRoot.get(BeneficiaryMonthly_.PARTD_CONTRACT_NUMBER_ID), contractId));
 
     // Run the query and return the results.
     Optional<Long> matchingBeneCount = Optional.empty();
@@ -497,19 +497,19 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
     Root<BeneficiaryMonthly> beneMonthlyRoot = beneIdCriteria.from(BeneficiaryMonthly.class);
 
     beneIdCriteria.select(
-        beneMonthlyRoot.get(BeneficiaryMonthly_.parent_beneficiary).get(Beneficiary_.BENE_ID));
+        beneMonthlyRoot.get(BeneficiaryMonthly_.PARENT_BENEFICIARY).get(Beneficiary_.BENE_ID));
 
     List<Predicate> wherePredicates = new ArrayList<>();
     wherePredicates.add(
-        builder.equal(beneMonthlyRoot.get(BeneficiaryMonthly_.year_month), yearMonth));
+        builder.equal(beneMonthlyRoot.get(BeneficiaryMonthly_.YEAR_MONTH), yearMonth));
     wherePredicates.add(
         builder.equal(
-            beneMonthlyRoot.get(BeneficiaryMonthly_.partd_contract_number_id), contractId));
+            beneMonthlyRoot.get(BeneficiaryMonthly_.PARTD_CONTRACT_NUMBER_ID), contractId));
 
     if (paging.isPagingRequested() && !paging.isFirstPage()) {
       wherePredicates.add(
           builder.greaterThan(
-              beneMonthlyRoot.get(BeneficiaryMonthly_.parent_beneficiary).get(Beneficiary_.BENE_ID),
+              beneMonthlyRoot.get(BeneficiaryMonthly_.PARENT_BENEFICIARY).get(Beneficiary_.BENE_ID),
               paging.getCursor()));
     }
 
@@ -517,7 +517,7 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
         builder.and(wherePredicates.toArray(new Predicate[wherePredicates.size()])));
 
     beneIdCriteria.orderBy(
-        builder.asc(beneMonthlyRoot.get(BeneficiaryMonthly_.parent_beneficiary)));
+        builder.asc(beneMonthlyRoot.get(BeneficiaryMonthly_.PARENT_BENEFICIARY)));
 
     // Run the query and return the results.
     List<BigInteger> matchingBeneIds = null;

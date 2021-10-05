@@ -1083,16 +1083,16 @@ public final class RifLoader {
         em.clear(); // Must be done before JPQL statements
         em.flush();
         List<Long> oldIds =
-            em.createQuery("select f.loadedFileId from LoadedFile f where created < :oldDate")
+            em.createQuery("select f.loaded_file_id from loaded_files f where created < :oldDate")
                 .setParameter("oldDate", oldDate)
                 .getResultList();
 
         if (oldIds.size() > 0) {
           LOGGER.info("Deleting old files: {}", oldIds.size());
-          em.createQuery("delete from LoadedBatch where loadedFileId in :ids")
+          em.createQuery("delete from loaded_batches where loaded_file_id in :ids")
               .setParameter("ids", oldIds)
               .executeUpdate();
-          em.createQuery("delete from LoadedFile where loadedFileId in :ids")
+          em.createQuery("delete from loaded_files where loaded_file_id in :ids")
               .setParameter("ids", oldIds)
               .executeUpdate();
           txn.commit();

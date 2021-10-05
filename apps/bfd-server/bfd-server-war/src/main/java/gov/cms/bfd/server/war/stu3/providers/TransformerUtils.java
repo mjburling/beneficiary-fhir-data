@@ -1685,7 +1685,7 @@ public final class TransformerUtils {
     eob.setId(buildEobId(claimType, claimId));
 
     if (claimType.equals(ClaimType.PDE))
-      eob.addIdentifier(createIdentifier(CcwCodebookVariable.PDE_ID, claimId.toString()));
+      eob.addIdentifier(createIdentifier(CcwCodebookVariable.CLM_ID, claimId.toString()));
     else eob.addIdentifier(createIdentifier(CcwCodebookVariable.CLM_ID, claimId.toString()));
 
     eob.addIdentifier()
