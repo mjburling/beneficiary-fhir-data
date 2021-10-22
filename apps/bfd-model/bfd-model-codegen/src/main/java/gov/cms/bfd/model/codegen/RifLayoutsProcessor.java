@@ -23,7 +23,6 @@ import java.io.StringWriter;
 import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Instant;
@@ -212,21 +211,7 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
                   RifLayout.parse(spreadsheetWorkbook, annotation.beneficiaryHistorySheet()))
               .setHeaderEntity("BeneficiaryHistory")
               .setHeaderTable("beneficiaries_history")
-              .setHeaderEntityGeneratedIdField("BENEFICIARY_HISTORY_ID")
-              .setHeaderEntityTransientFields(
-                  "STATE_CODE",
-                  "BENE_COUNTY_CD",
-                  "BENE_ZIP_CD",
-                  "BENE_RACE_CD",
-                  "BENE_ENTLMT_RSN_ORIG",
-                  "BENE_ENTLMT_RSN_CURR",
-                  "BENE_ESRD_IND",
-                  "BENE_MDCR_STATUS_CD",
-                  "BENE_PTA_TRMNTN_CD",
-                  "BENE_PTB_TRMNTN_CD",
-                  "BENE_SRNM_NAME",
-                  "BENE_GVN_NAME",
-                  "BENE_MDL_NAME")
+              .setHeaderEntityGeneratedIdField("BENE_HISTORY_ID")
               .setHeaderEntityAdditionalDatabaseFields(
                   createDetailsForAdditionalDatabaseFields(
                       Arrays.asList("HICN_UNHASHED", "MBI_HASH"))));
@@ -280,7 +265,7 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
               .setHeaderTable("hha_claims")
               .setHeaderEntityIdField("CLM_ID")
               .setHasLines(true)
-              .setLineTable("hha_clai_lines"));
+              .setLineTable("hha_claim_lines"));
 
       mappingSpecs.add(
           new MappingSpec(annotatedPackage.getQualifiedName().toString())
@@ -442,14 +427,11 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
             .filter(f -> f.getRifColumnName().equalsIgnoreCase(parentClaimFieldName))
             .findAny()
             .get();
-
-    logNote("looking for rifLineNumberField using: " + lineNumberFieldName);
     RifField rifLineNumberField =
         rifLayout.getRifFields().stream()
             .filter(f -> f.getJavaFieldName().equalsIgnoreCase(lineNumberFieldName))
             .findFirst()
             .get();
-    logNote("found rifLineNumberField: " + rifLineNumberField.toString());
 
     TypeName parentClaimIdFieldType =
         selectJavaFieldType(
@@ -457,7 +439,6 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
             parentClaimRifField.isRifColumnOptional(),
             parentClaimRifField.getRifColumnLength(),
             parentClaimRifField.getRifColumnScale());
-
     TypeName lineNumberFieldType =
         selectJavaFieldType(
             rifLineNumberField.getRifColumnType(),
@@ -468,7 +449,6 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
     FieldSpec.Builder parentIdField =
         FieldSpec.builder(
             parentClaimIdFieldType, mappingSpec.getLineEntityParentField(), Modifier.PRIVATE);
-
     FieldSpec.Builder lineNumberIdField =
         FieldSpec.builder(
             lineNumberFieldType, rifLineNumberField.getRifColumnName(), Modifier.PRIVATE);
@@ -481,7 +461,6 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
         MethodSpec.methodBuilder("getParentClaim")
             .addStatement("return $N", mappingSpec.getLineEntityParentField())
             .returns(parentClaimIdFieldType);
-
     MethodSpec.Builder lineNumberGetter =
         MethodSpec.methodBuilder("get" + capitalize(rifLineNumberField.getJavaFieldName()))
             .addStatement("return $N", rifLineNumberField.getRifColumnName())
@@ -529,6 +508,7 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
             .addStatement("return $N", mappingSpec.getLineEntityParentField())
             .returns(mappingSpec.getHeaderEntity())
             .build();
+    lineEntity.addMethod(parentClaimGetter);
 
     MethodSpec.Builder parentClaimSetter =
         MethodSpec.methodBuilder(calculateSetterName(parentClaimField, null))
@@ -536,9 +516,8 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
             .returns(void.class)
             .addParameter(mappingSpec.getHeaderEntity(), parentClaimField.name);
 
-    lineEntity.addMethod(parentClaimGetter);
-    lineEntity.addMethod(parentClaimSetter.build());
     addSetterStatement(false, parentClaimField, parentClaimSetter);
+    lineEntity.addMethod(parentClaimSetter.build());
 
     // For each "line" RIF field, create an Entity field with accessors.
     for (int fieldIndex = mappingSpec.calculateFirstLineFieldIndex();
@@ -623,55 +602,61 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
             .addModifiers(Modifier.PUBLIC);
 
     // Create the @IdClass needed for the composite primary key.
-    TypeSpec.Builder beneficiaryMonthlyIdClass =
+    TypeSpec.Builder beneMonthlyIdClass =
         TypeSpec.classBuilder("BeneficiaryMonthlyId")
             .addSuperinterface(Serializable.class)
-            .addModifiers(Modifier.PUBLIC, Modifier.STATIC);
+            .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+            .addField(
+                FieldSpec.builder(
+                        long.class,
+                        "serialVersionUID",
+                        Modifier.PRIVATE,
+                        Modifier.STATIC,
+                        Modifier.FINAL)
+                    .initializer("$L", 1L)
+                    .build());
 
-    beneficiaryMonthlyIdClass.addField(
-        FieldSpec.builder(
-                long.class, "serialVersionUID", Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-            .initializer("$L", 1L)
-            .build());
+    TypeName parentFieldType = ClassName.get(Long.class);
+    TypeName yearMonthFieldType = ClassName.get(LocalDate.class);
 
-    TypeName parentBeneficiaryIdFieldType = ClassName.get(BigInteger.class);
-    FieldSpec.Builder parentIdField =
-        FieldSpec.builder(parentBeneficiaryIdFieldType, "PARENT_BENEFICIARY", Modifier.PRIVATE);
-    beneficiaryMonthlyIdClass.addField(parentIdField.build());
+    AnnotationSpec.Builder columnAnnotation =
+        AnnotationSpec.builder(Column.class)
+            .addMember("name", "$S", "PARENT_BENEFICIARY")
+            .addMember("columnDefinition", "$S", "BigInteger");
 
-    MethodSpec.Builder parentGetter =
+    FieldSpec parentIdField =
+        FieldSpec.builder(ClassName.get(Long.class), "PARENT_BENEFICIARY", Modifier.PRIVATE)
+            // .addAnnotation(columnAnnotation.build())
+            .build();
+
+    FieldSpec yearMonthField =
+        FieldSpec.builder(yearMonthFieldType, "YEAR_MONTH", Modifier.PRIVATE).build();
+
+    // Add fields to the @IdClass class
+    beneMonthlyIdClass.addField(parentIdField);
+    beneMonthlyIdClass.addField(yearMonthField);
+
+    MethodSpec.Builder parentIdGetter =
         MethodSpec.methodBuilder("getParentBeneficiary")
             .addStatement("return $N", "PARENT_BENEFICIARY")
-            .returns(parentBeneficiaryIdFieldType);
-    beneficiaryMonthlyIdClass.addMethod(parentGetter.build());
-
-    // Add a field to that @IdClass class for the month.
-    TypeName yearMonthFieldType = ClassName.get(LocalDate.class);
-    FieldSpec.Builder yearMonthIdField =
-        FieldSpec.builder(yearMonthFieldType, "YEAR_MONTH", Modifier.PRIVATE);
-    beneficiaryMonthlyIdClass.addField(yearMonthIdField.build());
-
+            .returns(parentFieldType);
     MethodSpec.Builder yearMonthGetter =
         MethodSpec.methodBuilder("getYearMonth")
             .addStatement("return $N", "YEAR_MONTH")
             .returns(yearMonthFieldType);
 
-    beneficiaryMonthlyIdClass.addMethod(yearMonthGetter.build());
-
-    // Add hashCode() and equals(...) to that @IdClass.
-    beneficiaryMonthlyIdClass.addMethod(
-        generateHashCodeMethod(parentIdField.build(), yearMonthIdField.build()));
-
-    beneficiaryMonthlyIdClass.addMethod(
+    // Add getter, hashCode() and equals(...) to @IdClass.
+    beneMonthlyIdClass.addMethod(parentIdGetter.build());
+    beneMonthlyIdClass.addMethod(yearMonthGetter.build());
+    beneMonthlyIdClass.addMethod(generateHashCodeMethod(parentIdField, yearMonthField));
+    beneMonthlyIdClass.addMethod(
         generateEqualsMethod(
-            mappingSpec.getBeneficiaryMonthlyEntity(),
-            parentIdField.build(),
-            yearMonthIdField.build()));
+            mappingSpec.getBeneficiaryMonthlyEntity(), parentIdField, yearMonthField));
 
     // Finalize the @IdClass and nest it inside the Entity class.
-    beneficiaryMonthlyEntity.addType(beneficiaryMonthlyIdClass.build());
+    beneficiaryMonthlyEntity.addType(beneMonthlyIdClass.build());
 
-    // Add a field and accessor to the "line" Entity for the parent.
+    // Add a field and accessor to the "Id class" for the parent.
     FieldSpec parentBeneficiaryField =
         FieldSpec.builder(
                 ClassName.get("gov.cms.bfd.model.rif", "Beneficiary"),
@@ -687,12 +672,14 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
                         "@$T(name = $S)",
                         ForeignKey.class,
                         String.format(
-                            "%s_%s_to_%s",
-                            "BENEFICIARY_MONTHLY", "PARENT_BENEFICIARY", "BENEFICIARY"))
+                                "%s_%s_to_%s",
+                                "BENEFICIARY_MONTHLY", "PARENT_BENEFICIARY", "BENEFICIARY")
+                            .toLowerCase())
                     .build())
             .build();
 
     beneficiaryMonthlyEntity.addField(parentBeneficiaryField);
+
     MethodSpec parentBeneficiaryGetter =
         MethodSpec.methodBuilder(calculateGetterName(parentBeneficiaryField, "parentBeneficiary"))
             .addModifiers(Modifier.PUBLIC)
@@ -700,15 +687,15 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
             .returns(ClassName.get("gov.cms.bfd.model.rif", "Beneficiary"))
             .build();
 
-    beneficiaryMonthlyEntity.addMethod(parentBeneficiaryGetter);
     MethodSpec.Builder parentBeneficiarySetter =
         MethodSpec.methodBuilder(calculateSetterName(parentBeneficiaryField, "parentBeneficiary"))
             .addModifiers(Modifier.PUBLIC)
             .returns(void.class)
             .addParameter(
                 ClassName.get("gov.cms.bfd.model.rif", "Beneficiary"), parentBeneficiaryField.name);
-
     addSetterStatement(false, parentBeneficiaryField, parentBeneficiarySetter);
+
+    beneficiaryMonthlyEntity.addMethod(parentBeneficiaryGetter);
     beneficiaryMonthlyEntity.addMethod(parentBeneficiarySetter.build());
 
     createBeneficiaryMonthlyFields(
@@ -1011,14 +998,18 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
               .addParameter(idField.type, idField.name);
       addSetterStatement(false, idField, idFieldSetter);
       headerEntityClass.addMethod(idFieldSetter.build());
+      logNote(idFieldSetter.toString());
     }
 
     // Create an Entity field with accessors for each RIF field.
+    logNote("creating entity for: " + mappingSpec.getHeaderTable());
     for (int fieldIndex = 0;
         fieldIndex <= mappingSpec.calculateLastHeaderFieldIndex();
         fieldIndex++) {
 
       RifField rifField = mappingSpec.getRifLayout().getRifFields().get(fieldIndex);
+
+      logNote(rifField.toString());
 
       FieldSpec headerField =
           FieldSpec.builder(
@@ -1058,6 +1049,7 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
                   headerField.name);
       addSetterStatement(rifField, headerField, headerFieldSetter);
       headerEntityClass.addMethod(headerFieldSetter.build());
+      logNote(headerFieldSetter.toString());
     }
 
     /*
@@ -1334,10 +1326,11 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
         parseMethod.addStatement("$T lineRecord = csvRecords.get(lineIndex)", csvRecordType);
         parseMethod.addStatement("$1T line = new $1T()", mappingSpec.getLineEntity());
 
+        /*
         logNote(
             "generateParser, looking for lineEntityParentField using: "
                 + mappingSpec.getLineEntityParentField());
-
+        */
         FieldSpec lineEntityParentField =
             lineEntity.get().fieldSpecs.stream()
                 .filter(f -> f.name.equalsIgnoreCase(mappingSpec.getLineEntityParentField()))
@@ -1345,12 +1338,13 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
                 .get();
 
         String setterName = calculateSetterName(lineEntityParentField, null);
+        /*
         logNote(
             "lineEntityParentField setter: "
                 + setterName
                 + ", lineEntityParentField: "
                 + lineEntityParentField.toString());
-
+        */
         parseMethod.addCode("line.$L(header);\n\n", setterName);
       }
 
@@ -1379,8 +1373,7 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
         }
       } else if (rifField.getRifColumnType() == RifColumnType.BIGINT) {
         // Handle an BigInteger field.
-        parseUtilsMethodName =
-            rifField.isRifColumnOptional() ? "parseOptionalBigInteger" : "parseBigInteger";
+        parseUtilsMethodName = rifField.isRifColumnOptional() ? "parseOptionalLong" : "parseLong";
       } else if (rifField.getRifColumnType() == RifColumnType.SMALLINT) {
         // Handle an Short field.
         parseUtilsMethodName = rifField.isRifColumnOptional() ? "parseOptionalShort" : "parseShort";
@@ -1563,7 +1556,7 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
               .findAny()
               .get();
 
-      logNote("headerIdField " + headerIdField.toString());
+      // logNote("headerIdField " + headerIdField.toString());
       String lineGettersList =
           lineEntity.get().fieldSpecs.stream()
               .map(
@@ -1572,7 +1565,7 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
                         "lineEntity", f, mappingSpec, parentField, headerIdField);
                   })
               .collect(Collectors.joining(", "));
-      logNote(lineGettersList);
+      // logNote(lineGettersList);
 
       csvWriterMethod.addStatement("$1T lineRecord = new $1T{ $2L }", recordType, lineGettersList);
       csvWriterMethod.addStatement("lineRecords[lineIndex + 1] = lineRecord");
@@ -1652,7 +1645,7 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
       code.append("()");
       sb.append(", other: ").append(calculateGetterName(field, null));
     }
-    logNote(sb.toString());
+    // logNote(sb.toString());
     return code.toString();
   }
 
@@ -1746,6 +1739,8 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
       if (rifField.getRifColumnType() == RifColumnType.CHAR
           && rifField.getRifColumnLength().isPresent()) {
         columnAnnotation.addMember("length", "$L", rifField.getRifColumnLength().get());
+      } else if (rifField.getRifColumnType() == RifColumnType.BIGINT) {
+        columnAnnotation.addMember("columnDefinition", "$S", "long");
       } else if (rifField.getRifColumnType() == RifColumnType.NUM) {
         /*
          * In SQL, the precision is the number of digits in the unscaled value, e.g.
@@ -2107,6 +2102,8 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
           }
           columnAnnotation.addMember("columnDefinition", "$S", columnDefinition.toString());
         }
+      } else if (type == RifColumnType.BIGINT) {
+        columnAnnotation.addMember("columnDefinition", "$S", "long");
       }
       annotations.add(columnAnnotation.build());
     } else {
@@ -2144,7 +2141,7 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
     } else if (type == RifColumnType.TIMESTAMP) {
       return ClassName.get(Instant.class);
     } else if (type == RifColumnType.BIGINT) {
-      return ClassName.get(BigInteger.class);
+      return isColumnOptional ? ClassName.get(Long.class) : TypeName.LONG;
     } else if (type == RifColumnType.SMALLINT) {
       return isColumnOptional ? ClassName.get(Short.class) : TypeName.SHORT;
     } else if (type == RifColumnType.INTEGER) {

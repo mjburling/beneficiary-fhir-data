@@ -645,8 +645,8 @@ public final class TransformerUtils {
    * @return the {@link Patient#getId()} value that will be used for the specified {@link
    *     Beneficiary}
    */
-  public static IdDt buildPatientId(BigInteger beneficiaryId) {
-    return new IdDt(Patient.class.getSimpleName(), beneficiaryId.toString());
+  public static IdDt buildPatientId(long beneficiaryId) {
+    return new IdDt(Patient.class.getSimpleName(), String.valueOf(beneficiaryId));
   }
 
   /**
@@ -664,7 +664,7 @@ public final class TransformerUtils {
    * @return the {@link Coverage#getId()} value to use for the specified values
    */
   public static IdDt buildCoverageId(MedicareSegment medicareSegment, Beneficiary beneficiary) {
-    return buildCoverageId(medicareSegment, beneficiary.getBeneficiaryId().toString());
+    return buildCoverageId(medicareSegment, String.valueOf(beneficiary.getBeneficiaryId()));
   }
 
   /**
@@ -1307,7 +1307,7 @@ public final class TransformerUtils {
    *     Beneficiary}
    */
   static Reference referencePatient(Beneficiary beneficiary) {
-    return referencePatient(beneficiary.getBeneficiaryId().toString());
+    return referencePatient(String.valueOf(beneficiary.getBeneficiaryId()));
   }
 
   /**
@@ -2083,7 +2083,7 @@ public final class TransformerUtils {
     }
 
     item.addAdjudication()
-        .setCategory(createAdjudicationCategory(CcwCodebookVariable.REV_CNTR_PMT_AMT_AMT))
+        .setCategory(createAdjudicationCategory(CcwCodebookVariable.REV_CNTR_PMT))
         .setAmount(createMoney(paymentAmount));
   }
 
