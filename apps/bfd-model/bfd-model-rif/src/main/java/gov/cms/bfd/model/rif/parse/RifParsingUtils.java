@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -183,33 +182,33 @@ public final class RifParsingUtils {
   }
 
   /**
-   * @param bigIntText the decimal string to parse
-   * @return the specified text parsed into a {@link BigDecimal}
+   * @param longText the Long string to parse
+   * @return the specified text parsed into a {@link Long}
    */
-  public static BigInteger parseBigInteger(String bigIntText) {
+  public static long parseLong(String longText) {
     /*
      * Might seem silly to pull this out, but it makes the code a bit easier
      * to read, and ensures that this parsing is standardized.
      */
-    if (bigIntText.isEmpty()) {
-      return BigInteger.ZERO;
+    if (longText.isEmpty()) {
+      return Long.valueOf(0L);
     } else {
       try {
-        return new BigInteger(bigIntText);
+        return new Long(longText);
       } catch (NumberFormatException e) {
         throw new InvalidRifValueException(
-            String.format("Unable to parse BigInteger value: '%s'.", bigIntText), e);
+            String.format("Unable to parse Long value: '%s'.", longText), e);
       }
     }
   }
 
   /**
-   * @param bigIntText the decimal string to parse
-   * @return the result of {@link #parseDecimal(String)} if the specified text isn't empty, or an
-   *     empty Optional if it is empty
+   * @param longText the decimal string to parse
+   * @return the result of {@link #longText(String)} if the specified text isn't empty, or an empty
+   *     Optional if it is empty
    */
-  public static Optional<BigInteger> parseOptionalBigInteger(String bigIntText) {
-    return bigIntText.isEmpty() ? Optional.empty() : Optional.of(parseBigInteger(bigIntText));
+  public static Optional<Long> parseOptionalLong(String longText) {
+    return longText.isEmpty() ? Optional.empty() : Optional.of(parseLong(longText));
   }
 
   /**

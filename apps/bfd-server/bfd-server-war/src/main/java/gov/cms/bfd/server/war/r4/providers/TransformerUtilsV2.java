@@ -3551,7 +3551,7 @@ public final class TransformerUtilsV2 {
       item.setServiced(new DateType().setValue(convertToDate(revenueCenterDate.get())));
     }
 
-    // REV_CNTR_PMT_AMT_AMT => ExplainationOfBenefit.item.adjudication
+    // REV_CNTR_PMT_AMT => ExplainationOfBenefit.item.adjudication
     addAdjudication(
         item,
         createAdjudicationAmtSlice(

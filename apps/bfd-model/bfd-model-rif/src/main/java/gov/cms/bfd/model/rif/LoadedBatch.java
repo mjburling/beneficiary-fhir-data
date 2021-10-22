@@ -14,17 +14,17 @@ public class LoadedBatch {
   public static final String SEPARATOR = ",";
 
   @Id
-  @Column(name = "loaded_batch_id", nullable = false)
+  @Column(name = "loaded_batchid", nullable = false)
   @GeneratedValue(
       strategy = GenerationType.SEQUENCE,
-      generator = "loaded_batches_loaded_batch_id_seq")
+      generator = "loaded_batches_loaded_batchid_seq")
   @SequenceGenerator(
-      name = "loaded_batches_loaded_batch_id_seq",
-      sequenceName = "loaded_batches_loaded_batch_id_seq",
+      name = "loaded_batches_loaded_batchid_seq",
+      sequenceName = "loaded_batches_loaded_batchid_seq",
       allocationSize = 20)
   private long loadedBatchId;
 
-  @Column(name = "loadedFileId", nullable = false)
+  @Column(name = "loaded_fileid", nullable = false)
   private long loadedFileId;
 
   @Column(name = "beneficiaries", columnDefinition = "varchar", nullable = false)
