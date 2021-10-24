@@ -101,8 +101,9 @@ public final class SampleDataColumnsTest {
 
         Assert.assertEquals(
             String.format(
-                "Column count mismatch for '%s'.\nSample Columns: %s\nEnum Columns:   %s\n",
+                "Column count mismatch for '%s'.\n'%s'\nSample Columns: %s\nEnum Columns:   %s\n",
                 sampleFile.name(),
+                sampleFile.getResourceUrl().toString(),
                 toHeaderFormat(columnsInSample, c -> c),
                 toHeaderFormat(columnsInEnum, c -> c.name())),
             columnsInSample.length,
@@ -121,9 +122,10 @@ public final class SampleDataColumnsTest {
           }
           Assert.assertEquals(
               String.format(
-                  "Unable to match column '%d' from sample data for '%s'.\nSample Columns: %s\nEnum Columns:   %s\n",
+                  "Unable to match column '%d' from sample data for '%s'.\n'%s'\nSample Columns: %s\nEnum Columns:   %s\n",
                   col,
                   sampleFile.name(),
+                  sampleFile.getResourceUrl().toString(),
                   toHeaderFormat(columnsInSample, c -> c),
                   toHeaderFormat(columnsInEnum, c -> c.name())),
               columnNameFromSample,

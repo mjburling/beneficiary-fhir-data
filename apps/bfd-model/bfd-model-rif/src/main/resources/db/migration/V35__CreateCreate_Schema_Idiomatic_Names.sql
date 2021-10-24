@@ -248,7 +248,7 @@ create table if not exists beneficiaries (
 );
 
 create index beneficiaries_hicn_idx
-	on public.beneficiaries using btree (bene_crnt_hic_num);
+	on public.beneficiaries (bene_crnt_hic_num);
 
 create table if not exists beneficiaries_history (
     bene_history_id                          bigint not null,                          -- beneficiaryHistoryId
@@ -272,13 +272,13 @@ create table if not exists beneficiaries_history (
 );
 
 create index beneficiaries_history_bene_id_idx
-	on public.beneficiaries_history using btree (bene_id);
+	on public.beneficiaries_history (bene_id);
 
 create index beneficiaries_history_hicn_idx
-	on public.beneficiaries_history using btree (bene_crnt_hic_num);
+	on public.beneficiaries_history (bene_crnt_hic_num);
 
 create index beneficiaries_history_mbi_hash_idx
-	on public.beneficiaries_history using btree (mbi_hash);
+	on public.beneficiaries_history (mbi_hash);
 
 create table if not exists beneficiaries_history_invalid_beneficiaries (
     bene_history_id                          bigint not null,                          -- beneficiaryHistoryId
@@ -339,7 +339,7 @@ create table if not exists loaded_batches (
 );
 
 create table if not exists medicare_beneficiaryid_history (
-    bene_mbi_id_key                          bigint not null,                          -- medicareBeneficiaryIdKey
+    bene_mbi_id                              bigint not null,                          -- medicareBeneficiaryIdKey
     bene_id                                  bigint not null,                          -- beneficiaryId
     last_updated                             timestamp with time zone,                 -- lastupdated
     bene_clm_acnt_num                        character varying(9),                     -- claimAccountNumber
@@ -357,7 +357,7 @@ create table if not exists medicare_beneficiaryid_history (
     updt_user_id                             character varying(30),                    -- mbiUpdateUser
     updt_ts                                  timestamp without time zone,              -- mbiUpdateDate
     constraint medicare_beneficiaryid_history_pkey
-        primary key (bene_mbi_id_key),
+        primary key (bene_mbi_id),
 
     constraint medicare_beneficiaryid_history_bene_id_to_beneficiaries
         foreign key (bene_id)
@@ -367,10 +367,10 @@ create table if not exists medicare_beneficiaryid_history (
 );
 
 create index medicare_beneficiaryid_history_bene_id_idx
-	on public.medicare_beneficiaryid_history using btree (bene_id);
+	on public.medicare_beneficiaryid_history (bene_id);
 
 create table if not exists medicare_beneficiaryid_history_invalid_beneficiaries (
-    bene_mbi_id_key                          bigint not null,                          -- medicareBeneficiaryIdKey
+    bene_mbi_id                              bigint not null,                          -- medicareBeneficiaryIdKey
     bene_id                                  bigint not null,                          -- beneficiaryId
     bene_clm_acnt_num                        character varying(9),                     -- claimAccountNumber
     bene_ident_cd                            character varying(2),                     -- beneficiaryIdCode
@@ -387,7 +387,7 @@ create table if not exists medicare_beneficiaryid_history_invalid_beneficiaries 
     updt_user_id                             character varying(30),                    -- mbiUpdateUser
     updt_ts                                  timestamp without time zone,              -- mbiUpdateDate
     constraint medicare_beneficiaryid_history_invalid_beneficiaries_pkey
-        primary key (bene_mbi_id_key)
+        primary key (bene_mbi_id)
 );
 
 create table if not exists carrier_claims (
@@ -453,7 +453,7 @@ create table if not exists carrier_claims (
 );
 
 create index carrier_claims_bene_id_idx
-	on public.carrier_claims using btree (bene_id);
+	on public.carrier_claims (bene_id);
 
 create table if not exists carrier_claim_lines (
     parent_claim                             bigint not null,                          -- parentClaim
@@ -571,7 +571,7 @@ create table if not exists dme_claims (
 );
 
 create index dme_claims_bene_id_idx
-	on public.dme_claims using btree (bene_id);
+	on public.dme_claims (bene_id);
 
 create table if not exists dme_claim_lines (
     parent_claim                             bigint not null,                          -- parentClaim
@@ -744,7 +744,7 @@ create table if not exists hha_claims (
 );
 
 create index hha_claims_bene_id_idx
-	on public.hha_claims using btree (bene_id);
+	on public.hha_claims (bene_id);
 
 create table if not exists hha_claim_lines (
     parent_claim                             bigint not null,                          -- parentClaim
@@ -895,7 +895,7 @@ create table if not exists hospice_claims (
 );
 
 create index hospice_claims_bene_id_idx
-	on public.hospice_claims using btree (bene_id);
+	on public.hospice_claims (bene_id);
 
 create table if not exists hospice_claim_lines (
     parent_claim                             bigint not null,                          -- parentClaim
@@ -1196,7 +1196,7 @@ create table if not exists inpatient_claims (
 );
 
 create index inpatient_claims_bene_id_idx
-	on public.inpatient_claims using btree (bene_id);
+	on public.inpatient_claims (bene_id);
 
 create table if not exists inpatient_claim_lines (
     parent_claim                             bigint not null,                          -- parentClaim
@@ -1215,8 +1215,8 @@ create table if not exists inpatient_claim_lines (
     constraint inpatient_claim_lines_pkey
         primary key (parent_claim, clm_line_num),
 
-    constraint hospice_claim_lines_parent_claim_to_hospice_claims
-        foreign key (parent_claim) references public.hospice_claims(clm_id)
+    constraint inpatient_claim_lines_parent_claim_to_inpatient_claims
+        foreign key (parent_claim) references public.inpatient_claims(clm_id)
 );
 
 create table if not exists outpatient_claims (
@@ -1427,7 +1427,7 @@ create table if not exists outpatient_claims (
 );
 
 create index outpatient_claims_bene_id_idx
-	on public.outpatient_claims using btree (bene_id);
+	on public.outpatient_claims (bene_id);
 
 create table if not exists outpatient_claim_lines (
     parent_claim                             bigint not null,                          -- parentClaim
@@ -1523,7 +1523,7 @@ create table if not exists partd_events (
 );
 
 create index partd_events_bene_id_idx
-	on public.partd_events using btree (bene_id);
+	on public.partd_events (bene_id);
 
 create table if not exists snf_claims (
     clm_id                                   bigint not null,                          -- claimId
@@ -1752,7 +1752,7 @@ create table if not exists snf_claims (
 );
 
 create index snf_claims_bene_id_idx
-	on public.snf_claims using btree (bene_id);
+	on public.snf_claims (bene_id);
 
 create table if not exists snf_claim_lines (
     parent_claim                             bigint not null,                          -- parentClaim

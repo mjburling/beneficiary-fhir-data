@@ -1,5 +1,5 @@
 insert into public.medicare_beneficiaryid_history (
-	bene_mbi_id_key,
+	medicare_bene_history_id_key,
 	bene_id,
 	last_updated,
 	bene_clm_acnt_num,

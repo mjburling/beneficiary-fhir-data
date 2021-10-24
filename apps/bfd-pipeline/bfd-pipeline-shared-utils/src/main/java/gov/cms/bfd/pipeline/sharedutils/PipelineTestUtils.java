@@ -2,8 +2,6 @@ package gov.cms.bfd.pipeline.sharedutils;
 
 import com.codahale.metrics.MetricRegistry;
 import com.zaxxer.hikari.HikariDataSource;
-import gov.cms.bfd.model.rda.PreAdjFissClaim;
-import gov.cms.bfd.model.rda.PreAdjFissProcCode;
 import gov.cms.bfd.model.rif.Beneficiary;
 import gov.cms.bfd.model.rif.BeneficiaryHistory;
 import gov.cms.bfd.model.rif.BeneficiaryMonthly;
@@ -140,9 +138,9 @@ public final class PipelineTestUtils {
             BeneficiaryMonthly.class,
             Beneficiary.class,
             LoadedBatch.class,
-            LoadedFile.class,
-            PreAdjFissClaim.class,
-            PreAdjFissProcCode.class);
+            LoadedFile.class);
+    // PreAdjFissClaim.class,
+    // PreAdjFissProcCode.class);
 
     try (Connection connection = pipelineApplicationState.getPooledDataSource().getConnection(); ) {
       // Disable auto-commit and remember the default schema name.
@@ -231,7 +229,7 @@ public final class PipelineTestUtils {
   public List<LoadedFile> findLoadedFiles(EntityManager entityManager) {
     entityManager.clear();
     return entityManager
-        .createQuery("select f from loaded_files f order by f.created desc", LoadedFile.class)
+        .createQuery("select f from LoadedFile f order by f.created desc", LoadedFile.class)
         .getResultList();
   }
 

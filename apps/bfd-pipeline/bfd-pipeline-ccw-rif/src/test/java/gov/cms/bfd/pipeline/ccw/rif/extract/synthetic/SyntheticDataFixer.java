@@ -235,7 +235,7 @@ public final class SyntheticDataFixer {
                 String.format(
                     "%s:%s",
                     recordValues.get(CarrierClaimColumn.CLM_ID.ordinal() + 1),
-                    recordValues.get(CarrierClaimColumn.LINE_NUM.ordinal() + 1));
+                    recordValues.get(CarrierClaimColumn.CLM_LINE_NUM.ordinal() + 1));
             if (carrierClaimLineIds.contains(carrierClaimLineId)) return;
             carrierClaimLineIds.add(carrierClaimLineId);
 

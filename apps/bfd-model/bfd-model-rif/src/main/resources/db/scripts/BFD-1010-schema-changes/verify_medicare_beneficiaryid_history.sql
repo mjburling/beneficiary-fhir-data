@@ -17,7 +17,7 @@ BEGIN
 
 insert into public.medicare_beneficiaryid_history (
 		select into curr
-			bene_mbi_id_key as f_1,
+			medicare_bene_history_id_key as f_1,
 			bene_id as f_2,
 			last_updated as f_3,
 			bene_clm_acnt_num as f_4,
