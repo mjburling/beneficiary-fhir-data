@@ -17,7 +17,6 @@ import gov.cms.bfd.model.rif.samples.StaticRifResourceGroup;
 import gov.cms.bfd.pipeline.ccw.rif.extract.RifFilesProcessor;
 import gov.cms.bfd.pipeline.sharedutils.IdHasher;
 import gov.cms.bfd.pipeline.sharedutils.PipelineTestUtils;
-import java.math.BigInteger;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Month;
@@ -221,7 +220,7 @@ public final class RifLoaderIT {
                       beneficiaryHistoryCriteria.from(BeneficiaryHistory.class)))
               .getResultList();
       for (BeneficiaryHistory beneHistory : beneficiaryHistoryEntries) {
-        Assert.assertEquals(BigInteger.valueOf(567834L), beneHistory.getBeneficiaryId());
+        Assert.assertEquals(567834L, beneHistory.getBeneficiaryId());
         // A recent lastUpdated timestamp
         Assert.assertTrue("Expected a lastUpdated field", beneHistory.getLastUpdated().isPresent());
         beneHistory
@@ -320,7 +319,7 @@ public final class RifLoaderIT {
                       beneficiaryHistoryCriteria.from(BeneficiaryHistory.class)))
               .getResultList();
       for (BeneficiaryHistory beneHistory : beneficiaryHistoryEntries) {
-        Assert.assertEquals(BigInteger.valueOf(567834L), beneHistory.getBeneficiaryId());
+        Assert.assertEquals(567834L, beneHistory.getBeneficiaryId());
         // A recent lastUpdated timestamp
         Assert.assertTrue("Expected a lastUpdated field", beneHistory.getLastUpdated().isPresent());
         long end = System.currentTimeMillis();
@@ -366,7 +365,11 @@ public final class RifLoaderIT {
     EntityManager entityManager = null;
     try {
       entityManager = entityManagerFactory.createEntityManager();
-      Beneficiary beneficiaryFromDb = entityManager.find(Beneficiary.class, "567834");
+      Beneficiary beneficiaryFromDb = entityManager.find(Beneficiary.class, 567834L);
+      LOGGER.info(
+          "loadInitialEnrollmentShouldCount12,  Beneficiary: {} : {}",
+          beneficiaryFromDb.toString(),
+          beneficiaryFromDb.getBeneficiaryMonthlys().size());
       // Checks all 12 months are in beneficiary monthlys for that beneficiary
       Assert.assertEquals(12, beneficiaryFromDb.getBeneficiaryMonthlys().size());
       // Checks every month in the beneficiary monthly table
@@ -396,7 +399,7 @@ public final class RifLoaderIT {
     try {
       entityManager = entityManagerFactory.createEntityManager();
 
-      Beneficiary beneficiaryFromDb = entityManager.find(Beneficiary.class, "567834");
+      Beneficiary beneficiaryFromDb = entityManager.find(Beneficiary.class, 567834L);
       // Checks to make sure we have 2 years or 24 months of data
       Assert.assertEquals(24, beneficiaryFromDb.getBeneficiaryMonthlys().size());
     } finally {
@@ -427,7 +430,7 @@ public final class RifLoaderIT {
     try {
       entityManager = entityManagerFactory.createEntityManager();
 
-      Beneficiary beneficiaryFromDb = entityManager.find(Beneficiary.class, "567834");
+      Beneficiary beneficiaryFromDb = entityManager.find(Beneficiary.class, 567834L);
       // Checks to make sure we only have 20 months of data
       Assert.assertEquals(20, beneficiaryFromDb.getBeneficiaryMonthlys().size());
     } finally {
@@ -456,7 +459,7 @@ public final class RifLoaderIT {
     try {
       entityManager = entityManagerFactory.createEntityManager();
 
-      Beneficiary beneficiaryFromDb = entityManager.find(Beneficiary.class, 567834);
+      Beneficiary beneficiaryFromDb = entityManager.find(Beneficiary.class, 567834L);
       Assert.assertEquals(20, beneficiaryFromDb.getBeneficiaryMonthlys().size());
 
       BeneficiaryMonthly augustMonthly = beneficiaryFromDb.getBeneficiaryMonthlys().get(19);
@@ -487,7 +490,7 @@ public final class RifLoaderIT {
     try {
       entityManager = entityManagerFactory.createEntityManager();
 
-      Beneficiary beneficiaryFromDb = entityManager.find(Beneficiary.class, 567834);
+      Beneficiary beneficiaryFromDb = entityManager.find(Beneficiary.class, 567834L);
       Assert.assertEquals(21, beneficiaryFromDb.getBeneficiaryMonthlys().size());
       BeneficiaryMonthly augustMonthly = beneficiaryFromDb.getBeneficiaryMonthlys().get(19);
       Assert.assertEquals("2019-08-01", augustMonthly.getYearMonth().toString());
@@ -612,7 +615,7 @@ public final class RifLoaderIT {
           });
       Slf4jReporter.forRegistry(rifFileEvent.getEventMetrics()).outputTo(LOGGER).build().report();
     }
-    LOGGER.info("Loaded RIF records: '{}'.", loadCount.get());
+    LOGGER.info("Loaded RIF records: '{}', failure count: {}", loadCount.get(), failureCount.get());
     Slf4jReporter.forRegistry(PipelineTestUtils.get().getPipelineApplicationState().getMetrics())
         .outputTo(LOGGER)
         .build()

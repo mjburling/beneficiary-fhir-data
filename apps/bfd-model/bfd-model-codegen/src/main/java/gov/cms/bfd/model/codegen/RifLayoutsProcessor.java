@@ -314,7 +314,12 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
    *     generate source files.
    */
   private void generateCode(MappingSpec mappingSpec) throws IOException {
-    logNote("Generating code for %s", mappingSpec.getRifLayout().getName());
+    logNote(
+        String.format(
+            "\n%s\nGenerating code for %s\n%s",
+            "===============================================",
+            mappingSpec.getRifLayout().getName(),
+            "==============================================="));
 
     /*
      * First, create the Java enum for the RIF columns.
@@ -616,19 +621,11 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
                     .initializer("$L", 1L)
                     .build());
 
-    TypeName parentFieldType = ClassName.get(Long.class);
+    TypeName parentFieldType = TypeName.LONG;
     TypeName yearMonthFieldType = ClassName.get(LocalDate.class);
 
-    AnnotationSpec.Builder columnAnnotation =
-        AnnotationSpec.builder(Column.class)
-            .addMember("name", "$S", "PARENT_BENEFICIARY")
-            .addMember("columnDefinition", "$S", "BigInteger");
-
     FieldSpec parentIdField =
-        FieldSpec.builder(ClassName.get(Long.class), "PARENT_BENEFICIARY", Modifier.PRIVATE)
-            // .addAnnotation(columnAnnotation.build())
-            .build();
-
+        FieldSpec.builder(parentFieldType, "PARENT_BENEFICIARY", Modifier.PRIVATE).build();
     FieldSpec yearMonthField =
         FieldSpec.builder(yearMonthFieldType, "YEAR_MONTH", Modifier.PRIVATE).build();
 
@@ -998,7 +995,6 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
               .addParameter(idField.type, idField.name);
       addSetterStatement(false, idField, idFieldSetter);
       headerEntityClass.addMethod(idFieldSetter.build());
-      logNote(idFieldSetter.toString());
     }
 
     // Create an Entity field with accessors for each RIF field.
@@ -1049,7 +1045,7 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
                   headerField.name);
       addSetterStatement(rifField, headerField, headerFieldSetter);
       headerEntityClass.addMethod(headerFieldSetter.build());
-      logNote(headerFieldSetter.toString());
+      // logNote(headerFieldSetter.toString());
     }
 
     /*
@@ -1326,11 +1322,6 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
         parseMethod.addStatement("$T lineRecord = csvRecords.get(lineIndex)", csvRecordType);
         parseMethod.addStatement("$1T line = new $1T()", mappingSpec.getLineEntity());
 
-        /*
-        logNote(
-            "generateParser, looking for lineEntityParentField using: "
-                + mappingSpec.getLineEntityParentField());
-        */
         FieldSpec lineEntityParentField =
             lineEntity.get().fieldSpecs.stream()
                 .filter(f -> f.name.equalsIgnoreCase(mappingSpec.getLineEntityParentField()))
@@ -1338,13 +1329,6 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
                 .get();
 
         String setterName = calculateSetterName(lineEntityParentField, null);
-        /*
-        logNote(
-            "lineEntityParentField setter: "
-                + setterName
-                + ", lineEntityParentField: "
-                + lineEntityParentField.toString());
-        */
         parseMethod.addCode("line.$L(header);\n\n", setterName);
       }
 
@@ -1556,7 +1540,6 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
               .findAny()
               .get();
 
-      // logNote("headerIdField " + headerIdField.toString());
       String lineGettersList =
           lineEntity.get().fieldSpecs.stream()
               .map(
@@ -1565,7 +1548,6 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
                         "lineEntity", f, mappingSpec, parentField, headerIdField);
                   })
               .collect(Collectors.joining(", "));
-      // logNote(lineGettersList);
 
       csvWriterMethod.addStatement("$1T lineRecord = new $1T{ $2L }", recordType, lineGettersList);
       csvWriterMethod.addStatement("lineRecords[lineIndex + 1] = lineRecord");
