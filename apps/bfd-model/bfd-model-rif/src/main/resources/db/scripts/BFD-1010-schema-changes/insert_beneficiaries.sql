@@ -208,7 +208,7 @@ insert into public.beneficiaries (
 )
 select
 	Cast("beneficiaryId" as bigint),
-	"lastupdated"
+	"lastupdated",
 	"birthDate",
 	"countyCode",
 	"endStageRenalDiseaseCode",
