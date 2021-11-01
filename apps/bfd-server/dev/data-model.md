@@ -91,7 +91,7 @@ The following [Identifier](http://hl7.org/fhir/STU3/datatypes.html#identifier) s
 * `http://bluebutton.cms.hhs.gov/identifier#hicnHash`
 * `http://bluebutton.cms.hhs.gov/identifier#claimGroup`
     * Debatably, this could instead be categorized as CCW-specific.
-* `CCW.PDE_ID`
+* `CCW.CLM_ID`
 * `https://www.ccwdata.org/cs/groups/public/documents/datadictionary/carr_num.txt`
 * `https://www.ccwdata.org/cs/groups/public/documents/datadictionary/carr_line_clia_lab_num.txt`
 * `https://www.ccwdata.org/cs/groups/public/documents/datadictionary/ccltrnum.txt`
