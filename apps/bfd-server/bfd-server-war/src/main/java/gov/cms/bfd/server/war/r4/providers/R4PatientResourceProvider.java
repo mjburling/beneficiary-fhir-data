@@ -809,7 +809,7 @@ public final class R4PatientResourceProvider implements IResourceProvider, Commo
   @Trace
   private Beneficiary selectBeneWithLatestReferenceYear(List<Beneficiary> duplicateBenes) {
     Short maxReferenceYear = Short.MIN_VALUE;
-    BigInteger maxReferenceYearMatchingBeneficiaryId = null;
+    long maxReferenceYearMatchingBeneficiaryId = 0L;
 
     // loop through matching bene ids looking for max rfrnc_yr
     for (Beneficiary duplicateBene : duplicateBenes) {

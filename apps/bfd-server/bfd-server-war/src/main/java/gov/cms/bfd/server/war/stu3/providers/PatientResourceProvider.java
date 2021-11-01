@@ -489,11 +489,11 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
    * @return the {@link List} of matching {@link Beneficiary#getBeneficiaryId()} values
    */
   @Trace
-  private List<BigInteger> queryBeneficiaryIdsByPartDContractCodeAndYearMonth(
+  private List<long> queryBeneficiaryIdsByPartDContractCodeAndYearMonth(
       LocalDate yearMonth, String contractId, PatientLinkBuilder paging) {
     // Create the query to run.
     CriteriaBuilder builder = entityManager.getCriteriaBuilder();
-    CriteriaQuery<BigInteger> beneIdCriteria = builder.createQuery(BigInteger.class);
+    CriteriaQuery<Long> beneIdCriteria = builder.createQuery(Long.class);
     Root<BeneficiaryMonthly> beneMonthlyRoot = beneIdCriteria.from(BeneficiaryMonthly.class);
 
     beneIdCriteria.select(
@@ -520,7 +520,7 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
         builder.asc(beneMonthlyRoot.get(BeneficiaryMonthly_.PARENT_BENEFICIARY)));
 
     // Run the query and return the results.
-    List<BigInteger> matchingBeneIds = null;
+    List<Long> matchingBeneIds = null;
     Long beneHistoryMatchesTimerQueryNanoSeconds = null;
     Timer.Context beneIdMatchesTimer =
         metricRegistry

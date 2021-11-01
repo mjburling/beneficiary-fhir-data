@@ -34,7 +34,6 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -1474,10 +1473,10 @@ final class TransformerTestUtils {
    */
   static void assertEobCommonClaimHeaderData(
       ExplanationOfBenefit eob,
-      BigInteger claimId,
-      BigInteger beneficiaryId,
+      long claimId,
+      long beneficiaryId,
       ClaimType claimType,
-      BigInteger claimGroupId,
+      long claimGroupId,
       MedicareSegment coverageType,
       Optional<LocalDate> dateFrom,
       Optional<LocalDate> dateThrough,
@@ -1547,7 +1546,7 @@ final class TransformerTestUtils {
    */
   static void assertEobCommonGroupCarrierDMEEquals(
       ExplanationOfBenefit eob,
-      BigInteger beneficiaryId,
+      long beneficiaryId,
       String carrierNumber,
       Optional<String> clinicalTrialNumber,
       BigDecimal beneficiaryPartBDeductAmount,

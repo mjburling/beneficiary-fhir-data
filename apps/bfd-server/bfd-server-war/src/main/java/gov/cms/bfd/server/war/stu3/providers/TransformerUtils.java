@@ -51,7 +51,6 @@ import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -598,8 +597,8 @@ public final class TransformerUtils {
    * @return the {@link ExplanationOfBenefit#getId()} value to use for the specified <code>claimId
    *     </code> value
    */
-  public static String buildEobId(ClaimType claimType, BigInteger claimId) {
-    return String.format("%s-%s", claimType.name().toLowerCase(), claimId.toString());
+  public static String buildEobId(ClaimType claimType, long claimId) {
+    return String.format("%s-%s", claimType.name().toLowerCase(), Long.toString(claimId));
   }
 
   /**
@@ -669,11 +668,11 @@ public final class TransformerUtils {
 
   /**
    * @param medicareSegment the {@link MedicareSegment} to compute a {@link Coverage#getId()} for
-   * @param BigInteger the {@link BigInter} identifier to compute a {@link Coverage#getId()} for
+   * @param id the {@link long} identifier to compute a {@link Coverage#getId()} for
    * @return the {@link Coverage#getId()} value to use for the specified values
    */
-  public static IdDt buildCoverageId(MedicareSegment medicareSegment, BigInteger id) {
-    return buildCoverageId(medicareSegment, id.toString());
+  public static IdDt buildCoverageId(MedicareSegment medicareSegment, long id) {
+    return buildCoverageId(medicareSegment, Long.toString(id));
   }
 
   /**
@@ -1672,10 +1671,10 @@ public final class TransformerUtils {
    */
   static void mapEobCommonClaimHeaderData(
       ExplanationOfBenefit eob,
-      BigInteger claimId,
-      BigInteger beneficiaryId,
+      long claimId,
+      long beneficiaryId,
       ClaimType claimType,
-      BigInteger claimGroupId,
+      long claimGroupId,
       MedicareSegment coverageType,
       Optional<LocalDate> dateFrom,
       Optional<LocalDate> dateThrough,
@@ -1685,15 +1684,15 @@ public final class TransformerUtils {
     eob.setId(buildEobId(claimType, claimId));
 
     if (claimType.equals(ClaimType.PDE))
-      eob.addIdentifier(createIdentifier(CcwCodebookVariable.CLM_ID, claimId.toString()));
-    else eob.addIdentifier(createIdentifier(CcwCodebookVariable.CLM_ID, claimId.toString()));
+      eob.addIdentifier(createIdentifier(CcwCodebookVariable.CLM_ID, Long.toString(claimId)));
+    else eob.addIdentifier(createIdentifier(CcwCodebookVariable.CLM_ID, Long.toString(claimId)));
 
     eob.addIdentifier()
         .setSystem(TransformerConstants.IDENTIFIER_SYSTEM_BBAPI_CLAIM_GROUP_ID)
-        .setValue(claimGroupId.toString());
+        .setValue(Long.toString(claimGroupId));
 
-    eob.getInsurance().setCoverage(referenceCoverage(beneficiaryId.toString(), coverageType));
-    eob.setPatient(referencePatient(beneficiaryId.toString()));
+    eob.getInsurance().setCoverage(referenceCoverage(Long.toString(beneficiaryId), coverageType));
+    eob.setPatient(referencePatient(Long.toString(beneficiaryId)));
     switch (finalAction) {
       case 'F':
         eob.setStatus(ExplanationOfBenefitStatus.ACTIVE);
@@ -1744,7 +1743,7 @@ public final class TransformerUtils {
    */
   static void mapEobCommonGroupCarrierDME(
       ExplanationOfBenefit eob,
-      BigInteger beneficiaryId,
+      long beneficiaryId,
       String carrierNumber,
       Optional<String> clinicalTrialNumber,
       BigDecimal beneficiaryPartBDeductAmount,
@@ -1780,7 +1779,7 @@ public final class TransformerUtils {
     if (referringPhysicianNpi.isPresent()) {
       ReferralRequest referral = new ReferralRequest();
       referral.setStatus(ReferralRequestStatus.COMPLETED);
-      referral.setSubject(referencePatient(beneficiaryId.toString()));
+      referral.setSubject(referencePatient(Long.toString(beneficiaryId)));
       referral.setRequester(
           new ReferralRequestRequesterComponent(
               referencePractitioner(referringPhysicianNpi.get())));
@@ -1847,7 +1846,7 @@ public final class TransformerUtils {
   static ItemComponent mapEobCommonItemCarrierDME(
       ItemComponent item,
       ExplanationOfBenefit eob,
-      BigInteger claimId,
+      long claimId,
       Short serviceCount,
       String placeOfServiceCode,
       Optional<LocalDate> firstExpenseDate,

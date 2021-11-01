@@ -39,7 +39,6 @@ import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -158,8 +157,8 @@ public final class TransformerUtilsV2 {
    * @return the {@link Patient#getId()} value that will be used for the specified {@link
    *     Beneficiary}
    */
-  public static IdDt buildPatientId(BigInteger beneficiaryId) {
-    return new IdDt(Patient.class.getSimpleName(), beneficiaryId.toString());
+  public static IdDt buildPatientId(long beneficiaryId) {
+    return new IdDt(Patient.class.getSimpleName(), Long.toString(beneficiaryId));
   }
 
   /**
@@ -1134,8 +1133,8 @@ public final class TransformerUtilsV2 {
    * @return a {@link Reference} to the {@link Patient} resource that matches the specified
    *     parameters
    */
-  static Reference referencePatient(BigInteger patientId) {
-    return new Reference(String.format("Patient/%s", patientId.toString()));
+  static Reference referencePatient(long patientId) {
+    return new Reference(String.format("Patient/%s", Long.toString(patientId)));
   }
 
   /**
@@ -1681,16 +1680,16 @@ public final class TransformerUtilsV2 {
    * @return the {@link Coverage#getId()} value to use for the specified values
    */
   public static IdDt buildCoverageId(MedicareSegment medicareSegment, Beneficiary beneficiary) {
-    return buildCoverageId(medicareSegment, beneficiary.getBeneficiaryId().toString());
+    return buildCoverageId(medicareSegment, Long.toString(beneficiary.getBeneficiaryId()));
   }
 
   /**
    * @param medicareSegment the {@link MedicareSegment} to compute a {@link Coverage#getId()} for
-   * @param BigInteger the {@link BigInter} identifier to compute a {@link Coverage#getId()} for
+   * @param id the {@link long} identifier to compute a {@link Coverage#getId()} for
    * @return the {@link Coverage#getId()} value to use for the specified values
    */
-  public static IdDt buildCoverageId(MedicareSegment medicareSegment, BigInteger id) {
-    return buildCoverageId(medicareSegment, id.toString());
+  public static IdDt buildCoverageId(MedicareSegment medicareSegment, long id) {
+    return buildCoverageId(medicareSegment, Long.toString(id));
   }
 
   /**
@@ -1763,10 +1762,10 @@ public final class TransformerUtilsV2 {
    */
   static void mapEobCommonClaimHeaderData(
       ExplanationOfBenefit eob,
-      BigInteger claimId,
-      BigInteger beneficiaryId,
+      long claimId,
+      long beneficiaryId,
       ClaimTypeV2 claimType,
-      BigInteger claimGroupId,
+      long claimGroupId,
       MedicareSegment coverageType,
       Optional<LocalDate> dateFrom,
       Optional<LocalDate> dateThrough,
@@ -2096,8 +2095,8 @@ public final class TransformerUtilsV2 {
    * @return the {@link ExplanationOfBenefit#getId()} value to use for the specified <code>claimId
    *     </code> value
    */
-  public static String buildEobId(ClaimTypeV2 claimType, BigInteger claimId) {
-    return String.format("%s-%s", claimType.name().toLowerCase(), claimId.toString());
+  public static String buildEobId(ClaimTypeV2 claimType, long claimId) {
+    return String.format("%s-%s", claimType.name().toLowerCase(), Long.toString(claimId));
   }
 
   /**
@@ -2307,7 +2306,7 @@ public final class TransformerUtilsV2 {
    */
   static void mapEobCommonGroupCarrierDME(
       ExplanationOfBenefit eob,
-      BigInteger beneficiaryId,
+      long beneficiaryId,
       String carrierNumber,
       Optional<String> clinicalTrialNumber,
       BigDecimal beneficiaryPartBDeductAmount,
@@ -3055,7 +3054,7 @@ public final class TransformerUtilsV2 {
   static ItemComponent mapEobCommonItemCarrierDME(
       ItemComponent item,
       ExplanationOfBenefit eob,
-      BigInteger claimId,
+      long claimId,
       int sequence,
       Short serviceCount,
       String placeOfServiceCode,

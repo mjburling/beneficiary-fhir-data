@@ -55,7 +55,7 @@ public final class R4PatientResourceProviderIT {
         fhirClient
             .read()
             .resource(Patient.class)
-            .withId(beneficiary.getBeneficiaryId().toString())
+            .withId(Long.toString(beneficiary.getBeneficiaryId()))
             .execute();
 
     comparePatient(beneficiary, patient);
