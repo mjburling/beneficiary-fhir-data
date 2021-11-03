@@ -84,10 +84,10 @@ public final class R4ExplanationOfBenefitResourceProvider implements IResourcePr
 
   public static final Date DATE_OF_DEFECT =
       java.util.Date.from(
-          LocalDate.of(2004, 12, 25).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+          LocalDate.of(2021, 01, 27).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
   public static final Date DATE_OF_FIX =
       java.util.Date.from(
-          LocalDate.of(2004, 12, 25).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+          LocalDate.of(2021, 11, 01).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
 
   private EntityManager entityManager;
   private MetricRegistry metricRegistry;
@@ -271,12 +271,18 @@ public final class R4ExplanationOfBenefitResourceProvider implements IResourcePr
 
     List<IBaseResource> eobs = new ArrayList<IBaseResource>();
 
-    if (claimTypes.contains(ClaimTypeV2.INPATIENT)) {
-      if (lastUpdated.getLowerBound().getValue().after(DATE_OF_DEFECT)
-          && lastUpdated.getLowerBound().getValue().before(DATE_OF_FIX)) {
-        lastUpdated.setLowerBound(
-            new DateParam().setPrefix(ParamPrefixEnum.LESSTHAN_OR_EQUALS).setValue(DATE_OF_DEFECT));
-      }
+    if (!lastUpdated.getLowerBound().isEmpty()
+        && lastUpdated.getLowerBound().getValue().after(DATE_OF_DEFECT)
+        && lastUpdated.getLowerBound().getValue().before(DATE_OF_FIX)) {
+      lastUpdated.setLowerBound(
+          new DateParam()
+              .setPrefix(ParamPrefixEnum.GREATERTHAN_OR_EQUALS)
+              .setValue(DATE_OF_DEFECT));
+    } else if (!lastUpdated.getUpperBound().isEmpty()
+        && lastUpdated.getUpperBound().getValue().after(DATE_OF_DEFECT)
+        && lastUpdated.getUpperBound().getValue().before(DATE_OF_FIX)) {
+      lastUpdated.setUpperBound(
+          new DateParam().setPrefix(ParamPrefixEnum.LESSTHAN_OR_EQUALS).setValue(DATE_OF_FIX));
     }
 
     // Optimize when the lastUpdated parameter is specified and result set is empty
