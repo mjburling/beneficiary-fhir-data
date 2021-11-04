@@ -9,6 +9,7 @@ import gov.cms.bfd.model.rif.HospiceClaimLine;
 import gov.cms.bfd.server.war.commons.Diagnosis;
 import gov.cms.bfd.server.war.commons.MedicareSegment;
 import gov.cms.bfd.sharedutils.exceptions.BadCodeMonkeyException;
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Optional;
 import org.hl7.fhir.dstu3.model.Address;
@@ -227,8 +228,10 @@ final class HospiceClaimTransformer {
           claimLine.getRevenueCenterCode(),
           claimLine.getRateAmount(),
           claimLine.getTotalChargeAmount(),
-          claimLine.getNonCoveredChargeAmount().get(),
-          claimLine.getUnitCount().isPresent() ? claimLine.getUnitCount().get().shortValue() : 0,
+          claimLine.getNonCoveredChargeAmount().isPresent()
+              ? claimLine.getNonCoveredChargeAmount().get()
+              : BigDecimal.ZERO,
+          claimLine.getUnitCount(),
           claimLine.getNationalDrugCodeQuantity(),
           claimLine.getNationalDrugCodeQualifierCode(),
           claimLine.getRevenueCenterRenderingPhysicianNPI());

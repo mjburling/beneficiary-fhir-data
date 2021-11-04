@@ -71,7 +71,7 @@ final class PartDEventTransformer {
     eob.addIdentifier(
         TransformerUtils.createIdentifier(
             CcwCodebookVariable.RX_SRVC_RFRNC_NUM,
-            claimGroup.getPrescriptionReferenceNumber().toString()));
+            String.format("%d", claimGroup.getPrescriptionReferenceNumber())));
 
     // map eob type codes into FHIR
     TransformerUtils.mapEobType(eob, ClaimType.PDE, Optional.empty(), Optional.empty());

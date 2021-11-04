@@ -74,7 +74,7 @@ public final class BeneficiaryTransformerV2Test {
         parsedRecords.stream()
             .filter(r -> r instanceof BeneficiaryHistory)
             .map(r -> (BeneficiaryHistory) r)
-            .filter(r -> beneficiary.getBeneficiaryId().equals(r.getBeneficiaryId()))
+            .filter(r -> beneficiary.getBeneficiaryId() == r.getBeneficiaryId())
             .collect(Collectors.toSet());
 
     beneficiary.getBeneficiariesHistory().addAll(beneficiaryHistories);
@@ -84,7 +84,7 @@ public final class BeneficiaryTransformerV2Test {
         parsedRecords.stream()
             .filter(r -> r instanceof MedicareBeneficiaryIdHistory)
             .map(r -> (MedicareBeneficiaryIdHistory) r)
-            .filter(r -> beneficiary.getBeneficiaryId().equals(r.getBeneficiaryId().orElse(null)))
+            .filter(r -> beneficiary.getBeneficiaryId() == r.getBeneficiaryId())
             .collect(Collectors.toSet());
     beneficiary.getMedicareBeneficiaryidHistory().addAll(beneficiaryMbis);
     assertThat(beneficiary, is(notNullValue()));

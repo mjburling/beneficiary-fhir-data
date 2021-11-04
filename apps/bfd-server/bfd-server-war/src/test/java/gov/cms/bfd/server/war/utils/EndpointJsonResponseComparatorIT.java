@@ -436,7 +436,7 @@ public final class EndpointJsonResponseComparatorIT {
     fhirClient
         .read()
         .resource(Patient.class)
-        .withId(beneficiary.getBeneficiaryId().toString())
+        .withId(String.format("%d", beneficiary.getBeneficiaryId()))
         .execute();
     return sortPatientIdentifiers(jsonInterceptor.getResponse());
   }
@@ -471,7 +471,7 @@ public final class EndpointJsonResponseComparatorIT {
     fhirClient
         .read()
         .resource(Patient.class)
-        .withId(beneficiary.getBeneficiaryId().toString())
+        .withId(String.format("%d", beneficiary.getBeneficiaryId()))
         .execute();
     return sortPatientIdentifiers(jsonInterceptor.getResponse());
   }
@@ -500,7 +500,7 @@ public final class EndpointJsonResponseComparatorIT {
         .where(
             Patient.RES_ID
                 .exactly()
-                .systemAndIdentifier(null, beneficiary.getBeneficiaryId().toString()))
+                .systemAndIdentifier(null, String.format("%d", beneficiary.getBeneficiaryId())))
         .returnBundle(Bundle.class)
         .execute();
     return sortPatientIdentifiers(jsonInterceptor.getResponse());
@@ -540,7 +540,7 @@ public final class EndpointJsonResponseComparatorIT {
         .where(
             Patient.RES_ID
                 .exactly()
-                .systemAndIdentifier(null, beneficiary.getBeneficiaryId().toString()))
+                .systemAndIdentifier(null, String.format("%d", beneficiary.getBeneficiaryId())))
         .returnBundle(Bundle.class)
         .execute();
     return sortPatientIdentifiers(jsonInterceptor.getResponse());

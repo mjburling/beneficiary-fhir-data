@@ -163,6 +163,11 @@ public final class RifLoaderTest {
     newBene.setMbiEffectiveDate(mbiEffectiveDate);
     Assert.assertTrue(RifLoader.isBeneficiaryHistoryEqual(newBene, oldBene));
 
+    // New beneficiary mbiObsoleteDate is not the same as old should assert true
+    // becasue mbiObsoleteDate is no longer part of the equality check.
+    newBene.setMbiObsoleteDate(Optional.of(LocalDate.of(2020, 1, 2)));
+    Assert.assertTrue(RifLoader.isBeneficiaryHistoryEqual(newBene, oldBene));
+
     // Check for nulls on fields
     // New beneficiary hicnUnhashed is null and the return result should assert false
     newBene.setHicnUnhashed(Optional.empty());
@@ -192,8 +197,15 @@ public final class RifLoaderTest {
     newBene.setMbiEffectiveDate(Optional.empty());
     Assert.assertFalse(RifLoader.isBeneficiaryHistoryEqual(newBene, oldBene));
 
-    // Undo beneficiary mbiEffectiveDate and set it back to old should assert true
+    // old beneficiary mbiEffectiveDate was empty and new beneficiary has mbiEffectiveDate
     newBene.setMbiEffectiveDate(mbiEffectiveDate);
+    oldBene.setMbiEffectiveDate(Optional.empty());
+    Assert.assertFalse(RifLoader.isBeneficiaryHistoryEqual(newBene, oldBene));
+
+    // New beneficiary mbiObsoleteDate is null and the return result should assert true
+    // since the test will ignore empty setMbiObsoleteDate.
+    oldBene.setMbiEffectiveDate(mbiEffectiveDate);
+    newBene.setMbiObsoleteDate(Optional.empty());
     Assert.assertTrue(RifLoader.isBeneficiaryHistoryEqual(newBene, oldBene));
   }
 }

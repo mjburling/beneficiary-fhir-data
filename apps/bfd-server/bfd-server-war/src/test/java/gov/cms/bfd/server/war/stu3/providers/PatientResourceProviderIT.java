@@ -19,7 +19,6 @@ import gov.cms.bfd.server.war.ServerTestUtils;
 import gov.cms.bfd.server.war.commons.CommonHeaders;
 import gov.cms.bfd.server.war.commons.RequestHeaders;
 import gov.cms.bfd.server.war.commons.TransformerConstants;
-import java.math.BigInteger;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Year;
@@ -64,7 +63,7 @@ public final class PatientResourceProviderIT {
         fhirClient
             .read()
             .resource(Patient.class)
-            .withId(beneficiary.getBeneficiaryId().toString())
+            .withId(String.format("%d", beneficiary.getBeneficiaryId()))
             .execute();
 
     Assert.assertNotNull(patient);
@@ -238,7 +237,7 @@ public final class PatientResourceProviderIT {
         fhirClient
             .read()
             .resource(Patient.class)
-            .withId(beneficiary.getBeneficiaryId().toString())
+            .withId(String.format("%d", beneficiary.getBeneficiaryId()))
             .execute();
 
     Assert.assertNotNull(patient);
@@ -296,7 +295,7 @@ public final class PatientResourceProviderIT {
         fhirClient
             .read()
             .resource(Patient.class)
-            .withId(beneficiary.getBeneficiaryId().toString())
+            .withId(String.format("%d", beneficiary.getBeneficiaryId()))
             .execute();
 
     Assert.assertNotNull(patient);
@@ -359,7 +358,7 @@ public final class PatientResourceProviderIT {
             .where(
                 Patient.RES_ID
                     .exactly()
-                    .systemAndIdentifier(null, beneficiary.getBeneficiaryId().toString()))
+                    .systemAndIdentifier(null, String.format("%d", beneficiary.getBeneficiaryId())))
             .returnBundle(Bundle.class)
             .execute();
 
@@ -405,7 +404,7 @@ public final class PatientResourceProviderIT {
             .where(
                 Patient.RES_ID
                     .exactly()
-                    .systemAndIdentifier(null, beneficiary.getBeneficiaryId().toString()))
+                    .systemAndIdentifier(null, String.format("%d", beneficiary.getBeneficiaryId())))
             .returnBundle(Bundle.class)
             .execute();
 
@@ -458,7 +457,7 @@ public final class PatientResourceProviderIT {
             .where(
                 Patient.RES_ID
                     .exactly()
-                    .systemAndIdentifier(null, beneficiary.getBeneficiaryId().toString()))
+                    .systemAndIdentifier(null, String.format("%d", beneficiary.getBeneficiaryId())))
             .returnBundle(Bundle.class)
             .execute();
 
@@ -510,7 +509,7 @@ public final class PatientResourceProviderIT {
             .where(
                 Patient.RES_ID
                     .exactly()
-                    .systemAndIdentifier(null, beneficiary.getBeneficiaryId().toString()))
+                    .systemAndIdentifier(null, String.format("%d", beneficiary.getBeneficiaryId())))
             .count(1)
             .returnBundle(Bundle.class)
             .execute();
@@ -1927,8 +1926,9 @@ public final class PatientResourceProviderIT {
    * @param expectedValue number of matches
    */
   private void testLastUpdatedUrls(
-      IGenericClient fhirClient, BigInteger id, List<String> urls, int expectedValue) {
-    String baseResourceUrl = "Patient?_id=" + id.toString() + "&_format=application%2Fjson%2Bfhir";
+      IGenericClient fhirClient, long id, List<String> urls, int expectedValue) {
+    String baseResourceUrl =
+        "Patient?_id=" + String.format("%d", id) + "&_format=application%2Fjson%2Bfhir";
 
     // Search for each lastUpdated value
     for (String lastUpdatedValue : urls) {

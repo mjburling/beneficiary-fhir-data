@@ -7,7 +7,6 @@ import gov.cms.bfd.model.rif.samples.StaticRifResourceGroup;
 import gov.cms.bfd.server.war.ServerTestUtils;
 import gov.cms.bfd.server.war.commons.MedicareSegment;
 import gov.cms.bfd.server.war.commons.ProfileConstants;
-import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -569,7 +568,7 @@ public final class CoverageTransformerV2Test {
   private static void verifySubscriber() {
     Assert.assertEquals("3456789", coverage.getSubscriberId());
     Reference ex = coverage.getBeneficiary();
-    Reference compare = TransformerUtilsV2.referencePatient(BigInteger.valueOf(567834));
+    Reference compare = TransformerUtilsV2.referencePatient(567834L);
     Assert.assertTrue(compare.equalsDeep(ex));
   }
 

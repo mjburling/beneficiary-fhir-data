@@ -33,7 +33,6 @@ import gov.cms.bfd.server.war.commons.PatientLinkBuilder;
 import gov.cms.bfd.server.war.commons.QueryUtils;
 import gov.cms.bfd.server.war.commons.RequestHeaders;
 import gov.cms.bfd.server.war.commons.TransformerConstants;
-import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.Year;
 import java.time.YearMonth;
@@ -187,7 +186,7 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
     }
 
     // Add bene_id to MDC logs
-    MDC.put("bene_id", beneIdText);
+    TransformerUtils.logBeneIdToMdc(Arrays.asList(beneIdText));
 
     Patient patient = BeneficiaryTransformer.transform(metricRegistry, beneficiary, requestHeader);
     return patient;
@@ -428,7 +427,7 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
      */
 
     // Fetch the Beneficiary.id values that we will get results for.
-    List<BigInteger> ids =
+    List<Long> ids =
         queryBeneficiaryIdsByPartDContractCodeAndYearMonth(yearMonth, contractCode, paging);
     if (ids.isEmpty()) {
       return Collections.emptyList();
@@ -489,7 +488,7 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
    * @return the {@link List} of matching {@link Beneficiary#getBeneficiaryId()} values
    */
   @Trace
-  private List<long> queryBeneficiaryIdsByPartDContractCodeAndYearMonth(
+  private List<Long> queryBeneficiaryIdsByPartDContractCodeAndYearMonth(
       LocalDate yearMonth, String contractId, PatientLinkBuilder paging) {
     // Create the query to run.
     CriteriaBuilder builder = entityManager.getCriteriaBuilder();
@@ -515,7 +514,6 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
 
     beneIdCriteria.where(
         builder.and(wherePredicates.toArray(new Predicate[wherePredicates.size()])));
-
     beneIdCriteria.orderBy(
         builder.asc(beneMonthlyRoot.get(BeneficiaryMonthly_.PARENT_BENEFICIARY)));
 
@@ -554,7 +552,7 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
    * @return the matching {@link Beneficiary}s
    */
   @Trace
-  private List<Beneficiary> queryBeneficiariesByIdsWithBeneficiaryMonthlys(List<BigInteger> ids) {
+  private List<Beneficiary> queryBeneficiariesByIdsWithBeneficiaryMonthlys(List<Long> ids) {
     // Create the query to run.
     CriteriaBuilder builder = entityManager.getCriteriaBuilder();
     CriteriaQuery<Beneficiary> beneCriteria = builder.createQuery(Beneficiary.class).distinct(true);
@@ -626,12 +624,14 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
           @Description(shortDefinition = "Include resources last updated in the given range")
           DateRangeParam lastUpdated,
       RequestDetails requestDetails) {
-    if (identifier.getQueryParameterQualifier() != null)
+    if (identifier.getQueryParameterQualifier() != null) {
       throw new InvalidRequestException(
           "Unsupported query parameter qualifier: " + identifier.getQueryParameterQualifier());
+    }
 
-    if (!SUPPORTED_HASH_IDENTIFIER_SYSTEMS.contains(identifier.getSystem()))
+    if (!SUPPORTED_HASH_IDENTIFIER_SYSTEMS.contains(identifier.getSystem())) {
       throw new InvalidRequestException("Unsupported identifier system: " + identifier.getSystem());
+    }
 
     RequestHeaders requestHeader = RequestHeaders.getHeaderWrapper(requestDetails);
 
@@ -725,7 +725,9 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
       SingularAttribute<Beneficiary, String> beneficiaryHashField,
       SingularAttribute<BeneficiaryHistory, String> beneficiaryHistoryHashField,
       RequestHeaders requestHeader) {
-    if (hash == null || hash.trim().isEmpty()) throw new IllegalArgumentException();
+    if (hash == null || hash.trim().isEmpty()) {
+      throw new IllegalArgumentException();
+    }
 
     /*
      * Beneficiaries' HICN/MBIs can change over time and those past HICN/MBIs may land in
@@ -758,21 +760,20 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
      * BeneficiaryHicns and BeneficiaryMbis. We could then safely query these tables and join them
      * back to Beneficiaries (and hopefully the optimizer will play nice, too).
      */
-
     CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 
     // First, find all matching hashes from BeneficiariesHistory.
-    CriteriaQuery<BigInteger> beneHistoryMatches = builder.createQuery(BigInteger.class);
+    CriteriaQuery<BeneficiaryHistory> beneHistoryMatches =
+        builder.createQuery(BeneficiaryHistory.class);
     Root<BeneficiaryHistory> beneHistoryMatchesRoot =
         beneHistoryMatches.from(BeneficiaryHistory.class);
 
-    beneHistoryMatches.select(beneHistoryMatchesRoot.get(BeneficiaryHistory_.BENE_ID));
-    beneHistoryMatches.where(
-        builder.equal(beneHistoryMatchesRoot.get(beneficiaryHistoryHashField), hash));
+    beneHistoryMatches
+        .select(beneHistoryMatchesRoot)
+        .where(builder.equal(beneHistoryMatchesRoot.get(beneficiaryHistoryHashField), hash));
 
-    List<BigInteger> matchingIdsFromBeneHistory = null;
-    Long hicnsFromHistoryQueryNanoSeconds = null;
-
+    List<Long> matchingIdsFromBeneHistory = Collections.emptyList();
+    Long fromHistoryQueryNanoSeconds = null;
     Timer.Context beneHistoryMatchesTimer =
         metricRegistry
             .timer(
@@ -784,12 +785,18 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
             .time();
 
     try {
-      matchingIdsFromBeneHistory = entityManager.createQuery(beneHistoryMatches).getResultList();
+      List<BeneficiaryHistory> results =
+          entityManager.createQuery(beneHistoryMatches).getResultList();
+      if (results != null && results.size() > 0) {
+        for (BeneficiaryHistory elem : results) {
+          matchingIdsFromBeneHistory.add(Long.valueOf(elem.getBeneHistoryId()));
+        }
+      }
     } finally {
-      hicnsFromHistoryQueryNanoSeconds = beneHistoryMatchesTimer.stop();
+      fromHistoryQueryNanoSeconds = beneHistoryMatchesTimer.stop();
       TransformerUtils.recordQueryInMdc(
           "bene_by_" + hashType + "." + hashType + "s_from_beneficiarieshistory",
-          hicnsFromHistoryQueryNanoSeconds,
+          fromHistoryQueryNanoSeconds,
           matchingIdsFromBeneHistory == null ? 0 : matchingIdsFromBeneHistory.size());
     }
 
@@ -797,21 +804,23 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
     CriteriaQuery<Beneficiary> beneMatches = builder.createQuery(Beneficiary.class);
     Root<Beneficiary> beneMatchesRoot = beneMatches.from(Beneficiary.class);
 
-    if (requestHeader.isHICNinIncludeIdentifiers())
+    if (requestHeader.isHICNinIncludeIdentifiers()) {
       beneMatchesRoot.fetch(Beneficiary_.beneficiaries_history, JoinType.LEFT);
-
-    if (requestHeader.isMBIinIncludeIdentifiers())
+    }
+    if (requestHeader.isMBIinIncludeIdentifiers()) {
       beneMatchesRoot.fetch(Beneficiary_.medicare_beneficiaryid_history, JoinType.LEFT);
+    }
 
     beneMatches.select(beneMatchesRoot);
     Predicate beneHashMatches = builder.equal(beneMatchesRoot.get(beneficiaryHashField), hash);
-    if (matchingIdsFromBeneHistory != null && !matchingIdsFromBeneHistory.isEmpty()) {
+    if (!matchingIdsFromBeneHistory.isEmpty()) {
       Predicate beneHistoryHashMatches =
           beneMatchesRoot.get(Beneficiary_.BENE_ID).in(matchingIdsFromBeneHistory);
       beneMatches.where(builder.or(beneHashMatches, beneHistoryHashMatches));
     } else {
       beneMatches.where(beneHashMatches);
     }
+
     List<Beneficiary> matchingBenes = Collections.emptyList();
     Long benesByHashOrIdQueryNanoSeconds = null;
     Timer.Context timerHicnQuery =
@@ -859,7 +868,6 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
     if (!requestHeader.isHICNinIncludeIdentifiers()) {
       beneficiary.setHicnUnhashed(Optional.empty());
     }
-
     // Null out the unhashed MBIs if we're not supposed to be returning
     if (!requestHeader.isMBIinIncludeIdentifiers()) {
       beneficiary.setMedicareBeneficiaryId(Optional.empty());
@@ -881,15 +889,15 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
   @Trace
   private Beneficiary selectBeneWithLatestReferenceYear(List<Beneficiary> duplicateBenes) {
     Short maxReferenceYear = Short.MIN_VALUE;
-    BigInteger maxReferenceYearMatchingBeneficiaryId = null;
+    long maxReferenceYearMatchingBeneficiaryId = 0L;
 
     // loop through matching bene ids looking for max rfrnc_yr
     for (Beneficiary duplicateBene : duplicateBenes) {
       // bene record found but reference year is null - still process
       if (!duplicateBene.getBeneEnrollmentReferenceYear().isPresent()) {
-        continue;
+        duplicateBene.setBeneEnrollmentReferenceYear(Optional.of(Short.valueOf((short) 0)));
       }
-      // check if bene reference year > than prior reference year
+      // bene reference year is > than prior reference year
       if (duplicateBene.getBeneEnrollmentReferenceYear().get().compareTo(maxReferenceYear) > 0) {
         maxReferenceYear = duplicateBene.getBeneEnrollmentReferenceYear().get();
         maxReferenceYearMatchingBeneficiaryId = duplicateBene.getBeneficiaryId();
@@ -929,9 +937,10 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
       return Arrays.asList(headerValues.toLowerCase().split("\\s*,\\s*")).stream()
           .peek(
               c -> {
-                if (!VALID_HEADER_VALUES_INCLUDE_IDENTIFIERS.contains(c))
+                if (!VALID_HEADER_VALUES_INCLUDE_IDENTIFIERS.contains(c)) {
                   throw new InvalidRequestException(
                       "Unsupported " + HEADER_NAME_INCLUDE_IDENTIFIERS + " header value: " + c);
+                }
               })
           .distinct()
           .sorted()
@@ -970,12 +979,14 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
    * @throws InvalidRequestException if invalid coverageId
    */
   public static void checkCoverageId(TokenParam coverageId) {
-    if (coverageId.getQueryParameterQualifier() != null)
+    if (coverageId.getQueryParameterQualifier() != null) {
       throw new InvalidRequestException(
           "Unsupported query parameter qualifier: " + coverageId.getQueryParameterQualifier());
-    if (coverageId.getValueNotNull().length() != 5)
+    }
+    if (coverageId.getValueNotNull().length() != 5) {
       throw new InvalidRequestException(
           "Unsupported query parameter value: " + coverageId.getValueNotNull());
+    }
   }
 
   /**
@@ -984,7 +995,11 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
    * @param paging to check
    */
   public static void checkPageSize(LinkBuilder paging) {
-    if (paging.getPageSize() == 0) throw new InvalidRequestException("A zero count is unsupported");
-    if (paging.getPageSize() < 0) throw new InvalidRequestException("A negative count is invalid");
+    if (paging.getPageSize() == 0) {
+      throw new InvalidRequestException("A zero count is unsupported");
+    }
+    if (paging.getPageSize() < 0) {
+      throw new InvalidRequestException("A negative count is invalid");
+    }
   }
 }

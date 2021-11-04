@@ -1490,18 +1490,19 @@ final class TransformerTestUtils {
 
     assertHasIdentifier(
         claimType.equals(ClaimType.PDE) ? CcwCodebookVariable.CLM_ID : CcwCodebookVariable.CLM_ID,
-        claimId.toString(),
+        String.format("%d", claimId),
         eob.getIdentifier());
 
     assertIdentifierExists(
         TransformerConstants.IDENTIFIER_SYSTEM_BBAPI_CLAIM_GROUP_ID,
-        claimGroupId.toString(),
+        String.format("%d", claimGroupId),
         eob.getIdentifier());
     Assert.assertEquals(
-        TransformerUtils.referencePatient(beneficiaryId.toString()).getReference(),
+        TransformerUtils.referencePatient(String.format("%d", beneficiaryId)).getReference(),
         eob.getPatient().getReference());
     Assert.assertEquals(
-        TransformerUtils.referenceCoverage(beneficiaryId.toString(), coverageType).getReference(),
+        TransformerUtils.referenceCoverage(String.format("%d", beneficiaryId), coverageType)
+            .getReference(),
         eob.getInsurance().getCoverage().getReference());
 
     switch (finalAction) {
@@ -1562,7 +1563,7 @@ final class TransformerTestUtils {
 
     ReferralRequest referral = (ReferralRequest) eob.getReferral().getResource();
     Assert.assertEquals(
-        TransformerUtils.referencePatient(beneficiaryId.toString()).getReference(),
+        TransformerUtils.referencePatient(String.format("%d", beneficiaryId)).getReference(),
         referral.getSubject().getReference());
     assertReferenceIdentifierEquals(
         TransformerConstants.CODING_NPI_US,

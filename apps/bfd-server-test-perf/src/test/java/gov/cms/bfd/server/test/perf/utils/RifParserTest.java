@@ -4,7 +4,6 @@ import gov.cms.bfd.model.rif.Beneficiary;
 import gov.cms.bfd.model.rif.RifFileType;
 import gov.cms.bfd.model.rif.RifRecordEvent;
 import gov.cms.bfd.model.rif.samples.StaticRifResource;
-import java.math.BigInteger;
 import java.net.URISyntaxException;
 import org.junit.*;
 
@@ -17,7 +16,7 @@ public class RifParserTest {
     RifRecordEvent<?> rifRecordEvent = parser.next();
     if (rifRecordEvent != null) {
       Beneficiary beneRow = (Beneficiary) rifRecordEvent.getRecord();
-      Assert.assertEquals(BigInteger.valueOf(567834L), beneRow.getBeneficiaryId());
+      Assert.assertEquals(567834L, beneRow.getBeneficiaryId());
     }
   }
 
@@ -28,7 +27,7 @@ public class RifParserTest {
       RifRecordEvent<?> rifRecordEvent = parser.next();
       if (rifRecordEvent != null) {
         Beneficiary beneRow = (Beneficiary) rifRecordEvent.getRecord();
-        Assert.assertEquals(BigInteger.valueOf(1L), beneRow.getBeneficiaryId());
+        Assert.assertEquals(1L, beneRow.getBeneficiaryId());
       }
     } catch (URISyntaxException e) {
       e.printStackTrace();

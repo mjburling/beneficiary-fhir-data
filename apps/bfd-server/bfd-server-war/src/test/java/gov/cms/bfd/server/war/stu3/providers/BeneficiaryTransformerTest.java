@@ -279,7 +279,7 @@ public final class BeneficiaryTransformerTest {
         parsedRecords.stream()
             .filter(r -> r instanceof BeneficiaryHistory)
             .map(r -> (BeneficiaryHistory) r)
-            .filter(r -> beneficiary.getBeneficiaryId().equals(r.getBeneficiaryId()))
+            .filter(r -> beneficiary.getBeneficiaryId() == r.getBeneficiaryId())
             .collect(Collectors.toSet());
     beneficiary.getBeneficiariesHistory().addAll(beneficiaryHistories);
     for (BeneficiaryHistory beneficiaryHistory : beneficiary.getBeneficiariesHistory()) {
@@ -292,7 +292,7 @@ public final class BeneficiaryTransformerTest {
         parsedRecords.stream()
             .filter(r -> r instanceof MedicareBeneficiaryIdHistory)
             .map(r -> (MedicareBeneficiaryIdHistory) r)
-            .filter(r -> beneficiary.getBeneficiaryId().equals(r.getBeneficiaryId().orElse(null)))
+            .filter(r -> beneficiary.getBeneficiaryId() == r.getBeneficiaryId())
             .collect(Collectors.toSet());
     beneficiary.getMedicareBeneficiaryidHistory().addAll(beneficiaryMbis);
 
@@ -393,7 +393,7 @@ public final class BeneficiaryTransformerTest {
     TransformerTestUtils.assertNoEncodedOptionals(patient);
 
     Assert.assertEquals(
-        beneficiary.getBeneficiaryId().toString(), patient.getIdElement().getIdPart());
+        String.format("%d", beneficiary.getBeneficiaryId()), patient.getIdElement().getIdPart());
 
     Assert.assertEquals(java.sql.Date.valueOf(beneficiary.getBirthDate()), patient.getBirthDate());
 

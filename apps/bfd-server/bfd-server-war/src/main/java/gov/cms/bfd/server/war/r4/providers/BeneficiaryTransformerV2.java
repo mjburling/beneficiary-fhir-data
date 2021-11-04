@@ -100,8 +100,9 @@ final class BeneficiaryTransformerV2 {
     Patient patient = new Patient();
 
     // Required values not directly mapped
+    String beneIdStr = String.format("%d", beneficiary.getBeneficiaryId());
     patient.getMeta().addProfile(ProfileConstants.C4BB_PATIENT_URL);
-    patient.setId(beneficiary.getBeneficiaryId().toString());
+    patient.setId(beneIdStr);
 
     // BENE_ID => patient.identifier
     TransformerUtilsV2.addIdentifierSlice(
@@ -111,7 +112,7 @@ final class BeneficiaryTransformerV2 {
             null,
             TransformerConstants.PATIENT_MB_ID_DISPLAY,
             "MB"),
-        Optional.of(beneficiary.getBeneficiaryId().toString()),
+        Optional.of(beneIdStr),
         Optional.of(TransformerConstants.CODING_BBAPI_BENE_ID));
 
     // Unhashed MBI

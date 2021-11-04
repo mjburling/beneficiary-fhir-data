@@ -996,7 +996,7 @@ public final class OutpatientClaimTransformerV2Test {
                                 "Submitted Amount"),
                             new Coding(
                                 "https://bluebutton.cms.gov/resources/codesystem/adjudication",
-                                "https://bluebutton.cms.gov/resources/variables/rev_cntr_pmt_AMT",
+                                "https://bluebutton.cms.gov/resources/variables/rev_cntr_pmt_amt_amt",
                                 "Revenue Center (Medicare) Payment Amount"))))
             .setAmount(
                 new Money().setValue(5000).setCurrency(TransformerConstants.CODED_MONEY_USD));
