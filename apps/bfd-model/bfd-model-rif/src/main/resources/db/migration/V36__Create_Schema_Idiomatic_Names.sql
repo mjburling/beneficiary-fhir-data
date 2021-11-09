@@ -247,7 +247,7 @@ create table if not exists beneficiaries (
         primary key (bene_id)
 );
 
-create index beneficiaries_hicn_idx
+create index if not exists beneficiaries_hicn_idx
 	on public.beneficiaries (bene_crnt_hic_num);
 
 create table if not exists beneficiaries_history (
@@ -271,13 +271,13 @@ create table if not exists beneficiaries_history (
             on delete no action
 );
 
-create index beneficiaries_history_bene_id_idx
+create index if not exists beneficiaries_history_bene_id_idx
 	on public.beneficiaries_history (bene_id);
 
-create index beneficiaries_history_hicn_idx
+create index if not exists beneficiaries_history_hicn_idx
 	on public.beneficiaries_history (bene_crnt_hic_num);
 
-create index beneficiaries_history_mbi_hash_idx
+create index if not exists beneficiaries_history_mbi_hash_idx
 	on public.beneficiaries_history (mbi_hash);
 
 create table if not exists beneficiaries_history_invalid_beneficiaries (
@@ -294,8 +294,8 @@ create table if not exists beneficiaries_history_invalid_beneficiaries (
 
 create table if not exists beneficiary_monthly (
     year_month                               date not null,                            -- yearMonth
-    partd_contract_number_id                 character varying(5),                     -- partDContractNumberId
     parent_beneficiary                       bigint not null,                          -- parentBeneficiary
+    partd_contract_number_id                 character varying(5),                     -- partDContractNumberId
     partc_contract_number_id                 character varying(5),                     -- partCContractNumberId
     fips_state_cnty_code                     character varying(5),                     -- fipsStateCntyCode
     medicare_status_code                     character varying(2),                     -- medicareStatusCode
@@ -309,11 +309,14 @@ create table if not exists beneficiary_monthly (
     partd_low_income_cost_share_group_code   character varying(2),                     -- partDLowIncomeCostShareGroupCode
     medicaid_dual_eligibility_code           character varying(2),                     -- medicaidDualEligibilityCode
     constraint beneficiary_monthly_pkey
-        primary key (year_month, partd_contract_number_id , parent_beneficiary),
+        primary key (year_month, parent_beneficiary),
 
     constraint beneficiary_monthly_parent_beneficiary_to_beneficiary
         foreign key (parent_beneficiary) references public.beneficiaries(bene_id)
 );
+
+create index if not exists beneficiary_monthly_partdcontractnumid_yearmonth_parentbene_idx
+	on beneficiary_monthly (year_month, partd_contract_number_id asc, parent_beneficiary asc);
 
 create table if not exists loaded_files (
     loaded_fileid                            bigint not null,                          -- loadedFileId
@@ -366,7 +369,7 @@ create table if not exists medicare_beneficiaryid_history (
             on delete no action
 );
 
-create index medicare_beneficiaryid_history_bene_id_idx
+create index if not exists medicare_beneficiaryid_history_bene_id_idx
 	on public.medicare_beneficiaryid_history (bene_id);
 
 create table if not exists medicare_beneficiaryid_history_invalid_beneficiaries (
@@ -452,7 +455,7 @@ create table if not exists carrier_claims (
         foreign key (bene_id) references public.beneficiaries(bene_id)
 );
 
-create index carrier_claims_bene_id_idx
+create index if not exists carrier_claims_bene_id_idx
 	on public.carrier_claims (bene_id);
 
 create table if not exists carrier_claim_lines (
@@ -570,7 +573,7 @@ create table if not exists dme_claims (
         foreign key (bene_id) references public.beneficiaries(bene_id)
 );
 
-create index dme_claims_bene_id_idx
+create index if not exists dme_claims_bene_id_idx
 	on public.dme_claims (bene_id);
 
 create table if not exists dme_claim_lines (
@@ -743,7 +746,7 @@ create table if not exists hha_claims (
         foreign key (bene_id) references public.beneficiaries(bene_id)
 );
 
-create index hha_claims_bene_id_idx
+create index if not exists hha_claims_bene_id_idx
 	on public.hha_claims (bene_id);
 
 create table if not exists hha_claim_lines (
@@ -894,7 +897,7 @@ create table if not exists hospice_claims (
         foreign key (bene_id) references public.beneficiaries(bene_id)
 );
 
-create index hospice_claims_bene_id_idx
+create index if not exists hospice_claims_bene_id_idx
 	on public.hospice_claims (bene_id);
 
 create table if not exists hospice_claim_lines (
@@ -1195,7 +1198,7 @@ create table if not exists inpatient_claims (
         foreign key (bene_id) references public.beneficiaries(bene_id)
 );
 
-create index inpatient_claims_bene_id_idx
+create index if not exists inpatient_claims_bene_id_idx
 	on public.inpatient_claims (bene_id);
 
 create table if not exists inpatient_claim_lines (
@@ -1426,7 +1429,7 @@ create table if not exists outpatient_claims (
         foreign key (bene_id) references public.beneficiaries(bene_id)
 );
 
-create index outpatient_claims_bene_id_idx
+create index if not exists outpatient_claims_bene_id_idx
 	on public.outpatient_claims (bene_id);
 
 create table if not exists outpatient_claim_lines (
@@ -1522,7 +1525,7 @@ create table if not exists partd_events (
         foreign key (bene_id) references public.beneficiaries(bene_id)
 );
 
-create index partd_events_bene_id_idx
+create index if not exists partd_events_bene_id_idx
 	on public.partd_events (bene_id);
 
 create table if not exists snf_claims (
@@ -1751,7 +1754,7 @@ create table if not exists snf_claims (
         foreign key (bene_id) references public.beneficiaries(bene_id)
 );
 
-create index snf_claims_bene_id_idx
+create index if not exists snf_claims_bene_id_idx
 	on public.snf_claims (bene_id);
 
 create table if not exists snf_claim_lines (
@@ -1775,8 +1778,8 @@ create table if not exists snf_claim_lines (
         foreign key (parent_claim) references public.snf_claims(clm_id)
 );
 
-create sequence beneficiaryhistory_bene_history_id_seq START with 1 INCREMENT by 50;
+create sequence if not exists beneficiaryhistory_bene_history_id_seq START with 1 INCREMENT by 50;
 
-create sequence loaded_batches_loaded_batchid_seq START with 1 INCREMENT by 1 cycle;
+create sequence if not exists loaded_batches_loaded_batchid_seq START with 1 INCREMENT by 1 cycle;
 
-create sequence loaded_files_loaded_fileid_seq  START with 1 INCREMENT by 1;
+create sequence if not exists loaded_files_loaded_fileid_seq  START with 1 INCREMENT by 1;

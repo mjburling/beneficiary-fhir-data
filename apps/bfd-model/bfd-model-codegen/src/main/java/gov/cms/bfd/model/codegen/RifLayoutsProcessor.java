@@ -222,7 +222,7 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
                   RifLayout.parse(spreadsheetWorkbook, annotation.medicareBeneficiaryIdSheet()))
               .setHeaderEntity("MedicareBeneficiaryIdHistory")
               .setHeaderTable("medicare_beneficiaryid_history")
-              .setHeaderEntityIdField("bene_mbi_id"));
+              .setHeaderEntityIdField("BENE_MBI_ID"));
 
       mappingSpecs.add(
           new MappingSpec(annotatedPackage.getQualifiedName().toString())
@@ -424,17 +424,18 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
             .initializer("$L", 1L)
             .build());
 
-    String parentClaimFieldName = mappingSpec.getHeaderEntityIdField();
-    String lineNumberFieldName = mappingSpec.getLineEntityLineNumberField();
-
     RifField parentClaimRifField =
         rifLayout.getRifFields().stream()
-            .filter(f -> f.getRifColumnName().equalsIgnoreCase(parentClaimFieldName))
+            .filter(
+                f -> f.getRifColumnName().equalsIgnoreCase(mappingSpec.getHeaderEntityIdField()))
             .findAny()
             .get();
     RifField rifLineNumberField =
         rifLayout.getRifFields().stream()
-            .filter(f -> f.getJavaFieldName().equalsIgnoreCase(lineNumberFieldName))
+            .filter(
+                f ->
+                    f.getJavaFieldName()
+                        .equalsIgnoreCase(mappingSpec.getLineEntityLineNumberField()))
             .findFirst()
             .get();
 
@@ -624,10 +625,10 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
     TypeName parentFieldType = TypeName.LONG;
     TypeName yearMonthFieldType = ClassName.get(LocalDate.class);
 
-    FieldSpec parentIdField =
-        FieldSpec.builder(parentFieldType, "PARENT_BENEFICIARY", Modifier.PRIVATE).build();
     FieldSpec yearMonthField =
         FieldSpec.builder(yearMonthFieldType, "YEAR_MONTH", Modifier.PRIVATE).build();
+    FieldSpec parentIdField =
+        FieldSpec.builder(parentFieldType, "PARENT_BENEFICIARY", Modifier.PRIVATE).build();
 
     // Add fields to the @IdClass class
     beneMonthlyIdClass.addField(parentIdField);
@@ -1103,6 +1104,7 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
       FieldSpec.Builder childField =
           FieldSpec.builder(childFieldType, "lines", Modifier.PRIVATE)
               .initializer("new $T<>()", LinkedList.class);
+
       childField.addAnnotation(
           AnnotationSpec.builder(OneToMany.class)
               .addMember("mappedBy", "$S", mappingSpec.getLineEntityParentField())
@@ -1110,10 +1112,14 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
               .addMember("fetch", "$T.LAZY", FetchType.class)
               .addMember("cascade", "$T.ALL", CascadeType.class)
               .build());
+
+      // OrderBy annotation; for *Lines, we'll just normalize all to CLM_LINE_NUM
+      // which is defined in the 'LINE' portion of the XLS worksheet.
       childField.addAnnotation(
           AnnotationSpec.builder(OrderBy.class)
-              .addMember("value", "$S", mappingSpec.getLineEntityLineNumberField() + " ASC")
+              .addMember("value", "$S", "CLM_LINE_NUM ASC")
               .build());
+
       headerEntityClass.addField(childField.build());
 
       MethodSpec childGetter =
@@ -1161,7 +1167,7 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
           MethodSpec.methodBuilder("setBeneficiaryMonthlys")
               .addModifiers(Modifier.PUBLIC)
               .returns(void.class)
-              .addParameter(childFieldType, "BeneficiaryMonthlys")
+              .addParameter(childFieldType, "beneficiaryMonthlys")
               .addStatement(
                   "this.$N = ($T)$N", "beneficiaryMonthlys", childFieldType, "beneficiaryMonthlys")
               .build();

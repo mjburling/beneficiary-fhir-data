@@ -239,7 +239,7 @@ public final class RifLoaderIT {
       Assert.assertEquals("Johnson", beneficiaryFromDb.getNameSurname());
       // Following fields were NOT changed in update record
       Assert.assertEquals("John", beneficiaryFromDb.getNameGiven());
-      Assert.assertEquals(new Character('A'), beneficiaryFromDb.getNameMiddleInitial().get());
+      Assert.assertEquals(Character.valueOf('A'), beneficiaryFromDb.getNameMiddleInitial().get());
       Assert.assertEquals(
           "Beneficiary has MBI", Optional.of("SSSS"), beneficiaryFromDb.getMedicareBeneficiaryId());
       Assert.assertEquals(
@@ -371,11 +371,9 @@ public final class RifLoaderIT {
           beneficiaryFromDb.toString(),
           beneficiaryFromDb.getBeneficiaryMonthlys().size());
       // Checks all 12 months are in beneficiary monthlys for that beneficiary
-      // FIX THIS
-      // Assert.assertEquals(12, beneficiaryFromDb.getBeneficiaryMonthlys().size());
-      Assert.assertEquals(0, beneficiaryFromDb.getBeneficiaryMonthlys().size());
+      Assert.assertEquals(12, beneficiaryFromDb.getBeneficiaryMonthlys().size());
       // Checks every month in the beneficiary monthly table
-      // assertBeneficiaryMonthly(beneficiaryFromDb);
+      assertBeneficiaryMonthly(beneficiaryFromDb);
 
     } finally {
       if (entityManager != null) entityManager.close();
@@ -431,7 +429,6 @@ public final class RifLoaderIT {
     EntityManager entityManager = null;
     try {
       entityManager = entityManagerFactory.createEntityManager();
-
       Beneficiary beneficiaryFromDb = entityManager.find(Beneficiary.class, 567834L);
       // Checks to make sure we only have 20 months of data
       Assert.assertEquals(20, beneficiaryFromDb.getBeneficiaryMonthlys().size());
