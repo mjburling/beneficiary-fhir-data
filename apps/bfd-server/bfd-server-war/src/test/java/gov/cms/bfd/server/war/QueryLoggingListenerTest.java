@@ -43,7 +43,7 @@ public final class QueryLoggingListenerTest {
   public void computeQueryType_BENE_BY_HICN_HISTORY() {
     QueryInfo queryInfo =
         new QueryInfo(
-            "select beneficiar0_.\"beneficiaryId\" as col_0_0_ from \"BeneficiariesHistory\" beneficiar0_ where beneficiar0_.\"hicn\"=?");
+            "select beneficiar0_.bene_id as col_0_0_ from beneficiaries_history beneficiar0_ where beneficiar0_.hicn=?");
     Assert.assertEquals(QueryType.BENE_BY_HICN_HISTORY, QueryType.computeQueryType(queryInfo));
   }
 
