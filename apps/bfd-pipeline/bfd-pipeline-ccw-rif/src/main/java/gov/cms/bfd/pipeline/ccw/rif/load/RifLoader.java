@@ -420,7 +420,7 @@ public final class RifLoader {
         record.setLastUpdated(loadedBatchBuilder.getTimestamp());
 
         // Associate the beneficiary with this file loaded
-        loadedBatchBuilder.associateBeneficiary(rifRecordEvent.getBeneficiaryId());
+        loadedBatchBuilder.associateBeneficiary(Long.valueOf(rifRecordEvent.getBeneficiaryId()));
 
         LoadStrategy strategy = selectStrategy(recordAction);
         LoadAction loadAction;

@@ -34,7 +34,7 @@ public class LoadedFilterManager {
   private static final Instant BEFORE_LAST_UPDATED_FEATURE = Instant.parse("2020-01-01T00:00:00Z");
 
   // The size of the beneficiaryId column
-  private static final int BENE_ID_SIZE = 15;
+  private static final int BENE_ID_SIZE = Long.BYTES;
 
   // The connection to the DB
   private EntityManager entityManager;
@@ -153,8 +153,8 @@ public class LoadedFilterManager {
    * @return true if the results set is empty. false if the result set *may* contain items.
    */
   public synchronized boolean isResultSetEmpty(
-      String beneficiaryId, DateRangeParam lastUpdatedRange) {
-    if (beneficiaryId == null || beneficiaryId.isEmpty()) throw new IllegalArgumentException();
+      Long beneficiaryId, DateRangeParam lastUpdatedRange) {
+    if (beneficiaryId == null) throw new IllegalArgumentException();
 
     if (!isInBounds(lastUpdatedRange)) {
       // Out of bounds has to be treated as unknown result
@@ -360,8 +360,9 @@ public class LoadedFilterManager {
     if (batchCount == 0) {
       throw new IllegalArgumentException("Batches cannot be empty for a filter");
     }
+
     final int batchSize =
-        (loadedBatches.get(0).getBeneficiaries().length() + BENE_ID_SIZE) / BENE_ID_SIZE;
+        (loadedBatches.get(0).getBeneficiaries().size() + BENE_ID_SIZE) / BENE_ID_SIZE;
 
     // It is important to get a good estimate of the number of entries for
     // an accurate FFP and minimal memory size. This one assumes that all batches are of equal size.
@@ -370,8 +371,8 @@ public class LoadedFilterManager {
     // Loop through all batches, filling the bloom filter and finding the lastUpdated
     Instant lastUpdated = firstUpdated;
     for (LoadedBatch batch : loadedBatches) {
-      for (String beneficiary : batch.getBeneficiariesAsList()) {
-        bloomFilter.putString(beneficiary);
+      for (Long beneficiary : batch.getBeneficiaries()) {
+        bloomFilter.putLong(beneficiary);
       }
       if (batch.getCreated().isAfter(lastUpdated)) {
         lastUpdated = batch.getCreated();
@@ -385,16 +386,20 @@ public class LoadedFilterManager {
   /* DB Operations */
 
   /**
-   * Return the max date from the LoadedBatch table. If no batches are present, then the schema
+   * Return the max date from the loaded_batch table. If no batches are present, then the schema
    * migration time which will be a timestamp before the first loaded batch
    *
    * @return the max date
    */
   private Optional<Instant> fetchLastLoadedBatchCreated() {
-    Instant maxCreated =
-        entityManager
-            .createQuery("select max(b.created) from loaded_batches b", Instant.class)
-            .getSingleResult();
+    Instant maxCreated = null;
+    try {
+      entityManager
+          .createQuery("select max(b.created) from loaded_batches b", Instant.class)
+          .getSingleResult();
+    } catch (Exception e) {
+      LOGGER.error(e.getMessage(), e);
+    }
     return Optional.ofNullable(maxCreated);
   }
 
@@ -406,7 +411,7 @@ public class LoadedFilterManager {
   private Optional<Instant> fetchFirstLoadedBatchCreated() {
     Instant minBatchId =
         entityManager
-            .createQuery("select min(b.created) from loaded_batches b", Instant.class)
+            .createQuery("select min(b.created) from LoadedBatch b", Instant.class)
             .getSingleResult();
     return Optional.ofNullable(minBatchId);
   }
@@ -444,7 +449,7 @@ public class LoadedFilterManager {
    */
   private List<LoadedFile> fetchLoadedFiles() {
     return entityManager
-        .createQuery("select f from loaded_files f", LoadedFile.class)
+        .createQuery("select f from LoadedFile f", LoadedFile.class)
         .getResultList();
   }
 
@@ -457,8 +462,7 @@ public class LoadedFilterManager {
   private List<LoadedBatch> fetchLoadedBatches(long loadedFileId) {
     return entityManager
         .createQuery(
-            "select b from loaded_batches b where b.loaded_fileid = :loadedFileId",
-            LoadedBatch.class)
+            "select b from LoadedBatch b where b.loaded_fileid = :loadedFileId", LoadedBatch.class)
         .setParameter("loadedFileId", loadedFileId)
         .getResultList();
   }

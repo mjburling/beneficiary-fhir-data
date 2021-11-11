@@ -759,7 +759,8 @@ public final class R4PatientResourceProviderIT {
               Patient patientFromSearchResult =
                   (Patient) searchResults.getEntry().get(0).getResource();
               Assert.assertEquals(
-                  h.getBeneficiaryId(), patientFromSearchResult.getIdElement().getIdPart());
+                  h.getBeneficiaryId(),
+                  Long.parseLong(patientFromSearchResult.getIdElement().getIdPart()));
             });
   }
 
@@ -798,7 +799,8 @@ public final class R4PatientResourceProviderIT {
               Patient patientFromSearchResult =
                   (Patient) searchResults.getEntry().get(0).getResource();
               Assert.assertEquals(
-                  h.getBeneficiaryId(), patientFromSearchResult.getIdElement().getIdPart());
+                  h.getBeneficiaryId(),
+                  Long.parseLong(patientFromSearchResult.getIdElement().getIdPart()));
             });
   }
 
@@ -837,7 +839,8 @@ public final class R4PatientResourceProviderIT {
               Patient patientFromSearchResult =
                   (Patient) searchResults.getEntry().get(0).getResource();
               Assert.assertEquals(
-                  h.getBeneficiaryId(), patientFromSearchResult.getIdElement().getIdPart());
+                  h.getBeneficiaryId(),
+                  Long.parseLong(patientFromSearchResult.getIdElement().getIdPart()));
             });
   }
 
@@ -931,7 +934,8 @@ public final class R4PatientResourceProviderIT {
 
     Beneficiary expectedBene = (Beneficiary) loadedRecords.get(0);
     Assert.assertEquals(
-        expectedBene.getBeneficiaryId(), patientFromSearchResult.getIdElement().getIdPart());
+        expectedBene.getBeneficiaryId(),
+        Long.parseLong(patientFromSearchResult.getIdElement().getIdPart()));
 
     /*
      * Ensure the unhashed values for MBI is present.
@@ -1094,7 +1098,8 @@ public final class R4PatientResourceProviderIT {
 
     Beneficiary expectedBene = (Beneficiary) loadedRecords.get(0);
     Assert.assertEquals(
-        expectedBene.getBeneficiaryId(), patientFromSearchResult.getIdElement().getIdPart());
+        expectedBene.getBeneficiaryId(),
+        Long.parseLong(patientFromSearchResult.getIdElement().getIdPart()));
 
     /*
      * Ensure the unhashed values for MBI is present.

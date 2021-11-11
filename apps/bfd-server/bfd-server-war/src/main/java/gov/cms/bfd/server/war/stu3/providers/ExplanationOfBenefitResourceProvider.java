@@ -236,7 +236,7 @@ public final class ExplanationOfBenefitResourceProvider implements IResourceProv
      * later.
      */
 
-    String beneficiaryId = patient.getIdPart();
+    long beneficiaryId = Long.parseLong(patient.getIdPart());
     Set<ClaimType> claimTypes = parseTypeParam(type);
     Boolean includeTaxNumbers = returnIncludeTaxNumbers(requestDetails);
 
@@ -365,10 +365,7 @@ public final class ExplanationOfBenefitResourceProvider implements IResourceProv
   @SuppressWarnings({"rawtypes", "unchecked"})
   @Trace
   private <T> List<T> findClaimTypeByPatient(
-      ClaimType claimType,
-      String patientId,
-      DateRangeParam lastUpdated,
-      DateRangeParam serviceDate) {
+      ClaimType claimType, long patientId, DateRangeParam lastUpdated, DateRangeParam serviceDate) {
     CriteriaBuilder builder = entityManager.getCriteriaBuilder();
     CriteriaQuery criteria = builder.createQuery((Class) claimType.getEntityClass());
     Root root = criteria.from(claimType.getEntityClass());

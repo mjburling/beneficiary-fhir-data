@@ -1094,6 +1094,8 @@ public final class EndpointJsonResponseComparatorIT {
 
     String approvedJson = readFile(generateFileName(approvedResponseDir, endpointId));
     String newJson = readFile(generateFileName(targetResponseDir, endpointId));
+    System.out.println(approvedJson);
+    System.out.println(newJson);
 
     AssertUtils.assertJsonEquals(approvedJson, newJson, IGNORED_PATHS);
   }

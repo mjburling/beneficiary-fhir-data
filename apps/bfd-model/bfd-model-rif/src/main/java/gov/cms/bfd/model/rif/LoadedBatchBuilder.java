@@ -6,7 +6,7 @@ import java.util.List;
 
 /** Class to build a LoadedBatch. Thread safe. */
 public class LoadedBatchBuilder {
-  private final List<String> beneficiaries;
+  private final List<Long> beneficiaries;
   private final long loadedFileId;
   private final Instant timestamp;
 
@@ -27,8 +27,8 @@ public class LoadedBatchBuilder {
    *
    * @param beneficiaryId to put in the filter
    */
-  public synchronized void associateBeneficiary(String beneficiaryId) {
-    if (beneficiaryId == null || beneficiaryId.isEmpty()) {
+  public synchronized void associateBeneficiary(Long beneficiaryId) {
+    if (beneficiaryId == null) {
       throw new IllegalArgumentException("Null or empty beneficiary");
     }
     beneficiaries.add(beneficiaryId);
@@ -42,7 +42,7 @@ public class LoadedBatchBuilder {
   public synchronized LoadedBatch build() {
     final LoadedBatch loadedBatch = new LoadedBatch();
     loadedBatch.setLoadedFileId(loadedFileId);
-    loadedBatch.setBeneficiaries(beneficiaries);
+    loadedBatch.setBeneficiariesLong(beneficiaries);
     loadedBatch.setCreated(timestamp);
     return loadedBatch;
   }

@@ -61,7 +61,7 @@ public class LoadedBatch {
    * @param created batch creation date
    */
   public LoadedBatch(
-      long loadedBatchId, long loadedFileId, List<String> beneficiaries, Instant created) {
+      long loadedBatchId, long loadedFileId, List<Long> beneficiaries, Instant created) {
     this();
     this.loadedBatchId = loadedBatchId;
     this.loadedFileId = loadedFileId;
@@ -71,7 +71,7 @@ public class LoadedBatch {
 
   /** @return the loadedBatchId */
   public long getLoadedBatchId() {
-    return loadedFileId;
+    return loadedBatchId;
   }
 
   /** @param loadedBatchId the identifier to set */
@@ -89,16 +89,6 @@ public class LoadedBatch {
     this.loadedFileId = loadedFileId;
   }
 
-  /** @return the beneficiaries */
-  public String getBeneficiaries() {
-    return beneficiaries;
-  }
-
-  /** @param beneficiaries the beneficiaryId to set */
-  public void setBeneficiaries(String beneficiaries) {
-    this.beneficiaries = beneficiaries;
-  }
-
   /** @return the creation time stamp */
   public Instant getCreated() {
     return created;
@@ -109,13 +99,35 @@ public class LoadedBatch {
     this.created = created;
   }
 
+  /** @param beneficiaries the beneficiaryId to set */
+  public void setBeneficiaries(long beneficiaryId) {
+    this.beneficiaries = String.valueOf(beneficiaryId);
+  }
+
+  /** @param beneficiaries the beneficiaryId to set */
+  public void setBeneficiaries(String beneficiaryId) {
+    this.beneficiaries = beneficiaryId;
+  }
+
+  /**
+   * Set the beneficiaries from a list
+   *
+   * @param beneficiaries list to convert
+   */
+  public void setBeneficiariesLong(List<Long> beneficiaries) {
+    this.beneficiaries = convertToString(beneficiaries);
+  }
+
   /**
    * Set the beneficiaries from a list
    *
    * @param beneficiaries list to convert
    */
   public void setBeneficiaries(List<String> beneficiaries) {
-    this.beneficiaries = convertToString(beneficiaries);
+    this.beneficiaries =
+        (beneficiaries == null || beneficiaries.isEmpty())
+            ? ""
+            : beneficiaries.stream().collect(Collectors.joining(SEPARATOR));
   }
 
   /**
@@ -123,7 +135,7 @@ public class LoadedBatch {
    *
    * @return beneficiaries as list
    */
-  public List<String> getBeneficiariesAsList() {
+  public List<Long> getBeneficiaries() {
     return convertToList(this.beneficiaries);
   }
 
@@ -154,17 +166,17 @@ public class LoadedBatch {
    * Dev Note: A JPA AttributeConverter could be created instead of these static methods. This is
    * slightly simpler and, since conversion is done once, just as efficient.
    */
-  private static String convertToString(List<String> list) {
-    if (list == null || list.isEmpty()) {
-      return "";
-    }
-    return list.stream().collect(Collectors.joining(SEPARATOR));
+  private static String convertToString(List<Long> list) {
+    return list == null || list.isEmpty()
+        ? ""
+        : list.stream().map(String::valueOf).collect(Collectors.joining(SEPARATOR));
   }
 
-  private static List<String> convertToList(String commaSeparated) {
-    if (commaSeparated == null || commaSeparated.isEmpty()) {
-      return new ArrayList<>();
-    }
-    return Arrays.asList(commaSeparated.split(SEPARATOR, -1));
+  private static List<Long> convertToList(String commaSeparated) {
+    return commaSeparated == null || commaSeparated.isEmpty()
+        ? new ArrayList<>()
+        : Arrays.stream(commaSeparated.split(SEPARATOR, -1))
+            .map(Long::parseLong)
+            .collect(Collectors.toList());
   }
 }

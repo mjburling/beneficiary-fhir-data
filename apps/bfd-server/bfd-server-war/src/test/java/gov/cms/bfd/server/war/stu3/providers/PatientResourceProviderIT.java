@@ -957,7 +957,8 @@ public final class PatientResourceProviderIT {
               Patient patientFromSearchResult =
                   (Patient) searchResults.getEntry().get(0).getResource();
               Assert.assertEquals(
-                  h.getBeneficiaryId(), patientFromSearchResult.getIdElement().getIdPart());
+                  h.getBeneficiaryId(),
+                  Long.parseLong(patientFromSearchResult.getIdElement().getIdPart()));
             });
   }
 
@@ -995,7 +996,8 @@ public final class PatientResourceProviderIT {
               Patient patientFromSearchResult =
                   (Patient) searchResults.getEntry().get(0).getResource();
               Assert.assertEquals(
-                  h.getBeneficiaryId(), patientFromSearchResult.getIdElement().getIdPart());
+                  h.getBeneficiaryId(),
+                  Long.parseLong(patientFromSearchResult.getIdElement().getIdPart()));
             });
   }
 
@@ -1574,7 +1576,8 @@ public final class PatientResourceProviderIT {
               Patient patientFromSearchResult =
                   (Patient) searchResults.getEntry().get(0).getResource();
               Assert.assertEquals(
-                  h.getBeneficiaryId(), patientFromSearchResult.getIdElement().getIdPart());
+                  h.getBeneficiaryId(),
+                  Long.parseLong(patientFromSearchResult.getIdElement().getIdPart()));
             });
   }
 
@@ -1613,7 +1616,8 @@ public final class PatientResourceProviderIT {
               Patient patientFromSearchResult =
                   (Patient) searchResults.getEntry().get(0).getResource();
               Assert.assertEquals(
-                  h.getBeneficiaryId(), patientFromSearchResult.getIdElement().getIdPart());
+                  h.getBeneficiaryId(),
+                  Long.parseLong(patientFromSearchResult.getIdElement().getIdPart()));
             });
   }
 

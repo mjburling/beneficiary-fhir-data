@@ -71,6 +71,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
@@ -166,6 +168,9 @@ public final class TransformerUtils {
 
   /** Tracks the NPI codes that have already had code lookup failures. */
   private static final Set<String> npiCodeLookupMissingFailures = new HashSet<>();
+
+  // used to extract numeric BENE_ID from claims reference elements
+  private static final Pattern beneRegex = Pattern.compile("-?[0-9]+");
 
   /**
    * @param eob the {@link ExplanationOfBenefit} that the adjudication total should be part of
@@ -3245,6 +3250,25 @@ public final class TransformerUtils {
   }
 
   /**
+   * @param str a {@link String} to retrive numeric beneficairyID from
+   * @return Returns a {@link Long} beneficiary ID
+   */
+  private static Long beneficiaryIdFromString(String str) {
+    if (Strings.isNullOrEmpty(str)) {
+      return Long.MIN_VALUE;
+    }
+    Long rslt = null;
+    try {
+      Matcher matcher = beneRegex.matcher(str);
+      rslt = matcher.find() ? Long.parseLong(matcher.group()) : Long.MIN_VALUE;
+    } catch (Exception e) {
+      LOGGER.warn("Failed to extract beneficairyId from: " + str, e);
+      rslt = Long.MIN_VALUE;
+    }
+    return rslt;
+  }
+
+  /**
    * @param bundle a {@link Bundle} to add the list of {@link ExplanationOfBenefit} resources to.
    * @param resources a list of either {@link ExplanationOfBenefit}s, {@link Coverage}s, or {@link
    *     Patient}s, of which a portion will be added to the bundle based on the paging values
@@ -3252,47 +3276,47 @@ public final class TransformerUtils {
    *     Patient}s, which may contain multiple matching resources, or may also be empty.
    */
   public static Bundle addResourcesToBundle(Bundle bundle, List<IBaseResource> resources) {
-    Set<String> beneIds = new HashSet<String>();
+    Set<Long> beneIds = new HashSet<Long>();
     for (IBaseResource res : resources) {
       BundleEntryComponent entry = bundle.addEntry();
       entry.setResource((Resource) res);
-
+      Long idVal = Long.MIN_VALUE;
       if (entry.getResource().getResourceType() == ResourceType.ExplanationOfBenefit) {
         ExplanationOfBenefit eob = ((ExplanationOfBenefit) entry.getResource());
-        if (eob != null
-            && eob.getPatient() != null
-            && !Strings.isNullOrEmpty(eob.getPatient().getReference())) {
-          String reference = eob.getPatient().getReference().replace("Patient/", "");
-          if (!Strings.isNullOrEmpty(reference)) {
-            beneIds.add(reference);
-          }
+        if (eob != null && eob.getPatient() != null) {
+          idVal = beneficiaryIdFromString(eob.getPatient().getReference());
         }
       } else if (entry.getResource().getResourceType() == ResourceType.Patient) {
         Patient patient = ((Patient) entry.getResource());
-        if (patient != null && !Strings.isNullOrEmpty(patient.getId())) {
-          beneIds.add(patient.getId());
+        if (patient != null) {
+          idVal = beneficiaryIdFromString(patient.getId());
         }
       } else if (entry.getResource().getResourceType() == ResourceType.Coverage) {
         Coverage coverage = ((Coverage) entry.getResource());
-        if (coverage != null
-            && coverage.getBeneficiary() != null
-            && !Strings.isNullOrEmpty(coverage.getBeneficiary().getReference())) {
-          String reference = coverage.getBeneficiary().getReference().replace("Patient/", "");
-          if (!Strings.isNullOrEmpty(reference)) {
-            beneIds.add(reference);
-          }
+        if (coverage != null && coverage.getBeneficiary() != null) {
+          idVal = beneficiaryIdFromString(coverage.getBeneficiary().getReference());
         }
       }
+      if (idVal > Long.MIN_VALUE) {
+        beneIds.add(idVal);
+      }
     }
-
-    logBeneIdToMdc(beneIds);
-
+    if (beneIds.size() > 0) {
+      logBeneIdToMdc(beneIds);
+    }
     return bundle;
   }
 
-  public static void logBeneIdToMdc(Collection<String> beneIds) {
+  public static void logBeneIdToMdc(long beneId) {
+    MDC.put("bene_id", String.format("%d", beneId));
+  }
+
+  public static void logBeneIdToMdc(Collection<Long> beneIds) {
     if (!beneIds.isEmpty()) {
-      MDC.put("bene_id", String.join(", ", beneIds));
+      String result =
+          beneIds.stream().map(n -> String.valueOf(n)).collect(Collectors.joining(", "));
+
+      MDC.put("bene_id", result);
     }
   }
 

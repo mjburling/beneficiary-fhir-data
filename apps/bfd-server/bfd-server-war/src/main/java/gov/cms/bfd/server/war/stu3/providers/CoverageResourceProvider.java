@@ -22,7 +22,6 @@ import gov.cms.bfd.server.war.commons.LoadedFilterManager;
 import gov.cms.bfd.server.war.commons.MedicareSegment;
 import gov.cms.bfd.server.war.commons.OffsetLinkBuilder;
 import gov.cms.bfd.server.war.commons.QueryUtils;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -122,18 +121,18 @@ public final class CoverageResourceProvider implements IResourceProvider {
     Optional<MedicareSegment> coverageIdSegment =
         MedicareSegment.selectByUrlPrefix(coverageIdSegmentText);
     if (!coverageIdSegment.isPresent()) throw new ResourceNotFoundException(coverageId);
-    String coverageIdBeneficiaryIdText = coverageIdMatcher.group(2);
+    long coverageIdBeneficiaryId = Long.parseLong(coverageIdMatcher.group(2));
 
     Beneficiary beneficiaryEntity;
     try {
-      beneficiaryEntity = findBeneficiaryById(coverageIdBeneficiaryIdText, null);
+      beneficiaryEntity = findBeneficiaryById(coverageIdBeneficiaryId, null);
 
       if (!beneficiaryEntity.getBeneEnrollmentReferenceYear().isPresent()) {
         throw new ResourceNotFoundException("Cannot find coverage for non present enrollment year");
       }
     } catch (NoResultException e) {
       throw new ResourceNotFoundException(
-          new IdDt(Beneficiary.class.getSimpleName(), coverageIdBeneficiaryIdText));
+          new IdDt(Beneficiary.class.getSimpleName(), coverageIdBeneficiaryId));
     }
 
     Coverage coverage =
@@ -174,8 +173,10 @@ public final class CoverageResourceProvider implements IResourceProvider {
           DateRangeParam lastUpdated,
       RequestDetails requestDetails) {
     List<IBaseResource> coverages;
+    long beneficiaryId = 0;
     try {
-      Beneficiary beneficiaryEntity = findBeneficiaryById(beneficiary.getIdPart(), lastUpdated);
+      beneficiaryId = Long.parseLong(beneficiary.getIdPart());
+      Beneficiary beneficiaryEntity = findBeneficiaryById(beneficiaryId, lastUpdated);
 
       if (!beneficiaryEntity.getBeneEnrollmentReferenceYear().isPresent()) {
         throw new ResourceNotFoundException("Cannot find coverage for non present enrollment year");
@@ -187,7 +188,6 @@ public final class CoverageResourceProvider implements IResourceProvider {
     }
 
     OffsetLinkBuilder paging = new OffsetLinkBuilder(requestDetails, "/Coverage?");
-
     Operation operation = new Operation(Operation.Endpoint.V1_COVERAGE);
     operation.setOption("by", "beneficiary");
     operation.setOption("pageSize", paging.isPagingRequested() ? "" + paging.getPageSize() : "*");
@@ -196,7 +196,7 @@ public final class CoverageResourceProvider implements IResourceProvider {
     operation.publishOperationName();
 
     // Add bene_id to MDC logs
-    TransformerUtils.logBeneIdToMdc(Arrays.asList(beneficiary.getIdPart()));
+    TransformerUtils.logBeneIdToMdc(beneficiaryId);
 
     return TransformerUtils.createBundle(
         paging, coverages, loadedFilterManager.getTransactionTime());
@@ -211,7 +211,7 @@ public final class CoverageResourceProvider implements IResourceProvider {
    *     Beneficiary} can be found in the database.
    */
   @Trace
-  private Beneficiary findBeneficiaryById(String beneficiaryId, DateRangeParam lastUpdatedRange)
+  private Beneficiary findBeneficiaryById(long beneficiaryId, DateRangeParam lastUpdatedRange)
       throws NoResultException {
     // Optimize when the lastUpdated parameter is specified and result set is empty
     if (loadedFilterManager.isResultSetEmpty(beneficiaryId, lastUpdatedRange)) {

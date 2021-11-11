@@ -122,18 +122,18 @@ public final class R4CoverageResourceProvider implements IResourceProvider {
     Optional<MedicareSegment> coverageIdSegment =
         MedicareSegment.selectByUrlPrefix(coverageIdSegmentText);
     if (!coverageIdSegment.isPresent()) throw new ResourceNotFoundException(coverageId);
-    String coverageIdBeneficiaryIdText = coverageIdMatcher.group(2);
+    long coverageIdBeneficiaryId = Long.parseLong(coverageIdMatcher.group(2));
 
     Beneficiary beneficiaryEntity;
     try {
-      beneficiaryEntity = findBeneficiaryById(coverageIdBeneficiaryIdText, null);
+      beneficiaryEntity = findBeneficiaryById(coverageIdBeneficiaryId, null);
 
       if (!beneficiaryEntity.getBeneEnrollmentReferenceYear().isPresent()) {
         throw new ResourceNotFoundException("Cannot find coverage for non present enrollment year");
       }
     } catch (NoResultException e) {
       throw new ResourceNotFoundException(
-          new IdDt(Beneficiary.class.getSimpleName(), coverageIdBeneficiaryIdText));
+          new IdDt(Beneficiary.class.getSimpleName(), coverageIdBeneficiaryId));
     }
 
     Coverage coverage =
@@ -174,8 +174,10 @@ public final class R4CoverageResourceProvider implements IResourceProvider {
           DateRangeParam lastUpdated,
       RequestDetails requestDetails) {
     List<IBaseResource> coverages;
+    long beneficiaryId = 0;
     try {
-      Beneficiary beneficiaryEntity = findBeneficiaryById(beneficiary.getIdPart(), lastUpdated);
+      beneficiaryId = Long.parseLong(beneficiary.getIdPart());
+      Beneficiary beneficiaryEntity = findBeneficiaryById(beneficiaryId, lastUpdated);
 
       if (!beneficiaryEntity.getBeneEnrollmentReferenceYear().isPresent()) {
         throw new ResourceNotFoundException("Cannot find coverage for non present enrollment year");
@@ -196,7 +198,7 @@ public final class R4CoverageResourceProvider implements IResourceProvider {
     operation.publishOperationName();
 
     // Add bene_id to MDC logs
-    TransformerUtilsV2.logBeneIdToMdc(Arrays.asList(beneficiary.getIdPart()));
+    TransformerUtilsV2.logBeneIdToMdc(Arrays.asList(Long.parseLong(beneficiary.getIdPart())));
 
     return TransformerUtilsV2.createBundle(
         paging, coverages, loadedFilterManager.getTransactionTime());
@@ -211,7 +213,7 @@ public final class R4CoverageResourceProvider implements IResourceProvider {
    *     Beneficiary} can be found in the database.
    */
   @Trace
-  private Beneficiary findBeneficiaryById(String beneficiaryId, DateRangeParam lastUpdatedRange)
+  private Beneficiary findBeneficiaryById(long beneficiaryId, DateRangeParam lastUpdatedRange)
       throws NoResultException {
     // Optimize when the lastUpdated parameter is specified and result set is empty
     if (loadedFilterManager.isResultSetEmpty(beneficiaryId, lastUpdatedRange)) {

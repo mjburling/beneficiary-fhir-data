@@ -237,7 +237,7 @@ public final class R4ExplanationOfBenefitResourceProvider implements IResourcePr
      * later.
      */
 
-    String beneficiaryId = patient.getIdPart();
+    long beneficiaryId = Long.parseLong(patient.getIdPart());
     Set<ClaimTypeV2> claimTypes = parseTypeParam(type);
     OffsetLinkBuilder paging = new OffsetLinkBuilder(requestDetails, "/ExplanationOfBenefit?");
 
@@ -345,8 +345,7 @@ public final class R4ExplanationOfBenefitResourceProvider implements IResourcePr
 
     eobs.sort(R4ExplanationOfBenefitResourceProvider::compareByClaimIdThenClaimType);
 
-    // Add bene_id to MDC logs
-    TransformerUtilsV2.logBeneIdToMdc(Arrays.asList(beneficiaryId));
+    TransformerUtilsV2.logBeneIdToMdc(beneficiaryId);
 
     return TransformerUtilsV2.createBundle(paging, eobs, loadedFilterManager.getTransactionTime());
   }
@@ -386,7 +385,7 @@ public final class R4ExplanationOfBenefitResourceProvider implements IResourcePr
   @Trace
   private <T> List<T> findClaimTypeByPatient(
       ClaimTypeV2 claimType,
-      String patientId,
+      long patientId,
       DateRangeParam lastUpdated,
       DateRangeParam serviceDate) {
     CriteriaBuilder builder = entityManager.getCriteriaBuilder();
