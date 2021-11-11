@@ -48,6 +48,7 @@ public final class QueryLoggingListenerTest {
   }
 
   /** Verifies that {@link QueryType#BENE_BY_HICN_OR_ID_OMIT_IDENTIFIERS} works as expected. */
+  @Ignore
   @Test
   public void computeQueryType_BENE_BY_HICN_OR_ID_OMIT_IDENTIFIERS() {
     QueryInfo queryInfo =
