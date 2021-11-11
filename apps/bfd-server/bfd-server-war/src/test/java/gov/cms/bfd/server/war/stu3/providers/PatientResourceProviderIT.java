@@ -1691,7 +1691,8 @@ public final class PatientResourceProviderIT {
     Patient patientFromSearchResult = (Patient) searchResults.getEntry().get(0).getResource();
     Beneficiary expectedBene = (Beneficiary) loadedRecords.get(0);
     Assert.assertEquals(
-        expectedBene.getBeneficiaryId(), patientFromSearchResult.getIdElement().getIdPart());
+        expectedBene.getBeneficiaryId(),
+        Long.parseLong(patientFromSearchResult.getIdElement().getIdPart()));
 
     /*
      * Verify that the unhashed MBIs are present, as expected. Note that checking for more than just
