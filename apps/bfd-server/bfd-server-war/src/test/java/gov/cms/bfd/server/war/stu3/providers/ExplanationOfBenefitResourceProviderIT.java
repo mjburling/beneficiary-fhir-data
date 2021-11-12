@@ -1661,7 +1661,7 @@ public final class ExplanationOfBenefitResourceProviderIT {
 
   @Test
   public void searchEobWithNullLastUpdated() throws FHIRException {
-    // Load a records and clear the lastUpdated field for one
+    // Load a records and clear the last_updated field for one
     List<Object> loadedRecords =
         ServerTestUtils.get()
             .loadData(Arrays.asList(StaticRifResourceGroup.SAMPLE_A.getResources()));
@@ -1669,7 +1669,7 @@ public final class ExplanationOfBenefitResourceProviderIT {
     long beneId = findFirstBeneficary(loadedRecords).getBeneficiaryId();
     clearCarrierClaimLastUpdated(claimId);
 
-    // Find all EOBs without lastUpdated
+    // Find all EOBs without last_updated
     IGenericClient fhirClient = ServerTestUtils.get().createFhirClient();
     Bundle searchAll =
         fhirClient
@@ -1679,7 +1679,7 @@ public final class ExplanationOfBenefitResourceProviderIT {
             .returnBundle(Bundle.class)
             .execute();
     Assert.assertEquals(
-        "Expect null lastUpdated fields to map to the FALLBACK_LAST_UPDATED",
+        "Expect null last_updated fields to map to the FALLBACK_LAST_UPDATED",
         Date.from(TransformerConstants.FALLBACK_LAST_UPDATED),
         filterToClaimType(searchAll, ClaimType.CARRIER).get(0).getMeta().getLastUpdated());
 
@@ -1901,7 +1901,7 @@ public final class ExplanationOfBenefitResourceProviderIT {
     ServerTestUtils.get()
         .doTransaction(
             (em) -> {
-              em.createQuery("update CarrierClaim set lastUpdated=null where claimId=:claimId")
+              em.createQuery("update CarrierClaim set last_updated=null where claimId=:claimId")
                   .setParameter("claimId", claimId)
                   .executeUpdate();
             });
