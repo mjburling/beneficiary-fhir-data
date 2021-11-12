@@ -19,7 +19,7 @@ public class QueryUtils {
    */
   public static Predicate createLastUpdatedPredicateInstant(
       CriteriaBuilder cb, Root<?> root, DateRangeParam range) {
-    final Path<Instant> lastUpdatedPath = root.get("lastUpdated");
+    final Path<Instant> lastUpdatedPath = root.get("last_updated");
     final Instant lowerBound =
         range.getLowerBoundAsInstant() == null ? null : range.getLowerBoundAsInstant().toInstant();
     final Instant upperBound =
@@ -69,7 +69,7 @@ public class QueryUtils {
   }
 
   /**
-   * Create a predicate for the lastUpdate field based on the passed _lastUpdated parameter range.
+   * Create a predicate for the last_update field based on the passed _lastUpdated parameter range.
    *
    * @param cb to use
    * @param root to use
@@ -78,7 +78,7 @@ public class QueryUtils {
    */
   public static Predicate createLastUpdatedPredicate(
       CriteriaBuilder cb, Root<?> root, DateRangeParam range) {
-    final Path<Instant> lastUpdatedPath = root.get("lastUpdated");
+    final Path<Instant> lastUpdatedPath = root.get("last_updated");
     final Instant lowerBound =
         range.getLowerBoundAsInstant() == null ? null : range.getLowerBoundAsInstant().toInstant();
     final Instant upperBound =
