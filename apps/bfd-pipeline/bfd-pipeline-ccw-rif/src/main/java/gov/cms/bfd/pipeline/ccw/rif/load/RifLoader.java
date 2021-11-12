@@ -285,10 +285,11 @@ public final class RifLoader {
           };
 
       // Collect records into batches and submit each to batchProcessor.
-      if (RECORD_BATCH_SIZE > 1)
+      if (RECORD_BATCH_SIZE > 1) {
         BatchSpliterator.batches(dataToLoad.getRecords(), RECORD_BATCH_SIZE)
             .forEach(batchProcessor);
-      else
+      } else {
+        // TODO - this is DEADCODE as the else will never fire!
         dataToLoad
             .getRecords()
             .map(
@@ -298,6 +299,7 @@ public final class RifLoader {
                   return ittyBittyBatch;
                 })
             .forEach(batchProcessor);
+      }
 
       // Wait for all submitted batches to complete.
       try {
