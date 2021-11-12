@@ -221,7 +221,7 @@ public final class BeneficiaryTransformerTest {
    * Verifies that {@link
    * gov.cms.bfd.server.war.stu3.providers.BeneficiaryTransformer#transform(Beneficiary)} works as
    * expected when run against the {@link StaticRifResource#SAMPLE_A_BENES} {@link Beneficiary} with
-   * a lastUpdated field set.
+   * a last_updated field set.
    */
   @Test
   public void transformSampleARecordWithLastUpdated() {
@@ -243,7 +243,7 @@ public final class BeneficiaryTransformerTest {
    * Verifies that {@link
    * gov.cms.bfd.server.war.stu3.providers.BeneficiaryTransformer#transform(Beneficiary)} works as
    * expected when run against the {@link StaticRifResource#SAMPLE_A_BENES} {@link Beneficiary} with
-   * a lastUpdated field not set.
+   * a last_updated field not set.
    */
   @Test
   public void transformSampleARecordWithoutLastUpdated() {
