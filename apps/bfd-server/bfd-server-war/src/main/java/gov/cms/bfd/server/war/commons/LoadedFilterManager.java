@@ -392,14 +392,10 @@ public class LoadedFilterManager {
    * @return the max date
    */
   private Optional<Instant> fetchLastLoadedBatchCreated() {
-    Instant maxCreated = null;
-    try {
-      entityManager
-          .createQuery("select max(b.created) from LoadedBatch b", Instant.class)
-          .getSingleResult();
-    } catch (Exception e) {
-      LOGGER.error(e.getMessage(), e);
-    }
+    Instant maxCreated =
+        entityManager
+            .createQuery("select max(b.created) from LoadedBatch b", Instant.class)
+            .getSingleResult();
     return Optional.ofNullable(maxCreated);
   }
 
