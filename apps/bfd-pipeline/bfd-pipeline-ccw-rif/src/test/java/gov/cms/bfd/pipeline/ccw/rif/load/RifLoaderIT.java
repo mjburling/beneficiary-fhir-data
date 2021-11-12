@@ -221,14 +221,15 @@ public final class RifLoaderIT {
               .getResultList();
       for (BeneficiaryHistory beneHistory : beneficiaryHistoryEntries) {
         Assert.assertEquals(567834L, beneHistory.getBeneficiaryId());
-        // A recent lastUpdated timestamp
-        Assert.assertTrue("Expected a lastUpdated field", beneHistory.getLastUpdated().isPresent());
+        // A recent last_updated timestamp
+        Assert.assertTrue(
+            "Expected a last_updated field", beneHistory.getLastUpdated().isPresent());
         beneHistory
             .getLastUpdated()
             .ifPresent(
                 lastUpdated -> {
                   Assert.assertTrue(
-                      "Expected a recent lastUpdated timestamp",
+                      "Expected a recent last_updated timestamp",
                       lastUpdated.isAfter(Instant.now().minus(10, ChronoUnit.MINUTES)));
                 });
       }
@@ -246,7 +247,7 @@ public final class RifLoaderIT {
           "Beneficiary has mbiHash",
           Optional.of("401441595efcc68bc5b26f4e88bd9fa550004e068d69ff75761ab946ec553a02"),
           beneficiaryFromDb.getMbiHash());
-      // A recent lastUpdated timestamp
+      // A recent last_updated timestamp
       Assert.assertTrue(
           "Expected a lastUpdated field", beneficiaryFromDb.getLastUpdated().isPresent());
       beneficiaryFromDb
@@ -254,7 +255,7 @@ public final class RifLoaderIT {
           .ifPresent(
               lastUpdated -> {
                 Assert.assertTrue(
-                    "Expected a recent lastUpdated timestamp",
+                    "Expected a recent last_updated timestamp",
                     lastUpdated.isAfter(Instant.now().minus(1, ChronoUnit.MINUTES)));
               });
 
@@ -264,15 +265,15 @@ public final class RifLoaderIT {
       Assert.assertEquals(
           LocalDate.of(2000, Month.OCTOBER, 27), carrierRecordFromDb.getDateThrough());
       Assert.assertEquals(1, carrierRecordFromDb.getLines().size());
-      // A recent lastUpdated timestamp
+      // A recent last_updated timestamp
       Assert.assertTrue(
-          "Expected a lastUpdated field", carrierRecordFromDb.getLastUpdated().isPresent());
+          "Expected a last_updated field", carrierRecordFromDb.getLastUpdated().isPresent());
       carrierRecordFromDb
           .getLastUpdated()
           .ifPresent(
               lastUpdated -> {
                 Assert.assertTrue(
-                    "Expected a recent lastUpdated timestamp",
+                    "Expected a recent last_updated timestamp",
                     lastUpdated.isAfter(Instant.now().minus(1, ChronoUnit.MINUTES)));
               });
 
@@ -320,8 +321,9 @@ public final class RifLoaderIT {
               .getResultList();
       for (BeneficiaryHistory beneHistory : beneficiaryHistoryEntries) {
         Assert.assertEquals(567834L, beneHistory.getBeneficiaryId());
-        // A recent lastUpdated timestamp
-        Assert.assertTrue("Expected a lastUpdated field", beneHistory.getLastUpdated().isPresent());
+        // A recent last_updated timestamp
+        Assert.assertTrue(
+            "Expected a last_updated field", beneHistory.getLastUpdated().isPresent());
         long end = System.currentTimeMillis();
         // finding the time difference and converting it into seconds
         long secs = (end - start) / 1000L;
@@ -330,7 +332,7 @@ public final class RifLoaderIT {
             .ifPresent(
                 lastUpdated -> {
                   Assert.assertFalse(
-                      "Expected not a recent lastUpdated timestamp",
+                      "Expected not a recent last_updated timestamp",
                       lastUpdated.isAfter(Instant.now().minusSeconds(secs)));
                 });
       }
