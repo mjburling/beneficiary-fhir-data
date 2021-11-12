@@ -314,8 +314,8 @@ public final class TransformerConstants {
   public static final String CODING_BBAPI_BENE_ID = BASE_URL_BBAPI_RESOURCES + "/variables/bene_id";
 
   /**
-   * Fallback value to use when a record does not have a lastUpdated value. These records where
-   * loaded before the lastUpdated feature was in place.
+   * Fallback value to use when a record does not have a last_updated value. These records where
+   * loaded before the last_updated feature was in place.
    */
   public static final Instant FALLBACK_LAST_UPDATED = Instant.parse("2020-01-01T00:00:00Z");
 
