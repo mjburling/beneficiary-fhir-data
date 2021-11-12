@@ -290,7 +290,7 @@ public final class RifLayout {
     @Override
     public String toString() {
       return String.format(
-          "RifField [ db column: %-35s prev name: %s", rifColumnName, javaFieldName);
+          "RifField [ db column: %-35s prev name: '%s'", rifColumnName, javaFieldName);
     }
   }
 
