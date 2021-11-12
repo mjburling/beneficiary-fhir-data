@@ -314,13 +314,6 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
    *     generate source files.
    */
   private void generateCode(MappingSpec mappingSpec) throws IOException {
-    logNote(
-        String.format(
-            "\n%s\nGenerating code for %s\n%s",
-            "===============================================",
-            mappingSpec.getRifLayout().getName(),
-            "==============================================="));
-
     /*
      * First, create the Java enum for the RIF columns.
      */
@@ -394,6 +387,13 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
    *     generate source files.
    */
   private TypeSpec generateLineEntity(MappingSpec mappingSpec) throws IOException {
+    logNote(
+        String.format(
+            "\n%s\nGenerating code for %s\n%s",
+            "===============================================",
+            mappingSpec.getLineTable(),
+            "==============================================="));
+
     RifLayout rifLayout = mappingSpec.getRifLayout();
 
     // Create the Entity class.
@@ -529,17 +529,27 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
     for (int fieldIndex = mappingSpec.calculateFirstLineFieldIndex();
         fieldIndex < rifLayout.getRifFields().size();
         fieldIndex++) {
+
       RifField rifField = rifLayout.getRifFields().get(fieldIndex);
+      TypeName javaFieldType =
+          selectJavaFieldType(
+              rifField.getRifColumnType(),
+              rifField.isRifColumnOptional(),
+              rifField.getRifColumnLength(),
+              rifField.getRifColumnScale());
+      TypeName javaPropertyType =
+          selectJavaPropertyType(
+              rifField.getRifColumnType(),
+              rifField.isRifColumnOptional(),
+              rifField.getRifColumnLength(),
+              rifField.getRifColumnScale());
+
+      logNote(
+          String.format(
+              "%-115s type: %-20s (%s)", rifField.toString(), javaFieldType, javaPropertyType));
 
       FieldSpec lineField =
-          FieldSpec.builder(
-                  selectJavaFieldType(
-                      rifField.getRifColumnType(),
-                      rifField.isRifColumnOptional(),
-                      rifField.getRifColumnLength(),
-                      rifField.getRifColumnScale()),
-                  rifField.getRifColumnName(),
-                  Modifier.PRIVATE)
+          FieldSpec.builder(javaFieldType, rifField.getRifColumnName(), Modifier.PRIVATE)
               .addAnnotations(createAnnotations(mappingSpec, rifField))
               .build();
       lineEntity.addField(lineField);
@@ -547,24 +557,13 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
       MethodSpec.Builder lineFieldGetter =
           MethodSpec.methodBuilder(calculateGetterName(lineField, rifField.getJavaFieldName()))
               .addModifiers(Modifier.PUBLIC)
-              .returns(
-                  selectJavaPropertyType(
-                      rifField.getRifColumnType(),
-                      rifField.isRifColumnOptional(),
-                      rifField.getRifColumnLength(),
-                      rifField.getRifColumnScale()));
+              .returns(javaPropertyType);
 
       MethodSpec.Builder lineFieldSetter =
           MethodSpec.methodBuilder(calculateSetterName(lineField, rifField.getJavaFieldName()))
               .addModifiers(Modifier.PUBLIC)
               .returns(void.class)
-              .addParameter(
-                  selectJavaPropertyType(
-                      rifField.getRifColumnType(),
-                      rifField.isRifColumnOptional(),
-                      rifField.getRifColumnLength(),
-                      rifField.getRifColumnScale()),
-                  lineField.name);
+              .addParameter(javaPropertyType, lineField.name);
 
       addGetterStatement(rifField, lineField, lineFieldGetter);
       addSetterStatement(rifField, lineField, lineFieldSetter);
@@ -932,6 +931,13 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
    *     generate source files.
    */
   private TypeSpec generateHeaderEntity(MappingSpec mappingSpec) throws IOException {
+    logNote(
+        String.format(
+            "\n%s\nGenerating code for %s\n%s",
+            "===============================================",
+            mappingSpec.getHeaderTable(),
+            "==============================================="));
+
     // Create the Entity class.
     AnnotationSpec entityAnnotation = AnnotationSpec.builder(Entity.class).build();
     AnnotationSpec tableAnnotation =
@@ -999,24 +1005,31 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
     }
 
     // Create an Entity field with accessors for each RIF field.
-    logNote("creating entity for: " + mappingSpec.getHeaderTable());
     for (int fieldIndex = 0;
         fieldIndex <= mappingSpec.calculateLastHeaderFieldIndex();
         fieldIndex++) {
 
       RifField rifField = mappingSpec.getRifLayout().getRifFields().get(fieldIndex);
+      TypeName javaFieldType =
+          selectJavaFieldType(
+              rifField.getRifColumnType(),
+              rifField.isRifColumnOptional(),
+              rifField.getRifColumnLength(),
+              rifField.getRifColumnScale());
 
-      logNote(rifField.toString());
+      TypeName javaPropertyType =
+          selectJavaPropertyType(
+              rifField.getRifColumnType(),
+              rifField.isRifColumnOptional(),
+              rifField.getRifColumnLength(),
+              rifField.getRifColumnScale());
+
+      logNote(
+          String.format(
+              "%-115s type: %-20s (%s)", rifField.toString(), javaFieldType, javaPropertyType));
 
       FieldSpec headerField =
-          FieldSpec.builder(
-                  selectJavaFieldType(
-                      rifField.getRifColumnType(),
-                      rifField.isRifColumnOptional(),
-                      rifField.getRifColumnLength(),
-                      rifField.getRifColumnScale()),
-                  rifField.getRifColumnName(),
-                  Modifier.PRIVATE)
+          FieldSpec.builder(javaFieldType, rifField.getRifColumnName(), Modifier.PRIVATE)
               .addAnnotations(createAnnotations(mappingSpec, rifField))
               .build();
       headerEntityClass.addField(headerField);
@@ -1024,12 +1037,7 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
       MethodSpec.Builder headerFieldGetter =
           MethodSpec.methodBuilder(calculateGetterName(headerField, rifField.getJavaFieldName()))
               .addModifiers(Modifier.PUBLIC)
-              .returns(
-                  selectJavaPropertyType(
-                      rifField.getRifColumnType(),
-                      rifField.isRifColumnOptional(),
-                      rifField.getRifColumnLength(),
-                      rifField.getRifColumnScale()));
+              .returns(javaPropertyType);
       addGetterStatement(rifField, headerField, headerFieldGetter);
       headerEntityClass.addMethod(headerFieldGetter.build());
 
@@ -1037,13 +1045,7 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
           MethodSpec.methodBuilder(calculateSetterName(headerField, rifField.getJavaFieldName()))
               .addModifiers(Modifier.PUBLIC)
               .returns(void.class)
-              .addParameter(
-                  selectJavaPropertyType(
-                      rifField.getRifColumnType(),
-                      rifField.isRifColumnOptional(),
-                      rifField.getRifColumnLength(),
-                      rifField.getRifColumnScale()),
-                  headerField.name);
+              .addParameter(javaPropertyType, headerField.name);
       addSetterStatement(rifField, headerField, headerFieldSetter);
       headerEntityClass.addMethod(headerFieldSetter.build());
       // logNote(headerFieldSetter.toString());
@@ -1222,16 +1224,16 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
       }
     }
 
-    // Add a lastUpdated field.
+    // Add a last_updated field.
     final FieldSpec lastUpdatedField =
-        FieldSpec.builder(Instant.class, "LAST_UPDATED", Modifier.PRIVATE).build();
+        FieldSpec.builder(Instant.class, "last_updated", Modifier.PRIVATE).build();
     headerEntityClass.addField(lastUpdatedField);
 
     // Getter method
     final MethodSpec lastUpdatedGetter =
         MethodSpec.methodBuilder("getLastUpdated")
             .addModifiers(Modifier.PUBLIC)
-            .addStatement("return Optional.ofNullable(LAST_UPDATED)")
+            .addStatement("return Optional.ofNullable(last_updated)")
             .returns(ParameterizedTypeName.get(Optional.class, Instant.class))
             .build();
     headerEntityClass.addMethod(lastUpdatedGetter);
@@ -1240,8 +1242,8 @@ public final class RifLayoutsProcessor extends AbstractProcessor {
     final MethodSpec lastUpdatedSetter =
         MethodSpec.methodBuilder("setLastUpdated")
             .addModifiers(Modifier.PUBLIC)
-            .addParameter(ParameterSpec.builder(Instant.class, "LAST_UPDATED").build())
-            .addStatement("this.LAST_UPDATED = LAST_UPDATED")
+            .addParameter(ParameterSpec.builder(Instant.class, "last_updated").build())
+            .addStatement("this.last_updated = last_updated")
             .returns(TypeName.VOID)
             .build();
     headerEntityClass.addMethod(lastUpdatedSetter);
