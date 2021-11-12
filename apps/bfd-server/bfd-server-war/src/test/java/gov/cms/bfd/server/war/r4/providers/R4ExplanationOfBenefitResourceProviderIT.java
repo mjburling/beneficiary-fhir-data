@@ -1265,7 +1265,7 @@ public final class R4ExplanationOfBenefitResourceProviderIT {
    */
   @Test
   public void searchEobWithNullLastUpdated() throws FHIRException {
-    // Load a records and clear the lastUpdated field for one
+    // Load a records and clear the last_updated field for one
     List<Object> loadedRecords =
         ServerTestUtils.get()
             .loadData(Arrays.asList(StaticRifResourceGroup.SAMPLE_A.getResources()));
@@ -1279,16 +1279,16 @@ public final class R4ExplanationOfBenefitResourceProviderIT {
 
     long beneId = findFirstBeneficary(loadedRecords).getBeneficiaryId();
 
-    // Clear lastupdated in the database
+    // Clear last_updated in the database
     ServerTestUtils.get()
         .doTransaction(
             (em) -> {
-              em.createQuery("update CarrierClaim set lastUpdated=null where claimId=:claimId")
+              em.createQuery("update CarrierClaim set last_updated=null where claimId=:claimId")
                   .setParameter("claimId", claimId)
                   .executeUpdate();
             });
 
-    // Find all EOBs without lastUpdated
+    // Find all EOBs without last_updated
     IGenericClient fhirClient = ServerTestUtils.get().createFhirClientV2();
     Bundle searchAll =
         fhirClient
@@ -1299,7 +1299,7 @@ public final class R4ExplanationOfBenefitResourceProviderIT {
             .execute();
 
     Assert.assertEquals(
-        "Expect null lastUpdated fields to map to the FALLBACK_LAST_UPDATED",
+        "Expect null last_updated fields to map to the FALLBACK_LAST_UPDATED",
         Date.from(TransformerConstants.FALLBACK_LAST_UPDATED),
         filterToClaimType(searchAll, ClaimTypeV2.CARRIER).get(0).getMeta().getLastUpdated());
 
@@ -1314,7 +1314,7 @@ public final class R4ExplanationOfBenefitResourceProviderIT {
             .execute();
 
     Assert.assertEquals(
-        "Expect null lastUpdated fields to map to the FALLBACK_LAST_UPDATED",
+        "Expect null last_updated fields to map to the FALLBACK_LAST_UPDATED",
         Date.from(TransformerConstants.FALLBACK_LAST_UPDATED),
         filterToClaimType(searchWithLessThan, ClaimTypeV2.CARRIER)
             .get(0)
@@ -1322,8 +1322,8 @@ public final class R4ExplanationOfBenefitResourceProviderIT {
             .getLastUpdated());
 
     Assert.assertEquals(
-        "Expected the search for lastUpdated <= now() to include resources with fallback"
-            + " lastUpdated values",
+        "Expected the search for last_updated <= now() to include resources with fallback"
+            + " last_updated values",
         searchAll.getTotal(),
         searchWithLessThan.getTotal());
 
@@ -1340,7 +1340,7 @@ public final class R4ExplanationOfBenefitResourceProviderIT {
             .execute();
 
     Assert.assertEquals(
-        "Expected the search for lastUpdated >= now()-100 to not include null lastUpdated"
+        "Expected the search for last_updated >= now()-100 to not include null last_updated"
             + " resources",
         searchAll.getTotal() - 1,
         searchWithGreaterThan.getTotal());
@@ -1436,7 +1436,7 @@ public final class R4ExplanationOfBenefitResourceProviderIT {
   }
 
   /**
-   * Test the set of lastUpdated values
+   * Test the set of last_updated values
    *
    * @param fhirClient to use
    * @param id the bene id to use
