@@ -192,13 +192,12 @@ public final class RifParsingUtils {
      */
     if (longText.isEmpty()) {
       return Long.valueOf(0L);
-    } else {
-      try {
-        return new Long(longText);
-      } catch (NumberFormatException e) {
-        throw new InvalidRifValueException(
-            String.format("Unable to parse Long value: '%s'.", longText), e);
-      }
+    }
+    try {
+      return Long.valueOf(longText);
+    } catch (NumberFormatException e) {
+      throw new InvalidRifValueException(
+          String.format("Unable to parse Long value: '%s'.", longText), e);
     }
   }
 
