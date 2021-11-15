@@ -1,4 +1,4 @@
-insert into public.carrier_claims(
+insert into carrier_claims(
 	clm_id,
 	bene_id,
 	clm_grp_id,
@@ -110,7 +110,7 @@ select
 	"diagnosis11CodeVersion",
 	"diagnosis12CodeVersion"
 from
-	public."CarrierClaims"
+	"CarrierClaims"
 on conflict on constraint
 	carrier_claims_pkey
 do nothing; 

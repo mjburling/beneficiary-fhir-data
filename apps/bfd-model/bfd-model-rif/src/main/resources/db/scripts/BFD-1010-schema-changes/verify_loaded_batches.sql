@@ -12,7 +12,7 @@ BEGIN
 	loop
 		-- randomly select a "loadedBatchId" from original table
 		SELECT "loadedBatchId" into v_batch_id
-		FROM public."LoadedBatches" TABLESAMPLE SYSTEM_ROWS(40)
+		FROM "LoadedBatches" TABLESAMPLE SYSTEM_ROWS(40)
 		limit 1;
 
 		select into curr
@@ -21,7 +21,7 @@ BEGIN
 			beneficiaries as f_3,
 			created as f_4
 		from
-			public.loaded_batches
+			loaded_batches
 		WHERE
 			loaded_batchid = v_batch_id;
 		
@@ -32,7 +32,7 @@ BEGIN
 			beneficiaries as f_3,
 			created as f_4
 		from
-			public."LoadedBatches"
+			"LoadedBatches"
 		where
 			"loadedBatchId" = v_batch_id;
 		

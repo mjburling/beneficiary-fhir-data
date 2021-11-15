@@ -14,20 +14,20 @@ begin
 	loop
 		-- randomly select a "beneficiaryid" from original table
 		select cast("beneficiaryId" as bigint) into v_bene_id
-		from public."CarrierClaims" tablesample system_rows(40)
+		from "CarrierClaims" tablesample system_rows(40)
 		limit 1;
 		
 		-- need a claim for that bene
 		select cast(max("claimId") as bigint) into v_clm_id
 		from
-			public."CarrierClaims"
+			"CarrierClaims"
 		where
 			cast("beneficiaryId" as bigint) = v_bene_id;
 			
 		-- need a claim line number for that claim
 		select cast(max("lineNumber") as smallint) into v_line_num
 		from
-			public."CarrierClaimLines"
+			"CarrierClaimLines"
 		where
 			cast("parentClaim" as bigint) = v_bene_id;
 			
@@ -79,7 +79,7 @@ begin
 			prvdr_tax_num as f_45,
 			line_prvdr_pmt_amt as f_46		
 		from
-			public.carrier_claim_lines
+			carrier_claim_lines
 		where
 			parent_claim = v_clm_id
 		and
@@ -134,7 +134,7 @@ begin
 			"providerTaxNumber" as f_45,
 			"providerPaymentAmount" as f_46	
 		from
-			public."CarrierClaimLines"
+			"CarrierClaimLines"
 		where
 			"parentClaim" = v_clm_id::text
 		and

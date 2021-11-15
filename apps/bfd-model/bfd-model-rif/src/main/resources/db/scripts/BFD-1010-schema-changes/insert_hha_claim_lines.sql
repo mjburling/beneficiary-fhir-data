@@ -1,4 +1,4 @@
-insert into public.hha_claim_lines ( 
+insert into hha_claim_lines ( 
 	parent_claim,
 	clm_line_num,
 	hcpcs_cd,
@@ -44,7 +44,7 @@ select
 	"totalChargeAmount",
 	"unitCount"
 from
-	public."HHAClaimLines"
+	"HHAClaimLines"
 on conflict on constraint
 	hha_claim_lines_pkey
 do nothing;

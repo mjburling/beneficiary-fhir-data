@@ -1,4 +1,4 @@
-insert into public.hospice_claim_lines (
+insert into hospice_claim_lines (
 	parent_claim,
 	clm_line_num,
 	rev_cntr,
@@ -40,7 +40,7 @@ select
 	"revenueCenterRenderingPhysicianNPI",
 	"revenueCenterRenderingPhysicianUPIN"
 from
-	public."HospiceClaimLines"
+	"HospiceClaimLines"
 on conflict on constraint
 	hospice_claim_lines_pkey
 do nothing;

@@ -12,10 +12,9 @@ BEGIN
 	loop
 		-- randomly select a "beneficiaryId" from original table
 		SELECT cast("beneficiaryId" as bigint) into v_bene_id
-		FROM public."MedicareBeneficiaryIdHistory" TABLESAMPLE SYSTEM_ROWS(40)
+		FROM "MedicareBeneficiaryIdHistory" TABLESAMPLE SYSTEM_ROWS(40)
 		limit 1;
 
-insert into public.medicare_beneficiaryid_history (
 		select into curr
 			medicare_bene_history_id_key as f_1,
 			bene_id as f_2,
@@ -35,7 +34,7 @@ insert into public.medicare_beneficiaryid_history (
 			updt_user_id as f_16,
 			updt_ts as f_17
 		from
-			public.medicare_beneficiaryid_history
+			medicare_beneficiaryid_history
 		WHERE
 			bene_id = v_bene_id;
 		
@@ -59,7 +58,7 @@ insert into public.medicare_beneficiaryid_history (
 			"mbiUpdateUser" as f_16,
 			"mbiUpdateDate" as f_17
 		from
-			public."MedicareBeneficiaryIdHistory"
+			"MedicareBeneficiaryIdHistory"
 		WHERE
 			"beneficiaryId" = v_bene_id::text;
 		

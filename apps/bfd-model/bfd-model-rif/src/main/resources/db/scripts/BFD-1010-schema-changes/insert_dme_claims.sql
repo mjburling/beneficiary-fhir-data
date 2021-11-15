@@ -1,4 +1,4 @@
-insert into public.dme_claims(
+insert into dme_claims(
 	clm_id,
 	bene_id,
 	clm_grp_id,
@@ -108,7 +108,7 @@ select
 	"diagnosis11CodeVersion",
 	"diagnosis12CodeVersion"	
 from
-	public."DMEClaims"
+	"DMEClaims"
 on conflict on constraint
 	dme_claims_pkey
 do nothing;

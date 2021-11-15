@@ -1,4 +1,4 @@
-insert into public.dme_claim_lines(
+insert into dme_claim_lines (
 	parent_claim,
 	clm_line_num,
 	line_nch_pmt_amt,
@@ -45,7 +45,6 @@ insert into public.dme_claim_lines(
 )
 select
 	cast("parentClaim" as bigint),
-	"parentClaim",
 	"lineNumber",
 	"paymentAmount",
 	"submittedChargeAmount",
@@ -89,7 +88,7 @@ select
 	"providerParticipatingIndCode",
 	"providerPaymentAmount"
 from
-	public."DMEClaimLines"
+	"DMEClaimLines"
 on conflict on constraint
 	dme_claim_lines_pkey
 do nothing;

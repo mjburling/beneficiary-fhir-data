@@ -12,7 +12,7 @@ BEGIN
 	loop
 		-- randomly select a "beneficiaryId" from original table
 		SELECT cast("beneficiaryId" as bigint) into v_bene_id
-		FROM public."BeneficiariesHistoryInvalidBeneficiaries" TABLESAMPLE SYSTEM_ROWS(40)
+		FROM "BeneficiariesHistoryInvalidBeneficiaries" TABLESAMPLE SYSTEM_ROWS(40)
 		limit 1;
 
 		select into curr
@@ -24,7 +24,7 @@ BEGIN
 			mbi_num as f_6,
 			hicn_unhashed as f_7
 		from
-			public.beneficiaries_history
+			beneficiaries_history
 		WHERE
 			bene_id = v_bene_id;
 		
@@ -38,7 +38,7 @@ BEGIN
 			"medicareBeneficiaryId" as f_6,
 			"hicnUnhashed" as f_7
 		from
-			public."BeneficiariesHistory"
+			"BeneficiariesHistory"
 		WHERE
 			"beneficiaryId" = v_bene_id::text;
 		

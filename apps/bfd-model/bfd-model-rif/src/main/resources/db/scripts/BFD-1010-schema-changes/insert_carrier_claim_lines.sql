@@ -1,4 +1,4 @@
-insert into public.carrier_claim_lines(
+insert into carrier_claim_lines(
 	parent_claim,
 	clm_line_num,
 	line_nch_pmt_amt,
@@ -94,7 +94,7 @@ select
 	"providerTaxNumber",
 	"providerPaymentAmount"
 from
-	public."CarrierClaimLines"
+	"CarrierClaimLines"
 on conflict on constraint
 	carrier_claim_lines_pkey
 do nothing;

@@ -12,7 +12,7 @@ BEGIN
 	loop
 		-- randomly select a "beneficiaryId" from original table
 		SELECT cast("beneficiaryId" as bigint) into v_bene_id
-		FROM public."Beneficiaries" TABLESAMPLE SYSTEM_ROWS(40)
+		FROM "Beneficiaries" TABLESAMPLE SYSTEM_ROWS(40)
 		limit 1;
 
 		select into curr
@@ -223,7 +223,7 @@ BEGIN
 			state_cnty_zip_cd as f_205,
 			bene_link_key as f_206
 		from
-			public.beneficiaries
+			beneficiaries
 		WHERE
 			bene_id = v_bene_id;
 		
@@ -436,7 +436,7 @@ BEGIN
 			"derivedZipCode" as f_205,
 			cast("beneLinkKey" as bigint) as f_206
 		from
-			public."Beneficiaries"
+			"Beneficiaries"
 		WHERE
 			"beneficiaryId" = v_bene_id::text;
 		

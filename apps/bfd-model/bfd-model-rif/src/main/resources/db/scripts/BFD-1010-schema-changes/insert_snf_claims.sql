@@ -1,4 +1,4 @@
-insert into public.snf_claims (
+insert into snf_claims (
 	clm_id,
 	bene_id,
 	clm_grp_id,
@@ -438,7 +438,7 @@ select
 	"procedure24Date",
 	"procedure25Date"
 from
-	public."SNFClaims"
+	"SNFClaims"
 on conflict on constraint
 	snf_claims_pkey
 do nothing;

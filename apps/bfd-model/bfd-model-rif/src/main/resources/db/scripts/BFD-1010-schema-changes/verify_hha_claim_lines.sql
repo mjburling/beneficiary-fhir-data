@@ -14,20 +14,20 @@ begin
 	loop
 		-- randomly select a "beneficiaryid" from original table
 		select cast("beneficiaryId" as bigint) into v_bene_id
-		from public."HHAClaims" tablesample system_rows(40)
+		from "HHAClaims" tablesample system_rows(40)
 		limit 1;
 		
 		-- need a claim for that bene
 		select cast(max("claimId") as bigint) into v_clm_id
 		from
-			public."HHAClaims"
+			"HHAClaims"
 		where
 			cast("beneficiaryId" as bigint) = v_bene_id;
 			
 		-- need a claim line number for that claim
 		select cast(max("lineNumber") as smallint) into v_line_num
 		from
-			public."HHAClaimLines"
+			"HHAClaimLines"
 		where
 			cast("parentClaim" as bigint) = v_bene_id;
 			
@@ -54,7 +54,7 @@ begin
 			rev_cntr_tot_chrg_amt as f_20,
 			rev_cntr_unit_cnt as f_21
 		from
-			public.hha_claim_lines
+			hha_claim_lines
 		where
 			parent_claim = v_clm_id
 		and
@@ -84,7 +84,7 @@ begin
 			"totalChargeAmount" as f_20,
 			"unitCount" as f_21
 		from
-			public."HHAClaimLines"
+			"HHAClaimLines"
 		where
 			"parentClaim" = v_clm_id::text
 		and

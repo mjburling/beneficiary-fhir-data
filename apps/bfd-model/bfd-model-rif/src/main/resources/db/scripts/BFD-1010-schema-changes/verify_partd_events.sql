@@ -13,13 +13,13 @@ BEGIN
 	loop
 		-- randomly select a "beneficiaryId" from original table
 		SELECT cast("beneficiaryId" as bigint) into v_bene_id
-		FROM public."PartDEvents" TABLESAMPLE SYSTEM_ROWS(40)
+		FROM "PartDEvents" TABLESAMPLE SYSTEM_ROWS(40)
 		limit 1;
 		
 		-- need a claim for that bene
 		select cast(max("eventId") as bigint) into v_clm_id
 		from
-			public."PartDEvents"
+			"PartDEvents"
 		where
 			cast("beneficiaryId" as bigint) = v_bene_id;
 
@@ -66,7 +66,7 @@ BEGIN
 			submsn_clr_cd as f_40,
 			tot_rx_cst_amt as f_41
 		from
-			public.partd_events
+			partd_events
 		WHERE
 			clm_id = v_clm_id
 		AND
@@ -116,7 +116,7 @@ BEGIN
 			"submissionClarificationCode" as f_40,
 			"totalPrescriptionCost" as f_41
 		from
-			public."PartDEvents"
+			"PartDEvents"
 		where
 			"eventId" = v_clm_id::text
 		AND

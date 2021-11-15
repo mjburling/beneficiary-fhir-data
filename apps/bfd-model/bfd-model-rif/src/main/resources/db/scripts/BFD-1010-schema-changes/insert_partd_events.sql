@@ -1,4 +1,4 @@
-insert into public.partd_events (
+insert into partd_events (
 	clm_id,
 	bene_id,
 	clm_grp_id,
@@ -36,15 +36,10 @@ insert into public.partd_events (
 	rx_orgn_cd,
 	rx_srvc_rfrnc_num,
 	srvc_dt,
-	srvclm_id
-	ben,
-	_id
-	clm_grp_id
-	last_up,
-	ated
-	adjstmt_,
-	ltn_cd
-	brnd_gn
+	srvc_prvdr_id,
+	srvc_prvdr_id_qlfyr_cd,
+	submsn_clr_cd,
+	tot_rx_cst_amt
 )
 select
 	cast("eventId" as bigint),
@@ -89,7 +84,7 @@ select
 	"submissionClarificationCode",
 	"totalPrescriptionCost"
 from
-	public."PartDEvents"
+	"PartDEvents"
 on conflict on constraint
 	partd_events_pkey
 do nothing;

@@ -1,4 +1,4 @@
-insert into public.inpatient_claims (
+insert into inpatient_claims (
 	clm_id,
 	bene_id,
 	clm_grp_id,
@@ -349,7 +349,7 @@ select
 	"diagnosisExternal6PresentOnAdmissionCode",
 	"diagnosisExternal7PresentOnAdmissionCode",
 	"diagnosisExternal8PresentOnAdmissionCode",
-	"diagnosisExternal9PresentOnAdmissionCode     ",
+	"diagnosisExternal9PresentOnAdmissionCode",
 	"diagnosisExternal10PresentOnAdmissionCode",
 	"diagnosisExternal11PresentOnAdmissionCode",
 	"diagnosisExternal12PresentOnAdmissionCode",
@@ -528,7 +528,7 @@ select
 	"procedure24Date",
 	"procedure25Date"
 from
-	public."InpatientClaims"
+	"InpatientClaims"
 on conflict on constraint
 	inpatient_claims_pkey
 do nothing;

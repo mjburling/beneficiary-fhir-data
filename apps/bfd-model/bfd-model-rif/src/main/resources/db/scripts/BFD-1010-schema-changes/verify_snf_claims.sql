@@ -13,13 +13,13 @@ BEGIN
 	loop
 		-- randomly select a "beneficiaryId" from original table
 		SELECT cast("beneficiaryId" as bigint) into v_bene_id
-		FROM public."SNFClaims" TABLESAMPLE SYSTEM_ROWS(40)
+		FROM "SNFClaims" TABLESAMPLE SYSTEM_ROWS(40)
 		limit 1;
 		
 		-- need a claim for that bene
 		select cast(max("claimId") as bigint) into v_clm_id
 		from
-			public."SNFClaims"
+			"SNFClaims"
 		where
 			cast("beneficiaryId" as bigint) = v_bene_id;
 
@@ -243,7 +243,7 @@ BEGIN
 			prcdr_dt24 as f_217,
 			prcdr_dt25 as f_218
 		from
-			public.snf_claims
+			snf_claims
 		WHERE
 			clm_id = v_clm_id
 		AND
@@ -470,7 +470,7 @@ BEGIN
 			"procedure24Date" as f_217,
 			"procedure25Date" as f_218
 		from
-			public."SNFClaims"
+			"SNFClaims"
 		where
 			"claimId" = v_clm_id::text
 		AND

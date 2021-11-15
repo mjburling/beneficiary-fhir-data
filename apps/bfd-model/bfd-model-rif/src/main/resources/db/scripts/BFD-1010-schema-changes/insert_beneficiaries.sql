@@ -1,4 +1,4 @@
-insert into public.beneficiaries (
+insert into beneficiaries (
 	bene_id,
 	last_updated,
 	bene_birth_dt,
@@ -414,7 +414,7 @@ select
 	"mbiObsoleteDate",
 	"beneLinkKey"
 from
-	public."Beneficiaries"
+	"Beneficiaries"
 on conflict on constraint
 	beneficiaries_pkey
 do nothing;

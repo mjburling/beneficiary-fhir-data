@@ -12,7 +12,7 @@ BEGIN
 	loop
 		-- randomly select a "beneficiaryId" from original table
 		SELECT cast("beneficiaryId" as bigint) into v_bene_id
-		FROM public."BeneficiariesHistory" TABLESAMPLE SYSTEM_ROWS(40)
+		FROM "BeneficiariesHistory" TABLESAMPLE SYSTEM_ROWS(40)
 		limit 1;
 
 		select into curr
@@ -27,7 +27,7 @@ BEGIN
 			mbi_efctv_bgn_dt as f_9,
 			last_updated as f_10
 		from
-			public.beneficiaries_history
+			beneficiaries_history
 		WHERE
 			bene_id = v_bene_id;
 		
@@ -44,7 +44,7 @@ BEGIN
 			"mbiEffectiveDate" as f_9,
 			"lastupdated" as f_10
 		from
-			public."BeneficiariesHistory"
+			"BeneficiariesHistory"
 		WHERE
 			"beneficiaryId" = v_bene_id::text;
 		

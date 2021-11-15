@@ -14,20 +14,20 @@ begin
 	loop
 		-- randomly select a "beneficiaryid" from original table
 		select cast("beneficiaryId" as bigint) into v_bene_id
-		from public."HospiceClaims" tablesample system_rows(40)
+		from "HospiceClaims" tablesample system_rows(40)
 		limit 1;
 		
 		-- need a claim for that bene
 		select cast(max("claimId") as bigint) into v_clm_id
 		from
-			public."HospiceClaims"
+			"HospiceClaims"
 		where
 			cast("beneficiaryId" as bigint) = v_bene_id;
 			
 		-- need a claim line number for that claim
 		select cast(max("lineNumber") as smallint) into v_line_num
 		from
-			public."HospiceClaimLines"
+			"HospiceClaimLines"
 		where
 			cast("parentClaim" as bigint) = v_bene_id;
 			
@@ -52,7 +52,7 @@ begin
 			rndrng_physn_npi as f_18,
 			rndrng_physn_upin as f_19
 		from
-			public.hospice_claim_lines
+			hospice_claim_lines
 		where
 			parent_claim = v_clm_id
 		and
@@ -80,7 +80,7 @@ begin
 			"revenueCenterRenderingPhysicianNPI" as f_18,
 			"revenueCenterRenderingPhysicianUPIN" as f_19
 		from
-			public."HospiceClaimLines"
+			"HospiceClaimLines"
 		where
 			"parentClaim" = v_clm_id::text
 		and

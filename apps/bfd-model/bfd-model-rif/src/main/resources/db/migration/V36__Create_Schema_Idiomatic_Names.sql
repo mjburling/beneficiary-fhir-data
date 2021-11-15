@@ -248,7 +248,7 @@ create table if not exists beneficiaries (
 );
 
 create index if not exists beneficiaries_hicn_idx
-	on public.beneficiaries (bene_crnt_hic_num);
+	on beneficiaries (bene_crnt_hic_num);
 
 create table if not exists beneficiaries_history (
     bene_history_id                          bigint not null,                          -- beneficiaryHistoryId
@@ -272,13 +272,13 @@ create table if not exists beneficiaries_history (
 );
 
 create index if not exists beneficiaries_history_bene_id_idx
-	on public.beneficiaries_history (bene_id);
+	on beneficiaries_history (bene_id);
 
 create index if not exists beneficiaries_history_hicn_idx
-	on public.beneficiaries_history (bene_crnt_hic_num);
+	on beneficiaries_history (bene_crnt_hic_num);
 
 create index if not exists beneficiaries_history_mbi_hash_idx
-	on public.beneficiaries_history (mbi_hash);
+	on beneficiaries_history (mbi_hash);
 
 create table if not exists beneficiaries_history_invalid_beneficiaries (
     bene_history_id                          bigint not null,                          -- beneficiaryHistoryId
@@ -312,7 +312,7 @@ create table if not exists beneficiary_monthly (
         primary key (year_month, parent_beneficiary),
 
     constraint beneficiary_monthly_parent_beneficiary_to_beneficiary
-        foreign key (parent_beneficiary) references public.beneficiaries(bene_id)
+        foreign key (parent_beneficiary) references beneficiaries(bene_id)
 );
 
 create index if not exists beneficiary_monthly_partdcontractnumid_yearmonth_parentbene_idx
@@ -370,7 +370,7 @@ create table if not exists medicare_beneficiaryid_history (
 );
 
 create index if not exists medicare_beneficiaryid_history_bene_id_idx
-	on public.medicare_beneficiaryid_history (bene_id);
+	on medicare_beneficiaryid_history (bene_id);
 
 create table if not exists medicare_beneficiaryid_history_invalid_beneficiaries (
     bene_mbi_id                              bigint not null,                          -- medicareBeneficiaryIdKey
@@ -452,11 +452,11 @@ create table if not exists carrier_claims (
         primary key (clm_id),
 
     constraint carrier_claims_bene_id_to_beneficiary
-        foreign key (bene_id) references public.beneficiaries(bene_id)
+        foreign key (bene_id) references beneficiaries(bene_id)
 );
 
 create index if not exists carrier_claims_bene_id_idx
-	on public.carrier_claims (bene_id);
+	on carrier_claims (bene_id);
 
 create table if not exists carrier_claim_lines (
     parent_claim                             bigint not null,                          -- parentClaim
@@ -509,7 +509,7 @@ create table if not exists carrier_claim_lines (
         primary key (parent_claim, clm_line_num),
 
     constraint carrier_claim_lines_parent_claim_to_carrier_claims
-        foreign key (parent_claim) references public.carrier_claims(clm_id)
+        foreign key (parent_claim) references carrier_claims(clm_id)
 );
 
 create table if not exists dme_claims (
@@ -570,11 +570,11 @@ create table if not exists dme_claims (
         primary key (clm_id),
 
     constraint dme_claims_bene_id_to_beneficiary
-        foreign key (bene_id) references public.beneficiaries(bene_id)
+        foreign key (bene_id) references beneficiaries(bene_id)
 );
 
 create index if not exists dme_claims_bene_id_idx
-	on public.dme_claims (bene_id);
+	on dme_claims (bene_id);
 
 create table if not exists dme_claim_lines (
     parent_claim                             bigint not null,                          -- parentClaim
@@ -624,7 +624,7 @@ create table if not exists dme_claim_lines (
         primary key (parent_claim, clm_line_num),
 
     constraint dme_claim_lines_parent_claim_to_dme_claims
-        foreign key (parent_claim) references public.dme_claims(clm_id)
+        foreign key (parent_claim) references dme_claims(clm_id)
 );
 
 create table if not exists hha_claims (
@@ -743,11 +743,11 @@ create table if not exists hha_claims (
         primary key (clm_id),
 
     constraint hha_claims_bene_id_to_beneficiary
-        foreign key (bene_id) references public.beneficiaries(bene_id)
+        foreign key (bene_id) references beneficiaries(bene_id)
 );
 
 create index if not exists hha_claims_bene_id_idx
-	on public.hha_claims (bene_id);
+	on hha_claims (bene_id);
 
 create table if not exists hha_claim_lines (
     parent_claim                             bigint not null,                          -- parentClaim
@@ -775,7 +775,7 @@ create table if not exists hha_claim_lines (
         primary key (parent_claim, clm_line_num),
 
     constraint hha_claim_lines_parent_claim_to_hha_claims
-        foreign key (parent_claim) references public.hha_claims(clm_id)
+        foreign key (parent_claim) references hha_claims(clm_id)
 );
 
 create table if not exists hospice_claims (
@@ -894,11 +894,11 @@ create table if not exists hospice_claims (
         primary key (clm_id),
 
     constraint hospice_claims_bene_id_to_beneficiary
-        foreign key (bene_id) references public.beneficiaries(bene_id)
+        foreign key (bene_id) references beneficiaries(bene_id)
 );
 
 create index if not exists hospice_claims_bene_id_idx
-	on public.hospice_claims (bene_id);
+	on hospice_claims (bene_id);
 
 create table if not exists hospice_claim_lines (
     parent_claim                             bigint not null,                          -- parentClaim
@@ -924,7 +924,7 @@ create table if not exists hospice_claim_lines (
         primary key (parent_claim, clm_line_num),
 
     constraint hospice_claim_lines_parent_claim_to_hospice_claims
-        foreign key (parent_claim) references public.hospice_claims(clm_id)
+        foreign key (parent_claim) references hospice_claims(clm_id)
 );
 
 create table if not exists inpatient_claims (
@@ -1195,11 +1195,11 @@ create table if not exists inpatient_claims (
         primary key (clm_id),
 
     constraint inpatient_claims_bene_id_to_beneficiary
-        foreign key (bene_id) references public.beneficiaries(bene_id)
+        foreign key (bene_id) references beneficiaries(bene_id)
 );
 
 create index if not exists inpatient_claims_bene_id_idx
-	on public.inpatient_claims (bene_id);
+	on inpatient_claims (bene_id);
 
 create table if not exists inpatient_claim_lines (
     parent_claim                             bigint not null,                          -- parentClaim
@@ -1219,7 +1219,7 @@ create table if not exists inpatient_claim_lines (
         primary key (parent_claim, clm_line_num),
 
     constraint inpatient_claim_lines_parent_claim_to_inpatient_claims
-        foreign key (parent_claim) references public.inpatient_claims(clm_id)
+        foreign key (parent_claim) references inpatient_claims(clm_id)
 );
 
 create table if not exists outpatient_claims (
@@ -1426,11 +1426,11 @@ create table if not exists outpatient_claims (
         primary key (clm_id),
 
     constraint outpatient_claims_bene_id_to_beneficiary
-        foreign key (bene_id) references public.beneficiaries(bene_id)
+        foreign key (bene_id) references beneficiaries(bene_id)
 );
 
 create index if not exists outpatient_claims_bene_id_idx
-	on public.outpatient_claims (bene_id);
+	on outpatient_claims (bene_id);
 
 create table if not exists outpatient_claim_lines (
     parent_claim                             bigint not null,                          -- parentClaim
@@ -1473,7 +1473,7 @@ create table if not exists outpatient_claim_lines (
         primary key (parent_claim, clm_line_num),
 
     constraint outpatient_claim_lines_parent_claim_to_outpatient_claims
-        foreign key (parent_claim) references public.outpatient_claims(clm_id)
+        foreign key (parent_claim) references outpatient_claims(clm_id)
 );
 
 create table if not exists partd_events (
@@ -1522,11 +1522,11 @@ create table if not exists partd_events (
         primary key (clm_id),
 
     constraint partd_events_bene_id_to_beneficiaries
-        foreign key (bene_id) references public.beneficiaries(bene_id)
+        foreign key (bene_id) references beneficiaries(bene_id)
 );
 
 create index if not exists partd_events_bene_id_idx
-	on public.partd_events (bene_id);
+	on partd_events (bene_id);
 
 create table if not exists snf_claims (
     clm_id                                   bigint not null,                          -- claimId
@@ -1751,11 +1751,11 @@ create table if not exists snf_claims (
         primary key (clm_id),
 
     constraint snf_claims_bene_id_to_beneficiary
-        foreign key (bene_id) references public.beneficiaries(bene_id)
+        foreign key (bene_id) references beneficiaries(bene_id)
 );
 
 create index if not exists snf_claims_bene_id_idx
-	on public.snf_claims (bene_id);
+	on snf_claims (bene_id);
 
 create table if not exists snf_claim_lines (
     parent_claim                             bigint not null,                          -- parentClaim
@@ -1775,7 +1775,7 @@ create table if not exists snf_claim_lines (
         primary key (parent_claim, clm_line_num),
 
     constraint snf_claim_lines_parent_claim_to_snf_claims
-        foreign key (parent_claim) references public.snf_claims(clm_id)
+        foreign key (parent_claim) references snf_claims(clm_id)
 );
 
 create sequence if not exists beneficiaryhistory_bene_history_id_seq START with 1 INCREMENT by 50;

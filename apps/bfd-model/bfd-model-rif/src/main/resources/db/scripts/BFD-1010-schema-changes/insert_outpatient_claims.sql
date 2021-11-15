@@ -1,4 +1,4 @@
-insert into public.outpatient_claims (
+insert into outpatient_claims (
 	clm_id,
 	bene_id,
 	clm_grp_id,
@@ -400,7 +400,7 @@ select
 	"procedure24Date",
 	"procedure25Date"
 from 
-	public."OutpatientClaims"
+	"OutpatientClaims"
 on conflict on constraint
 	outpatient_claims_pkey
 do nothing;

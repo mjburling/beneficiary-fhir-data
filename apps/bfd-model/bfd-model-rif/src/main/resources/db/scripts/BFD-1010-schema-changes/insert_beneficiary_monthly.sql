@@ -1,8 +1,8 @@
-insert into public.beneficiary_monthly 
+insert into beneficiary_monthly 
 ( 
 	year_month,
 	partd_contract_number_id,
-	bene_id,
+	parent_beneficiary,
 	partc_contract_number_id,
 	fips_state_cnty_code,
 	medicare_status_code,
@@ -33,7 +33,7 @@ select
 	"partDLowIncomeCostShareGroupCode",
 	"medicaidDualEligibilityCode"
 from
-	public."BeneficiaryMonthly"
+	"BeneficiaryMonthly"
 on conflict on constraint
 	beneficiary_monthly_pkey
 do nothing;

@@ -1,4 +1,4 @@
-insert into public.hha_claims ( 
+insert into hha_claims ( 
 	clm_id,
 	bene_id,
 	clm_grp_id,
@@ -224,7 +224,7 @@ select
 	"diagnosis24CodeVersion",
 	"diagnosis25CodeVersion"
 from
-	public."HHAClaims"
+	"HHAClaims"
 on conflict on constraint
 	hha_claims_pkey
 do nothing;
