@@ -52,6 +52,7 @@ medicare_beneficiaryid_history
 medicare_beneficiaryid_history_invalid
 )
 else
+MAX_JOBS=1
 child_tables=(
 carrier_claim_lines
 )
@@ -147,10 +148,14 @@ load_file(){
 # $1 a list of tables ex: "process_tables snf_claims snf_claim_lines"
 process_tables(){
   while [[ -n "$1" ]]; do
+    echo "process_tables: $1"
     # always try to keep the max number of jobs running the background
+    echo $(jobs -r | wc -l | tr -d " ")
     while [[ $(jobs -r | wc -l | tr -d " ") < $((MAX_JOBS+1)) ]]; do
-      load_file "$1" &
-      shift
+      if ! [ "$1" = '' ] ; then
+          load_file "$1" &
+          shift
+      fi
     done
   done
   wait # waits until all background jobs are finished

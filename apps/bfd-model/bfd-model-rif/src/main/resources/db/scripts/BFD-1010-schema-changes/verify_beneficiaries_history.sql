@@ -1,5 +1,6 @@
 do $$
 DECLARE
+  MAX_TESTS		INTEGER := 20000;
   orig			record;
   curr			record;
   err_cnt	    INTEGER := 0;
@@ -8,7 +9,7 @@ DECLARE
   v_tbl_name	varchar(40) := 'beneficiaries_history';
 
 BEGIN
-	for counter in 1..1000
+	for counter in 1..MAX_TESTS
 	loop
 		-- randomly select a "beneficiaryId" from original table
 		SELECT cast("beneficiaryId" as bigint) into v_bene_id
@@ -24,7 +25,7 @@ BEGIN
 			mbi_num as f_6,
 			hicn_unhashed as f_7,
 			mbi_hash as f_8,
-			mbi_efctv_bgn_dt as f_9,
+			efctv_bgn_dt as f_9,
 			last_updated as f_10
 		from
 			beneficiaries_history

@@ -1,8 +1,7 @@
-insert into beneficiary_monthly 
-( 
+insert into beneficiary_monthly (
 	year_month,
-	partd_contract_number_id,
 	parent_beneficiary,
+	partd_contract_number_id,
 	partc_contract_number_id,
 	fips_state_cnty_code,
 	medicare_status_code,
@@ -15,11 +14,11 @@ insert into beneficiary_monthly
 	partd_retiree_drug_subsidy_ind,
 	partd_low_income_cost_share_group_code,
 	medicaid_dual_eligibility_code
-) 
-select 
+)
+select
 	"yearMonth",
+	Cast("parentBeneficiary" as bigint),
 	"partDContractNumberId",
-	cast("parentBeneficiary" as bigint),
 	"partCContractNumberId",
 	"fipsStateCntyCode",
 	"medicareStatusCode",

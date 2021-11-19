@@ -1,5 +1,6 @@
 do $$
 DECLARE
+  MAX_TESTS		INTEGER := 30000;
   orig			record;
   curr			record;
   err_cnt	    INTEGER := 0;
@@ -7,18 +8,23 @@ DECLARE
   v_bene_id		bigint  := 0;
   v_tbl_name	varchar(40) := 'beneficiary_monthly';
 
+  YM Date[] := Array['2020-11-01', '2020-12-01', '2021-10-01', '2020-02-01', '2020-06-01', '2019-04-01', '2021-01-01','2020-03-01', '2021-05-01'];
+  yrMon Date;
+
 BEGIN
-	for counter in 1..1000
+	for counter in 1..MAX_TESTS
 	loop
 		-- randomly select a "beneficiaryId" from original table
 		SELECT cast("parentBeneficiary" as bigint) into v_bene_id
 		FROM "BeneficiaryMonthly" TABLESAMPLE SYSTEM_ROWS(40)
 		limit 1;
 
+		select (YM)[floor(random() * 9 + 1)] into yrMon;
+
 		select into curr
 			year_month as f_1,
 			partd_contract_number_id as f_2,
-			bene_id as f_3,
+			parent_beneficiary as f_3,
 			partc_contract_number_id as f_4,
 			fips_state_cnty_code as f_5,
 			medicare_status_code as f_6,
@@ -33,8 +39,10 @@ BEGIN
 			medicaid_dual_eligibility_code as f_15
 		from
 			beneficiary_monthly
-		WHERE
-			bene_id = v_bene_id;
+		where
+			parent_beneficiary = v_bene_id
+		and
+			year_month = yrMon;
 		
 
 		SELECT INTO orig
@@ -55,8 +63,11 @@ BEGIN
 			"medicaidDualEligibilityCode" as f_15
 		from
 			"BeneficiaryMonthly"
-		WHERE
-			"parentBeneficiary" = v_bene_id::text;
+		where
+			"parentBeneficiary" = v_bene_id::text
+		and
+			"yearMonth" = yrMon;
+
 		
 		if curr.f_1 <> orig.f_1 then err_cnt := err_cnt + 1; end if;
 		if curr.f_2 <> orig.f_2 then err_cnt := err_cnt + 1; end if;

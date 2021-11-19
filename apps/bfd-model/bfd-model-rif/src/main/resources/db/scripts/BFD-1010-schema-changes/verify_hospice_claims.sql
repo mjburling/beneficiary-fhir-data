@@ -1,5 +1,6 @@
 do $$
 DECLARE
+  MAX_TESTS		INTEGER := 30000;
   orig			record;
   curr			record;
   err_cnt	    INTEGER := 0;
@@ -9,7 +10,7 @@ DECLARE
   v_tbl_name	varchar(40) := 'hospice_claims';
 
 BEGIN
-	for counter in 1..1000
+	for counter in 1..MAX_TESTS
 	loop
 		-- randomly select a "beneficiaryId" from original table
 		SELECT cast("beneficiaryId" as bigint) into v_bene_id
@@ -256,7 +257,7 @@ BEGIN
 			"diagnosis24CodeVersion" as f_110,
 			"diagnosis25CodeVersion" as f_111
 		from
-			publ."HospiceClaims"
+			"HospiceClaims"
 		where
 			"claimId" = v_clm_id::text
 		AND

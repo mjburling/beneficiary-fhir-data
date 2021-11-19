@@ -1,5 +1,6 @@
 do $$
 DECLARE
+  MAX_TESTS		INTEGER := 30000;
   orig			record;
   curr			record;
   err_cnt	    INTEGER := 0;
@@ -9,7 +10,7 @@ DECLARE
   v_tbl_name	varchar(40) := 'carrier_claims';
 
 BEGIN
-	for counter in 1..1000
+	for counter in 1..MAX_TESTS
 	loop
 		-- randomly select a "beneficiaryId" from original table
 		SELECT cast("beneficiaryId" as bigint) into v_bene_id
@@ -86,9 +87,9 @@ BEGIN
 			bene_id = v_bene_id;
 		
 		SELECT INTO orig
-			cast("claimId" as bigint) as f__1,
-			cast("beneficiaryId" as bigint) as f__2,
-			cast("claimGroupId" as bigint) as f__3,
+			cast("claimId" as bigint) as f_1,
+			cast("beneficiaryId" as bigint) as f_2,
+			cast("claimGroupId" as bigint) as f_3,
 			"lastupdated" as f_4,
 			"dateFrom" as f_5,
 			"dateThrough" as f_6,

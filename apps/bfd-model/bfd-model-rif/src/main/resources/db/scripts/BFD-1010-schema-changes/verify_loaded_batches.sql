@@ -1,5 +1,6 @@
 do $$
 DECLARE
+  MAX_TESTS		INTEGER := 1000;
   orig			record;
   curr			record;
   err_cnt	    INTEGER := 0;
@@ -8,7 +9,7 @@ DECLARE
   v_tbl_name	varchar(40) := 'loaded_batches';
 
 BEGIN
-	for counter in 1..1000
+	for counter in 1..MAX_TESTS
 	loop
 		-- randomly select a "loadedBatchId" from original table
 		SELECT "loadedBatchId" into v_batch_id

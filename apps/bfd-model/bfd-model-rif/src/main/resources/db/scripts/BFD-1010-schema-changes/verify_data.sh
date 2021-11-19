@@ -8,7 +8,7 @@ export PGPORT="${PGPORT:-5432}"
 export PGDATABASE="${PGDATABASE:-}"
 
 # when DRY_RUN=true (the default), the script will echo the commands it would run against the db
-export DRY_RUN="${DRY_RUN:-true}"
+export DRY_RUN="${DRY_RUN:-false}"
 
 # boolean to limit table data verification to a subset of tables
 # defaults to false which runs a complete verification
@@ -136,6 +136,12 @@ load_file(){
   fi
 }
 
+# load the given table
+# $1 == table name to process - this assumes all tables have a matching ./insert_${tbl_name}.sql file
+create_verification_table(){
+  psql_cmd="psql -h $PGHOST -U $PGUSER -d $PGDATABASE --quiet --tuples-only -f ./migration_errors_table.sql"
+}
+
 # processes $MAX_JOBS number of tables (files) in parallel
 # $1 a list of tables ex: "process_tables snf_claims snf_claim_lines"
 process_tables(){
@@ -157,10 +163,8 @@ total_start=$SECONDS
 
 # migration_errors table 
 echo "CREATING MIGRATION_ERRORS TABLE..."
-bene_start=$SECONDS
-load_file "migration_errors_table"
-bene_end=$SECONDS; duration=$(( bene_end - bene_start ))
-echo "migration_errors table created after ~$((duration / 60)) minutes"
+create_verification_table
+echo "migration_errors table created"
 echo
 
 # parent tables

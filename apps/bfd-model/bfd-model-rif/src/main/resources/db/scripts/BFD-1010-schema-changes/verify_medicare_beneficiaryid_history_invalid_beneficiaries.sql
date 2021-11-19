@@ -1,5 +1,6 @@
 do $$
 DECLARE
+  MAX_TESTS		INTEGER := 30000;
   orig			record;
   curr			record;
   err_cnt	    INTEGER := 0;
@@ -8,7 +9,7 @@ DECLARE
   v_tbl_name	varchar(60) := 'medicare_beneficiaryid_history_invalid_beneficiaries';
 
 BEGIN
-	for counter in 1..1000
+	for counter in 1..MAX_TESTS
 	loop
 		-- randomly select a "beneficiaryId" from original table
 		SELECT cast("beneficiaryId" as bigint) into v_bene_id
@@ -16,7 +17,7 @@ BEGIN
 		limit 1;
 
 		select into curr
-			medicare_beneficiaryid_key as f_1,
+			bene_mbi_id as f_1,
 			bene_id as f_2,
 			bene_clm_acnt_num as f_4,
 			bene_ident_cd as f_5,
