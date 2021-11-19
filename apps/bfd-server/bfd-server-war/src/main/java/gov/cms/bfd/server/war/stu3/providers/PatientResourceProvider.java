@@ -933,17 +933,19 @@ public final class PatientResourceProvider implements IResourceProvider, CommonH
     if (Strings.isNullOrEmpty(headerValues)) return Arrays.asList("");
     else
       // Return values split on a comma with any whitespace, valid, distict, and sort
-      return Arrays.asList(headerValues.toLowerCase().split("\\s*,\\s*")).stream()
-          .peek(
-              c -> {
-                if (!VALID_HEADER_VALUES_INCLUDE_IDENTIFIERS.contains(c)) {
-                  throw new InvalidRequestException(
-                      "Unsupported " + HEADER_NAME_INCLUDE_IDENTIFIERS + " header value: " + c);
-                }
-              })
-          .distinct()
-          .sorted()
-          .collect(Collectors.toList());
+      return new LinkedList<>(
+          Arrays.asList(headerValues.toLowerCase().split("\\s*,\\s*")).stream()
+              // return Arrays.asList(headerValues.toLowerCase().split("\\s*,\\s*")).stream()
+              .peek(
+                  c -> {
+                    if (!VALID_HEADER_VALUES_INCLUDE_IDENTIFIERS.contains(c)) {
+                      throw new InvalidRequestException(
+                          "Unsupported " + HEADER_NAME_INCLUDE_IDENTIFIERS + " header value: " + c);
+                    }
+                  })
+              .distinct()
+              .sorted()
+              .collect(Collectors.toList()));
   }
 
   /**
