@@ -64,6 +64,8 @@ import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Patient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 
@@ -82,6 +84,8 @@ public final class R4PatientResourceProvider implements IResourceProvider, Commo
           TransformerConstants.CODING_BBAPI_BENE_MBI_HASH,
           TransformerConstants.CODING_BBAPI_BENE_HICN_HASH,
           TransformerConstants.CODING_BBAPI_BENE_HICN_HASH_OLD);
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(R4PatientResourceProvider.class);
 
   private EntityManager entityManager;
   private MetricRegistry metricRegistry;
@@ -131,50 +135,57 @@ public final class R4PatientResourceProvider implements IResourceProvider, Commo
     if (patientId == null || patientId.getVersionIdPartAsLong() != null) {
       throw new IllegalArgumentException();
     }
-    long beneId = Long.parseLong(patientId.getIdPart());
-    if (beneId < 1) {
+    long beneId = 0;
+    try {
+      beneId = Long.parseLong(patientId.getIdPart().trim());
+    } catch (Exception e) {
       throw new IllegalArgumentException();
     }
+
     RequestHeaders requestHeader = RequestHeaders.getHeaderWrapper(requestDetails);
-    Operation operation = new Operation(Operation.Endpoint.V2_PATIENT);
-    operation.setOption("by", "id");
-    // there is another method with exclude list: requestHeader.getNVPairs(<excludeHeaders>)
-    requestHeader.getNVPairs().forEach((n, v) -> operation.setOption(n, v.toString()));
-    operation.publishOperationName();
-
-    CriteriaBuilder builder = entityManager.getCriteriaBuilder();
-    CriteriaQuery<Beneficiary> criteria = builder.createQuery(Beneficiary.class);
-    Root<Beneficiary> root = criteria.from(Beneficiary.class);
-
-    root.fetch(Beneficiary_.medicare_beneficiaryid_history, JoinType.LEFT);
-
-    criteria.select(root);
-    criteria.where(builder.equal(root.get(Beneficiary_.BENE_ID), beneId));
-
-    Beneficiary beneficiary = null;
-    Long beneByIdQueryNanoSeconds = null;
+    Patient patient = null;
     Timer.Context timerBeneQuery =
         metricRegistry
             .timer(MetricRegistry.name(getClass().getSimpleName(), "query", "bene_by_id"))
             .time();
     try {
-      beneficiary = entityManager.createQuery(criteria).getSingleResult();
-    } catch (NoResultException e) {
-      throw new ResourceNotFoundException(patientId);
-    } finally {
-      beneByIdQueryNanoSeconds = timerBeneQuery.stop();
+      // Add bene_id to MDC logs
+      TransformerUtilsV2.logBeneIdToMdc(beneId);
 
+      Operation operation = new Operation(Operation.Endpoint.V2_PATIENT);
+      operation.setOption("by", "id");
+      // there is another method with exclude list: requestHeader.getNVPairs(<excludeHeaders>)
+      requestHeader.getNVPairs().forEach((n, v) -> operation.setOption(n, v.toString()));
+      operation.publishOperationName();
+
+      CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+      CriteriaQuery<Beneficiary> criteria = builder.createQuery(Beneficiary.class);
+      Root<Beneficiary> root = criteria.from(Beneficiary.class);
+      root.fetch(Beneficiary_.medicare_beneficiaryid_history, JoinType.LEFT);
+
+      criteria.select(root);
+      criteria.where(builder.equal(root.get(Beneficiary_.BENE_ID), beneId));
+      Beneficiary beneficiary = entityManager.createQuery(criteria).getSingleResult();
+      if (beneficiary != null) {
+        patient = BeneficiaryTransformerV2.transform(metricRegistry, beneficiary, requestHeader);
+      }
+    } catch (NoResultException e) {
+      LOGGER.warn("Failed to find Patient: {}", patientId.getIdPart());
+    } catch (Exception e) {
+      LOGGER.warn(e.getMessage(), e);
+    } finally {
       TransformerUtilsV2.recordQueryInMdc(
           String.format(
               "bene_by_id.include_%s",
               String.join(
                   "_", (List<String>) requestHeader.getValue(HEADER_NAME_INCLUDE_IDENTIFIERS))),
-          beneByIdQueryNanoSeconds,
-          beneficiary == null ? 0 : 1);
+          timerBeneQuery.stop(),
+          patient == null ? 0 : 1);
     }
-    TransformerUtilsV2.logBeneIdToMdc(beneId);
-
-    return BeneficiaryTransformerV2.transform(metricRegistry, beneficiary, requestHeader);
+    if (patient == null) {
+      throw new ResourceNotFoundException(patientId);
+    }
+    return patient;
   }
 
   /**
@@ -222,11 +233,11 @@ public final class R4PatientResourceProvider implements IResourceProvider, Commo
           "Unsupported query parameter value: " + logicalId.getValue());
     }
 
-    List<IBaseResource> patients;
-    if (loadedFilterManager.isResultSetEmpty(Long.parseLong(logicalId.getValue()), lastUpdated)) {
-      patients = Collections.emptyList();
-    } else {
-      try {
+    Bundle bundle = null;
+    List<IBaseResource> patients = null;
+    try {
+      long beneficiaryId = Long.parseLong(logicalId.getValue());
+      if (!loadedFilterManager.isResultSetEmpty(beneficiaryId, lastUpdated)) {
         patients =
             Optional.of(read(new IdType(logicalId.getValue()), requestDetails))
                 .filter(
@@ -234,28 +245,37 @@ public final class R4PatientResourceProvider implements IResourceProvider, Commo
                         QueryUtils.isInRange(p.getMeta().getLastUpdated().toInstant(), lastUpdated))
                 .map(p -> Collections.singletonList((IBaseResource) p))
                 .orElse(Collections.emptyList());
-      } catch (ResourceNotFoundException e) {
+      }
+    } catch (NumberFormatException e) {
+      LOGGER.warn("Invalid patient identifer: {}", logicalId.getValue());
+    } catch (ResourceNotFoundException e) {
+      LOGGER.warn("Failed to find patient identifer: {}", logicalId.getValue());
+    } finally {
+      if (patients == null) {
         patients = Collections.emptyList();
       }
     }
+    try {
+      // Publish operation name.
+      // Note: This is a bit later than we'd normally do this, as we need to override
+      // the operation name that was published by the possible call to read(...), above.
+      RequestHeaders requestHeader = RequestHeaders.getHeaderWrapper(requestDetails);
+      Operation operation = new Operation(Operation.Endpoint.V2_PATIENT);
+      operation.setOption("by", "id");
+      // track all api hdrs
+      requestHeader.getNVPairs().forEach((n, v) -> operation.setOption(n, v.toString()));
+      operation.setOption(
+          "_lastUpdated", Boolean.toString(lastUpdated != null && !lastUpdated.isEmpty()));
+      operation.publishOperationName();
 
-    /*
-     * Publish the operation name. Note: This is a bit later than we'd normally do this, as we need
-     * to override the operation name that was published by the possible call to read(...), above.
-     */
-
-    RequestHeaders requestHeader = RequestHeaders.getHeaderWrapper(requestDetails);
-    Operation operation = new Operation(Operation.Endpoint.V2_PATIENT);
-    operation.setOption("by", "id");
-    // track all api hdrs
-    requestHeader.getNVPairs().forEach((n, v) -> operation.setOption(n, v.toString()));
-    operation.setOption(
-        "_lastUpdated", Boolean.toString(lastUpdated != null && !lastUpdated.isEmpty()));
-    operation.publishOperationName();
-
-    OffsetLinkBuilder paging = new OffsetLinkBuilder(requestDetails, "/Patient?");
-    Bundle bundle =
-        TransformerUtilsV2.createBundle(paging, patients, loadedFilterManager.getTransactionTime());
+      OffsetLinkBuilder paging = new OffsetLinkBuilder(requestDetails, "/Patient?");
+      bundle =
+          TransformerUtilsV2.createBundle(
+              paging, patients, loadedFilterManager.getTransactionTime());
+    } catch (Exception e) {
+      LOGGER.error("Failed to create Bundle w/paging; error: {}", e.getMessage());
+      throw e;
+    }
     return bundle;
   }
 
@@ -712,7 +732,7 @@ public final class R4PatientResourceProvider implements IResourceProvider, Commo
         .select(beneHistoryMatchesRoot)
         .where(builder.equal(beneHistoryMatchesRoot.get(beneficiaryHistoryHashField), hash));
 
-    List<Long> matchingIdsFromBeneHistory = Collections.emptyList();
+    List<Long> matchingIdsFromBeneHistory = new ArrayList<>();
     Long fromHistoryQueryNanoSeconds = null;
     Timer.Context beneHistoryMatchesTimer =
         metricRegistry
@@ -729,7 +749,7 @@ public final class R4PatientResourceProvider implements IResourceProvider, Commo
           entityManager.createQuery(beneHistoryMatches).getResultList();
       if (results != null && results.size() > 0) {
         for (BeneficiaryHistory elem : results) {
-          matchingIdsFromBeneHistory.add(Long.valueOf(elem.getBeneHistoryId()));
+          matchingIdsFromBeneHistory.add(Long.valueOf(elem.getBeneficiaryId()));
         }
       }
     } finally {
