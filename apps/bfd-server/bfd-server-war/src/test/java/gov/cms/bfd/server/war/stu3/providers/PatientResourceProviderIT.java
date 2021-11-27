@@ -39,9 +39,14 @@ import org.hl7.fhir.dstu3.model.Patient;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** Integration tests for {@link gov.cms.bfd.server.war.stu3.providers.PatientResourceProvider}. */
 public final class PatientResourceProviderIT {
+  @SuppressWarnings("unused")
+  private static final Logger LOGGER = LoggerFactory.getLogger(PatientResourceProviderIT.class);
+
   /**
    * Verifies that {@link
    * gov.cms.bfd.server.war.stu3.providers.PatientResourceProvider#read(org.hl7.fhir.dstu3.model.IdType)}
@@ -61,11 +66,7 @@ public final class PatientResourceProviderIT {
             .findFirst()
             .get();
     Patient patient =
-        fhirClient
-            .read()
-            .resource(Patient.class)
-            .withId(String.format("%d", beneficiary.getBeneficiaryId()))
-            .execute();
+        fhirClient.read().resource(Patient.class).withId(beneficiary.getBeneficiaryId()).execute();
 
     Assert.assertNotNull(patient);
     BeneficiaryTransformerTest.assertMatches(
@@ -235,11 +236,7 @@ public final class PatientResourceProviderIT {
             .findFirst()
             .get();
     Patient patient =
-        fhirClient
-            .read()
-            .resource(Patient.class)
-            .withId(String.format("%d", beneficiary.getBeneficiaryId()))
-            .execute();
+        fhirClient.read().resource(Patient.class).withId(beneficiary.getBeneficiaryId()).execute();
 
     Assert.assertNotNull(patient);
     BeneficiaryTransformerTest.assertMatches(beneficiary, patient, requestHeader);
@@ -252,12 +249,14 @@ public final class PatientResourceProviderIT {
     Iterator<Identifier> identifiers = patient.getIdentifier().iterator();
     while (identifiers.hasNext()) {
       Identifier identifier = identifiers.next();
-      if (identifier.getSystem().equals(TransformerConstants.CODING_BBAPI_BENE_HICN_UNHASHED))
+      if (identifier.getSystem().equals(TransformerConstants.CODING_BBAPI_BENE_HICN_UNHASHED)) {
         hicnUnhashedPresent = true;
+      }
       if (identifier
           .getSystem()
-          .equals(TransformerConstants.CODING_BBAPI_MEDICARE_BENEFICIARY_ID_UNHASHED))
+          .equals(TransformerConstants.CODING_BBAPI_MEDICARE_BENEFICIARY_ID_UNHASHED)) {
         mbiUnhashedPresent = true;
+      }
     }
 
     if (expectingHicn) Assert.assertTrue(hicnUnhashedPresent);
@@ -293,11 +292,7 @@ public final class PatientResourceProviderIT {
             .findFirst()
             .get();
     Patient patient =
-        fhirClient
-            .read()
-            .resource(Patient.class)
-            .withId(String.format("%d", beneficiary.getBeneficiaryId()))
-            .execute();
+        fhirClient.read().resource(Patient.class).withId(beneficiary.getBeneficiaryId()).execute();
 
     Assert.assertNotNull(patient);
     BeneficiaryTransformerTest.assertMatches(beneficiary, patient, requestHeader);
@@ -310,12 +305,14 @@ public final class PatientResourceProviderIT {
     Iterator<Identifier> identifiers = patient.getIdentifier().iterator();
     while (identifiers.hasNext()) {
       Identifier identifier = identifiers.next();
-      if (identifier.getSystem().equals(TransformerConstants.CODING_BBAPI_BENE_HICN_UNHASHED))
+      if (identifier.getSystem().equals(TransformerConstants.CODING_BBAPI_BENE_HICN_UNHASHED)) {
         hicnUnhashedPresent = true;
+      }
       if (identifier
           .getSystem()
-          .equals(TransformerConstants.CODING_BBAPI_MEDICARE_BENEFICIARY_ID_UNHASHED))
+          .equals(TransformerConstants.CODING_BBAPI_MEDICARE_BENEFICIARY_ID_UNHASHED)) {
         mbiUnhashedPresent = true;
+      }
     }
 
     Assert.assertTrue(hicnUnhashedPresent);
@@ -359,7 +356,7 @@ public final class PatientResourceProviderIT {
             .where(
                 Patient.RES_ID
                     .exactly()
-                    .systemAndIdentifier(null, String.format("%d", beneficiary.getBeneficiaryId())))
+                    .systemAndIdentifier(null, Long.toString(beneficiary.getBeneficiaryId())))
             .returnBundle(Bundle.class)
             .execute();
 
@@ -405,7 +402,7 @@ public final class PatientResourceProviderIT {
             .where(
                 Patient.RES_ID
                     .exactly()
-                    .systemAndIdentifier(null, String.format("%d", beneficiary.getBeneficiaryId())))
+                    .systemAndIdentifier(null, Long.toString(beneficiary.getBeneficiaryId())))
             .returnBundle(Bundle.class)
             .execute();
 
@@ -420,12 +417,14 @@ public final class PatientResourceProviderIT {
     Iterator<Identifier> identifiers = patientFromSearchResult.getIdentifier().iterator();
     while (identifiers.hasNext()) {
       Identifier identifier = identifiers.next();
-      if (identifier.getSystem().equals(TransformerConstants.CODING_BBAPI_BENE_HICN_UNHASHED))
+      if (identifier.getSystem().equals(TransformerConstants.CODING_BBAPI_BENE_HICN_UNHASHED)) {
         hicnUnhashedPresent = true;
+      }
       if (identifier
           .getSystem()
-          .equals(TransformerConstants.CODING_BBAPI_MEDICARE_BENEFICIARY_ID_UNHASHED))
+          .equals(TransformerConstants.CODING_BBAPI_MEDICARE_BENEFICIARY_ID_UNHASHED)) {
         mbiUnhashedPresent = true;
+      }
     }
 
     Assert.assertTrue(hicnUnhashedPresent);
@@ -458,7 +457,7 @@ public final class PatientResourceProviderIT {
             .where(
                 Patient.RES_ID
                     .exactly()
-                    .systemAndIdentifier(null, String.format("%d", beneficiary.getBeneficiaryId())))
+                    .systemAndIdentifier(null, Long.toString(beneficiary.getBeneficiaryId())))
             .returnBundle(Bundle.class)
             .execute();
 
@@ -473,12 +472,14 @@ public final class PatientResourceProviderIT {
     Iterator<Identifier> identifiers = patientFromSearchResult.getIdentifier().iterator();
     while (identifiers.hasNext()) {
       Identifier identifier = identifiers.next();
-      if (identifier.getSystem().equals(TransformerConstants.CODING_BBAPI_BENE_HICN_UNHASHED))
+      if (identifier.getSystem().equals(TransformerConstants.CODING_BBAPI_BENE_HICN_UNHASHED)) {
         hicnUnhashedPresent = true;
+      }
       if (identifier
           .getSystem()
-          .equals(TransformerConstants.CODING_BBAPI_MEDICARE_BENEFICIARY_ID_UNHASHED))
+          .equals(TransformerConstants.CODING_BBAPI_MEDICARE_BENEFICIARY_ID_UNHASHED)) {
         mbiUnhashedPresent = true;
+      }
     }
 
     Assert.assertFalse(hicnUnhashedPresent);
@@ -510,7 +511,7 @@ public final class PatientResourceProviderIT {
             .where(
                 Patient.RES_ID
                     .exactly()
-                    .systemAndIdentifier(null, String.format("%d", beneficiary.getBeneficiaryId())))
+                    .systemAndIdentifier(null, Long.toString(beneficiary.getBeneficiaryId())))
             .count(1)
             .returnBundle(Bundle.class)
             .execute();
@@ -638,12 +639,14 @@ public final class PatientResourceProviderIT {
     Iterator<Identifier> identifiers = patientFromSearchResult.getIdentifier().iterator();
     while (identifiers.hasNext()) {
       Identifier identifier = identifiers.next();
-      if (identifier.getSystem().equals(TransformerConstants.CODING_BBAPI_BENE_HICN_UNHASHED))
+      if (identifier.getSystem().equals(TransformerConstants.CODING_BBAPI_BENE_HICN_UNHASHED)) {
         hicnUnhashedPresent = true;
+      }
       if (identifier
           .getSystem()
-          .equals(TransformerConstants.CODING_BBAPI_MEDICARE_BENEFICIARY_ID_UNHASHED))
+          .equals(TransformerConstants.CODING_BBAPI_MEDICARE_BENEFICIARY_ID_UNHASHED)) {
         mbiUnhashedPresent = true;
+      }
     }
 
     Assert.assertTrue(hicnUnhashedPresent);
@@ -660,8 +663,7 @@ public final class PatientResourceProviderIT {
         ServerTestUtils.get()
             .loadData(Arrays.asList(StaticRifResourceGroup.SAMPLE_A.getResources()));
 
-    // load additional Beneficiary and Beneficiary History records for
-    // testing
+    // load additional Beneficiary and Beneficiary History records for testing
     loadedRecords.addAll(
         ServerTestUtils.get()
             .loadData(Arrays.asList(StaticRifResourceGroup.SAMPLE_HICN_MULT_BENES.getResources())));
@@ -679,9 +681,10 @@ public final class PatientResourceProviderIT {
     List<BeneficiaryHistory> beneficiariesHistoryList =
         beneficiariesHistoryStream.collect(Collectors.toList());
 
+    dumpBeneData(beneficiariesList, beneficiariesHistoryList);
+
     boolean useHicnFromBeneficiaryTable;
     boolean expectsSingleBeneMatch;
-
     /*
      * The following scenario tests when the same hicn is in the
      * Beneficiaries table but points to different bene ids.
@@ -693,7 +696,7 @@ public final class PatientResourceProviderIT {
         fhirClient,
         beneficiariesList,
         beneficiariesHistoryList,
-        "567834",
+        567834L,
         "543217066U",
         useHicnFromBeneficiaryTable,
         "hicn",
@@ -708,7 +711,7 @@ public final class PatientResourceProviderIT {
         fhirClient,
         beneficiariesList,
         beneficiariesHistoryList,
-        "123456NULLREFYR",
+        1234568L,
         "543217066N",
         useHicnFromBeneficiaryTable,
         "hicn",
@@ -725,7 +728,7 @@ public final class PatientResourceProviderIT {
         fhirClient,
         beneficiariesList,
         beneficiariesHistoryList,
-        "BENE1234",
+        123488L,
         "SAMEHICN",
         useHicnFromBeneficiaryTable,
         "hicn",
@@ -743,7 +746,7 @@ public final class PatientResourceProviderIT {
         fhirClient,
         beneficiariesList,
         beneficiariesHistoryList,
-        "55555",
+        55555L,
         "HISTHICN",
         useHicnFromBeneficiaryTable,
         "hicn",
@@ -760,7 +763,7 @@ public final class PatientResourceProviderIT {
         fhirClient,
         beneficiariesList,
         beneficiariesHistoryList,
-        "66666",
+        66666L,
         "DUPHISTHIC",
         useHicnFromBeneficiaryTable,
         "hicn",
@@ -783,6 +786,45 @@ public final class PatientResourceProviderIT {
             .returnBundle(Bundle.class)
             .execute();
     Assert.assertEquals(0, searchResults.getTotal());
+  }
+
+  private static void dumpBeneData(
+      List<Beneficiary> beneficiariesList, List<BeneficiaryHistory> beneficiariesHistoryList) {
+    beneficiariesList.stream()
+        .filter(r -> r instanceof Beneficiary)
+        .map(r -> (Beneficiary) r)
+        .forEach(
+            h -> {
+              LOGGER.info(
+                  "<<< List<Beneficiary>^"
+                      + h.getBeneficiaryId()
+                      + "^"
+                      + h.getMedicareBeneficiaryId()
+                      + "^"
+                      + h.getMbiHash()
+                      + "^"
+                      + h.getHicn()
+                      + "^"
+                      + h.getHicnUnhashed());
+            });
+
+    beneficiariesHistoryList.stream()
+        .filter(r -> r instanceof BeneficiaryHistory)
+        .map(r -> (BeneficiaryHistory) r)
+        .forEach(
+            h -> {
+              LOGGER.info(
+                  "<<< List<BeneficiaryHistory>: "
+                      + h.getBeneficiaryId()
+                      + "^"
+                      + h.getMedicareBeneficiaryId()
+                      + "^"
+                      + h.getMbiHash()
+                      + "^"
+                      + h.getHicn()
+                      + "^"
+                      + h.getHicnUnhashed());
+            });
   }
 
   /**
@@ -827,12 +869,14 @@ public final class PatientResourceProviderIT {
     Iterator<Identifier> identifiers = patientFromSearchResult.getIdentifier().iterator();
     while (identifiers.hasNext()) {
       Identifier identifier = identifiers.next();
-      if (identifier.getSystem().equals(TransformerConstants.CODING_BBAPI_BENE_HICN_UNHASHED))
+      if (identifier.getSystem().equals(TransformerConstants.CODING_BBAPI_BENE_HICN_UNHASHED)) {
         hicnUnhashedPresent = true;
+      }
       if (identifier
           .getSystem()
-          .equals(TransformerConstants.CODING_BBAPI_MEDICARE_BENEFICIARY_ID_UNHASHED))
+          .equals(TransformerConstants.CODING_BBAPI_MEDICARE_BENEFICIARY_ID_UNHASHED)) {
         mbiUnhashedPresent = true;
+      }
     }
 
     Assert.assertFalse(hicnUnhashedPresent);
@@ -920,7 +964,8 @@ public final class PatientResourceProviderIT {
               Patient patientFromSearchResult =
                   (Patient) searchResults.getEntry().get(0).getResource();
               Assert.assertEquals(
-                  h.getBeneficiaryId(), patientFromSearchResult.getIdElement().getIdPart());
+                  Long.toString(h.getBeneficiaryId()),
+                  patientFromSearchResult.getIdElement().getIdPart());
             });
   }
 
@@ -958,8 +1003,8 @@ public final class PatientResourceProviderIT {
               Patient patientFromSearchResult =
                   (Patient) searchResults.getEntry().get(0).getResource();
               Assert.assertEquals(
-                  h.getBeneficiaryId(),
-                  Long.parseLong(patientFromSearchResult.getIdElement().getIdPart()));
+                  Long.toString(h.getBeneficiaryId()),
+                  patientFromSearchResult.getIdElement().getIdPart());
             });
   }
 
@@ -997,8 +1042,8 @@ public final class PatientResourceProviderIT {
               Patient patientFromSearchResult =
                   (Patient) searchResults.getEntry().get(0).getResource();
               Assert.assertEquals(
-                  h.getBeneficiaryId(),
-                  Long.parseLong(patientFromSearchResult.getIdElement().getIdPart()));
+                  Long.toString(h.getBeneficiaryId()),
+                  patientFromSearchResult.getIdElement().getIdPart());
             });
   }
 
@@ -1129,12 +1174,14 @@ public final class PatientResourceProviderIT {
     Iterator<Identifier> identifiers = patientFromSearchResult.getIdentifier().iterator();
     while (identifiers.hasNext()) {
       Identifier identifier = identifiers.next();
-      if (identifier.getSystem().equals(TransformerConstants.CODING_BBAPI_BENE_HICN_UNHASHED))
+      if (identifier.getSystem().equals(TransformerConstants.CODING_BBAPI_BENE_HICN_UNHASHED)) {
         hicnUnhashedPresent = true;
+      }
       if (identifier
           .getSystem()
-          .equals(TransformerConstants.CODING_BBAPI_MEDICARE_BENEFICIARY_ID_UNHASHED))
+          .equals(TransformerConstants.CODING_BBAPI_MEDICARE_BENEFICIARY_ID_UNHASHED)) {
         mbiUnhashedPresent = true;
+      }
     }
 
     Assert.assertTrue(hicnUnhashedPresent);
@@ -1183,7 +1230,7 @@ public final class PatientResourceProviderIT {
         fhirClient,
         beneficiariesList,
         beneficiariesHistoryList,
-        "567834",
+        567834,
         "3456789",
         useMbiFromBeneficiaryTable,
         "mbi",
@@ -1199,7 +1246,7 @@ public final class PatientResourceProviderIT {
         fhirClient,
         beneficiariesList,
         beneficiariesHistoryList,
-        "123456NULLREFYR",
+        1234568L,
         "3456789N",
         useMbiFromBeneficiaryTable,
         "mbi",
@@ -1211,7 +1258,7 @@ public final class PatientResourceProviderIT {
      * is different between the tables so the bene record from the
      * Beneficiaries table should be used.
      *
-     * bene id=BENE1234 mbi=SAMEMBI rfrnc_yr=2019 should be pulled back.
+     * bene id=123488L mbi=SAMEMBI rfrnc_yr=2019 should be pulled back.
      */
     useMbiFromBeneficiaryTable = true;
     expectsSingleBeneMatch = false;
@@ -1219,7 +1266,7 @@ public final class PatientResourceProviderIT {
         fhirClient,
         beneficiariesList,
         beneficiariesHistoryList,
-        "BENE1234",
+        123488L,
         "SAMEMBI",
         useMbiFromBeneficiaryTable,
         "mbi",
@@ -1236,7 +1283,7 @@ public final class PatientResourceProviderIT {
         fhirClient,
         beneficiariesList,
         beneficiariesHistoryList,
-        "55555",
+        55555L,
         "HISTMBI",
         useMbiFromBeneficiaryTable,
         "mbi",
@@ -1253,7 +1300,7 @@ public final class PatientResourceProviderIT {
         fhirClient,
         beneficiariesList,
         beneficiariesHistoryList,
-        "66666",
+        66666L,
         "DUPHISTMBI",
         useMbiFromBeneficiaryTable,
         "mbi",
@@ -1300,15 +1347,16 @@ public final class PatientResourceProviderIT {
       IGenericClient fhirClient,
       List<Beneficiary> beneficiariesList,
       List<BeneficiaryHistory> beneficiariesHistoryList,
-      String beneficiaryId,
-      String unhashedValue,
+      long beneficiaryId,
+      String lookupVal,
       Boolean useFromBeneficiaryTable,
       String hashType,
       Boolean expectsSingleBeneMatch) {
 
     Bundle searchResults = null;
-    String hicnHashed = "";
+    String hicnHash = "";
     String mbiHash = "";
+    long beneId = Long.MIN_VALUE;
 
     if (hashType != "hicn" && hashType != "mbi") {
       Assert.fail("hashType value must be: hicn or mbi.");
@@ -1318,34 +1366,61 @@ public final class PatientResourceProviderIT {
       if (hashType.equals("hicn")) {
         Beneficiary beneficiaryHicnToMatchTo =
             beneficiariesList.stream()
-                .filter(r -> unhashedValue.equals(r.getHicnUnhashed().get()))
+                .filter(r -> lookupVal.equals(r.getHicnUnhashed().get()))
                 .findFirst()
                 .get();
-        hicnHashed = beneficiaryHicnToMatchTo.getHicn();
+        hicnHash = beneficiaryHicnToMatchTo.getHicn();
+        beneId = beneficiaryHicnToMatchTo.getBeneficiaryId();
       } else if (hashType.equals("mbi")) {
         Beneficiary beneficiaryMbiToMatchTo =
             beneficiariesList.stream()
-                .filter(r -> unhashedValue.equals(r.getMedicareBeneficiaryId().get()))
+                .filter(r -> lookupVal.equals(r.getMedicareBeneficiaryId().get()))
                 .findFirst()
                 .get();
         mbiHash = beneficiaryMbiToMatchTo.getMbiHash().get();
+        beneId = beneficiaryMbiToMatchTo.getBeneficiaryId();
       }
     } else {
       if (hashType.equals("hicn")) {
         BeneficiaryHistory beneficiaryHistoryHicnToMatchTo =
             beneficiariesHistoryList.stream()
-                .filter(r -> unhashedValue.equals(r.getHicnUnhashed().get()))
+                .filter(r -> lookupVal.equals(r.getHicnUnhashed().get()))
                 .findFirst()
                 .get();
-        hicnHashed = beneficiaryHistoryHicnToMatchTo.getHicn();
+        hicnHash = beneficiaryHistoryHicnToMatchTo.getHicn();
+        beneId = beneficiaryHistoryHicnToMatchTo.getBeneficiaryId();
       } else if (hashType.equals("mbi")) {
         BeneficiaryHistory beneficiaryHistoryMbiToMatchTo =
             beneficiariesHistoryList.stream()
-                .filter(r -> unhashedValue.equals(r.getMedicareBeneficiaryId().get()))
+                .filter(r -> lookupVal.equals(r.getMedicareBeneficiaryId().get()))
                 .findFirst()
                 .get();
         mbiHash = beneficiaryHistoryMbiToMatchTo.getMbiHash().get();
+        beneId = beneficiaryHistoryMbiToMatchTo.getBeneficiaryId();
       }
+    }
+
+    if (LOGGER.isDebugEnabled()) {
+      StringBuilder sb = new StringBuilder(">>> assertPatientByHashType from: ");
+      sb.append((useFromBeneficiaryTable ? "beneficiaries" : "bene_hist"))
+          .append(", hashType: ")
+          .append(hashType)
+          .append(", lookupVal: ")
+          .append(lookupVal)
+          .append(", expectSingle: ")
+          .append(expectsSingleBeneMatch);
+
+      if (hashType.equals("mbi")) {
+        sb.append(", mbiHash: ").append(mbiHash);
+      } else {
+        sb.append(", hicnHash: ").append(hicnHash);
+      }
+      if (useFromBeneficiaryTable) {
+        sb.append("beneficiaries beneId: ").append(Long.toString(beneId));
+      } else {
+        sb.append("beneficiary_history beneId: ").append(Long.toString(beneId));
+      }
+      LOGGER.info(sb.toString());
     }
 
     try {
@@ -1359,7 +1434,7 @@ public final class PatientResourceProviderIT {
                     Patient.IDENTIFIER
                         .exactly()
                         .systemAndIdentifier(
-                            TransformerConstants.CODING_BBAPI_BENE_HICN_HASH, hicnHashed))
+                            TransformerConstants.CODING_BBAPI_BENE_HICN_HASH, hicnHash))
                 .returnBundle(Bundle.class)
                 .execute();
       } else if (hashType.equals("mbi")) {
@@ -1391,7 +1466,7 @@ public final class PatientResourceProviderIT {
 
       Beneficiary beneficiary =
           beneficiariesList.stream()
-              .filter(r -> beneficiaryId.equals(r.getBeneficiaryId()))
+              .filter(r -> beneficiaryId == r.getBeneficiaryId())
               .findAny()
               .get();
       Patient patientFromSearchResult = (Patient) searchResults.getEntry().get(0).getResource();
@@ -1443,12 +1518,14 @@ public final class PatientResourceProviderIT {
     Iterator<Identifier> identifiers = patientFromSearchResult.getIdentifier().iterator();
     while (identifiers.hasNext()) {
       Identifier identifier = identifiers.next();
-      if (identifier.getSystem().equals(TransformerConstants.CODING_BBAPI_BENE_HICN_UNHASHED))
+      if (identifier.getSystem().equals(TransformerConstants.CODING_BBAPI_BENE_HICN_UNHASHED)) {
         hicnUnhashedPresent = true;
+      }
       if (identifier
           .getSystem()
-          .equals(TransformerConstants.CODING_BBAPI_MEDICARE_BENEFICIARY_ID_UNHASHED))
+          .equals(TransformerConstants.CODING_BBAPI_MEDICARE_BENEFICIARY_ID_UNHASHED)) {
         mbiUnhashedPresent = true;
+      }
     }
 
     Assert.assertFalse(hicnUnhashedPresent);
@@ -1538,7 +1615,8 @@ public final class PatientResourceProviderIT {
               Patient patientFromSearchResult =
                   (Patient) searchResults.getEntry().get(0).getResource();
               Assert.assertEquals(
-                  h.getBeneficiaryId(), patientFromSearchResult.getIdElement().getIdPart());
+                  Long.toString(h.getBeneficiaryId()),
+                  patientFromSearchResult.getIdElement().getIdPart());
             });
   }
 
@@ -1577,8 +1655,8 @@ public final class PatientResourceProviderIT {
               Patient patientFromSearchResult =
                   (Patient) searchResults.getEntry().get(0).getResource();
               Assert.assertEquals(
-                  h.getBeneficiaryId(),
-                  Long.parseLong(patientFromSearchResult.getIdElement().getIdPart()));
+                  Long.toString(h.getBeneficiaryId()),
+                  patientFromSearchResult.getIdElement().getIdPart());
             });
   }
 
@@ -1617,8 +1695,8 @@ public final class PatientResourceProviderIT {
               Patient patientFromSearchResult =
                   (Patient) searchResults.getEntry().get(0).getResource();
               Assert.assertEquals(
-                  h.getBeneficiaryId(),
-                  Long.parseLong(patientFromSearchResult.getIdElement().getIdPart()));
+                  Long.toString(h.getBeneficiaryId()),
+                  patientFromSearchResult.getIdElement().getIdPart());
             });
   }
 
@@ -1690,8 +1768,8 @@ public final class PatientResourceProviderIT {
     Patient patientFromSearchResult = (Patient) searchResults.getEntry().get(0).getResource();
     Beneficiary expectedBene = (Beneficiary) loadedRecords.get(0);
     Assert.assertEquals(
-        expectedBene.getBeneficiaryId(),
-        Long.parseLong(patientFromSearchResult.getIdElement().getIdPart()));
+        Long.toString(expectedBene.getBeneficiaryId()),
+        patientFromSearchResult.getIdElement().getIdPart());
 
     /*
      * Verify that the unhashed MBIs are present, as expected. Note that checking for more than just
@@ -1751,7 +1829,7 @@ public final class PatientResourceProviderIT {
                 update.where(
                     builder.equal(
                         beneMonthlyRoot.get(BeneficiaryMonthly_.PARENT_BENEFICIARY),
-                        beneMonthly.getParentBeneficiary()),
+                        beneMonthly.getParentBeneficiary().getBeneficiaryId()),
                     builder.equal(beneMonthlyRoot.get(BeneficiaryMonthly_.YEAR_MONTH), yearMonth));
 
                 entityManager.createQuery(update).executeUpdate();
@@ -1778,7 +1856,8 @@ public final class PatientResourceProviderIT {
     Patient patientFromSearchResult = (Patient) searchResults.getEntry().get(0).getResource();
     Beneficiary expectedBene = (Beneficiary) loadedRecords.get(0);
     Assert.assertEquals(
-        expectedBene.getBeneficiaryId(), patientFromSearchResult.getIdElement().getIdPart());
+        Long.toString(expectedBene.getBeneficiaryId()),
+        patientFromSearchResult.getIdElement().getIdPart());
   }
 
   /**
@@ -1907,12 +1986,12 @@ public final class PatientResourceProviderIT {
             "_lastUpdated=le" + nowDateTime,
             "_lastUpdated=ge" + earlyDateTime + "&_lastUpdated=le" + nowDateTime,
             "_lastUpdated=gt" + earlyDateTime + "&_lastUpdated=lt" + nowDateTime);
-    testLastUpdatedUrls(fhirClient, beneficiary.getBeneficiaryId(), allUrls, 1);
+    testLastUpdatedUrls(fhirClient, Long.toString(beneficiary.getBeneficiaryId()), allUrls, 1);
 
     // Empty searches
     List<String> emptyUrls =
         Arrays.asList("_lastUpdated=lt" + earlyDateTime, "_lastUpdated=le" + earlyDateTime);
-    testLastUpdatedUrls(fhirClient, beneficiary.getBeneficiaryId(), emptyUrls, 0);
+    testLastUpdatedUrls(fhirClient, Long.toString(beneficiary.getBeneficiaryId()), emptyUrls, 0);
   }
 
   /**
@@ -1924,9 +2003,8 @@ public final class PatientResourceProviderIT {
    * @param expectedValue number of matches
    */
   private void testLastUpdatedUrls(
-      IGenericClient fhirClient, long id, List<String> urls, int expectedValue) {
-    String baseResourceUrl =
-        "Patient?_id=" + String.format("%d", id) + "&_format=application%2Fjson%2Bfhir";
+      IGenericClient fhirClient, String id, List<String> urls, int expectedValue) {
+    String baseResourceUrl = "Patient?_id=" + id + "&_format=application%2Fjson%2Bfhir";
 
     // Search for each lastUpdated value
     for (String lastUpdatedValue : urls) {

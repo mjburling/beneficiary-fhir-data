@@ -2091,7 +2091,7 @@ public final class ExplanationOfBenefitResourceProviderIT {
     ServerTestUtils.get()
         .doTransaction(
             (em) -> {
-              em.createQuery("update CarrierClaim set last_updated=null where clm_id=:claimId")
+              em.createQuery("update CarrierClaim set last_updated=null where clm_id = :claimId")
                   .setParameter("claimId", claimId)
                   .executeUpdate();
             });
