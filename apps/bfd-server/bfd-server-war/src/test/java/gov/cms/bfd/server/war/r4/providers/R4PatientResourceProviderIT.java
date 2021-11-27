@@ -31,8 +31,13 @@ import org.hl7.fhir.r4.model.Patient;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class R4PatientResourceProviderIT {
+  @SuppressWarnings("unused")
+  private static final Logger LOGGER = LoggerFactory.getLogger(R4PatientResourceProviderIT.class);
+
   /**
    * Verifies that {@link
    * gov.cms.bfd.server.war.r4.providers.R4PatientResourceProvider#read(org.hl7.fhir.r4.model.IdType)}
@@ -310,9 +315,9 @@ public final class R4PatientResourceProviderIT {
       Identifier identifier = identifiers.next();
       if (identifier.getSystem().equals(TransformerConstants.CODING_BBAPI_BENE_ID)) {
         mbiUnhashedPresent = true;
+        break;
       }
     }
-
     Assert.assertTrue(mbiUnhashedPresent);
   }
 
@@ -358,6 +363,7 @@ public final class R4PatientResourceProviderIT {
       Identifier identifier = identifiers.next();
       if (identifier.getSystem().equals(TransformerConstants.CODING_BBAPI_BENE_ID)) {
         mbiUnhashedPresent = true;
+        break;
       }
     }
 
@@ -538,6 +544,7 @@ public final class R4PatientResourceProviderIT {
           .getSystem()
           .equals(TransformerConstants.CODING_BBAPI_MEDICARE_BENEFICIARY_ID_UNHASHED)) {
         mbiUnhashedPresent = true;
+        break;
       }
     }
 
@@ -586,7 +593,7 @@ public final class R4PatientResourceProviderIT {
         fhirClient,
         beneficiariesList,
         beneficiariesHistoryList,
-        "567834",
+        567834L,
         "3456789",
         useMbiFromBeneficiaryTable,
         expectsSingleBeneMatch);
@@ -601,7 +608,7 @@ public final class R4PatientResourceProviderIT {
         fhirClient,
         beneficiariesList,
         beneficiariesHistoryList,
-        "123456NULLREFYR",
+        1234568L,
         "3456789N",
         useMbiFromBeneficiaryTable,
         expectsSingleBeneMatch);
@@ -620,7 +627,7 @@ public final class R4PatientResourceProviderIT {
         fhirClient,
         beneficiariesList,
         beneficiariesHistoryList,
-        "BENE1234",
+        123488L,
         "SAMEMBI",
         useMbiFromBeneficiaryTable,
         expectsSingleBeneMatch);
@@ -636,7 +643,7 @@ public final class R4PatientResourceProviderIT {
         fhirClient,
         beneficiariesList,
         beneficiariesHistoryList,
-        "55555",
+        55555L,
         "HISTMBI",
         useMbiFromBeneficiaryTable,
         expectsSingleBeneMatch);
@@ -652,7 +659,7 @@ public final class R4PatientResourceProviderIT {
         fhirClient,
         beneficiariesList,
         beneficiariesHistoryList,
-        "66666",
+        66666L,
         "DUPHISTMBI",
         useMbiFromBeneficiaryTable,
         expectsSingleBeneMatch);
@@ -742,6 +749,11 @@ public final class R4PatientResourceProviderIT {
         .map(r -> (BeneficiaryHistory) r)
         .forEach(
             h -> {
+              if (h.getMbiHash().isPresent()) {
+                LOGGER.info(
+                    "searchForExistingPatientByHistoricalMbiHash, mbiHash: "
+                        + h.getMbiHash().get());
+              }
               Bundle searchResults =
                   fhirClient
                       .search()
@@ -760,8 +772,8 @@ public final class R4PatientResourceProviderIT {
               Patient patientFromSearchResult =
                   (Patient) searchResults.getEntry().get(0).getResource();
               Assert.assertEquals(
-                  h.getBeneficiaryId(),
-                  Long.parseLong(patientFromSearchResult.getIdElement().getIdPart()));
+                  Long.toString(h.getBeneficiaryId()),
+                  patientFromSearchResult.getIdElement().getIdPart());
             });
   }
 
@@ -800,8 +812,8 @@ public final class R4PatientResourceProviderIT {
               Patient patientFromSearchResult =
                   (Patient) searchResults.getEntry().get(0).getResource();
               Assert.assertEquals(
-                  h.getBeneficiaryId(),
-                  Long.parseLong(patientFromSearchResult.getIdElement().getIdPart()));
+                  Long.toString(h.getBeneficiaryId()),
+                  patientFromSearchResult.getIdElement().getIdPart());
             });
   }
 
@@ -840,8 +852,8 @@ public final class R4PatientResourceProviderIT {
               Patient patientFromSearchResult =
                   (Patient) searchResults.getEntry().get(0).getResource();
               Assert.assertEquals(
-                  h.getBeneficiaryId(),
-                  Long.parseLong(patientFromSearchResult.getIdElement().getIdPart()));
+                  Long.toString(h.getBeneficiaryId()),
+                  patientFromSearchResult.getIdElement().getIdPart());
             });
   }
 
@@ -1103,6 +1115,7 @@ public final class R4PatientResourceProviderIT {
           .getSystem()
           .equals(TransformerConstants.CODING_BBAPI_MEDICARE_BENEFICIARY_ID_UNHASHED)) {
         mbiUnhashedPresent = true;
+        break;
       }
     }
 
@@ -1368,6 +1381,7 @@ public final class R4PatientResourceProviderIT {
       Identifier identifier = identifiers.next();
       if (identifier.getSystem().equals(TransformerConstants.CODING_BBAPI_BENE_ID)) {
         mbiUnhashedPresent = true;
+        break;
       }
     }
 
@@ -1440,7 +1454,7 @@ public final class R4PatientResourceProviderIT {
       IGenericClient fhirClient,
       List<Beneficiary> beneficiariesList,
       List<BeneficiaryHistory> beneficiariesHistoryList,
-      String beneficiaryId,
+      long beneficiaryId,
       String unhashedValue,
       Boolean useFromBeneficiaryTable,
       Boolean expectsSingleBeneMatch) {
@@ -1495,7 +1509,7 @@ public final class R4PatientResourceProviderIT {
 
       Beneficiary beneficiary =
           beneficiariesList.stream()
-              .filter(r -> beneficiaryId.equals(r.getBeneficiaryId()))
+              .filter(r -> beneficiaryId == r.getBeneficiaryId())
               .findAny()
               .get();
       Patient patientFromSearchResult = (Patient) searchResults.getEntry().get(0).getResource();

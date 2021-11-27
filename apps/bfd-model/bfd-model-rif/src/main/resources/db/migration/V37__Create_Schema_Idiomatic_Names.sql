@@ -1470,7 +1470,7 @@ create table if not exists outpatient_claim_lines (
     rev_cntr_stus_ind_cd                     character varying(2),                     -- statusCode
     rev_cntr_tot_chrg_amt                    numeric(10,2) not null,                   -- totalChargeAmount
     rev_cntr_unit_cnt                        smallint not null,                        -- unitCount
-    rev_cntr_coinsrnc_wge_adjstd_amt         numeric(10,2) not null,                   -- wageAdjustedCoinsuranceAmount
+    rev_cntr_coinsrnc_wge_adjstd_c           numeric(10,2) not null,                   -- wageAdjustedCoinsuranceAmount
     constraint outpatient_claim_lines_pkey
         primary key (parent_claim, clm_line_num),
 
