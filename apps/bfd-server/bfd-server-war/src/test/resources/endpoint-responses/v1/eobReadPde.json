@@ -5,7 +5,7 @@
     "lastUpdated" : "IGNORED_FIELD"
   },
   "identifier" : [ {
-    "system" : "https://bluebutton.cms.gov/resources/variables/pde_id",
+    "system" : "https://bluebutton.cms.gov/resources/variables/clm_id",
     "value" : "89"
   }, {
     "system" : "https://bluebutton.cms.gov/resources/identifier/claim-group",
@@ -28,9 +28,9 @@
   "patient" : {
     "reference" : "Patient/567834"
   },
-  "billablePeriod": {
-    "start": "2015-05-12",
-    "end": "2015-05-12"
+  "billablePeriod" : {
+    "start" : "2015-05-12",
+    "end" : "2015-05-12"
   },
   "organization" : {
     "identifier" : {
