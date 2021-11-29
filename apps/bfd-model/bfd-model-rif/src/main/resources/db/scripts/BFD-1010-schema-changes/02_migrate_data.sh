@@ -50,7 +50,7 @@ beneficiary_monthly
 loaded_batches
 medicare_beneficiaryid_history
 medicare_beneficiaryid_history_invalid
-)
+null)
 else
 MAX_JOBS=1
 child_tables=(
@@ -82,7 +82,7 @@ restorePg() {
 
 testDbConnection() {
   echo "Testing db connectivity..."
-  now=$(psql -h $PGHOST -U $PGUSER -d $PGDATABASE --quiet --tuples-only -c "select NOW();")
+  now=$(psql -h "${PGHOST}" -U "${PGUSER}" -d "${PGDATABASE}" --quiet --tuples-only -c "select NOW();")
   if [[ "$now" == *"20"* ]]; then
     echo "db connectivity: OK"
   else
@@ -148,11 +148,10 @@ load_file(){
 # $1 a list of tables ex: "process_tables snf_claims snf_claim_lines"
 process_tables(){
   while [[ -n "$1" ]]; do
-    echo "process_tables: $1"
     # always try to keep the max number of jobs running the background
-    echo $(jobs -r | wc -l | tr -d " ")
+    #echo $(jobs -r | wc -l | tr -d " ")
     while [[ $(jobs -r | wc -l | tr -d " ") < $((MAX_JOBS+1)) ]]; do
-      if ! [ "$1" = '' ] ; then
+      if [[ "$1" != "" ]] ; then
           load_file "$1" &
           shift
       fi
@@ -175,7 +174,7 @@ bene_end=$SECONDS; duration=$(( bene_end - bene_start ))
 echo "beneficiaries loaded after ~$((duration / 60)) minutes"
 echo
 
-# parent tables
+# parent tables...these are run synchronously
 echo "LOADING PARENT TABLES..."
 parent_start=$SECONDS
 for t in "${parent_tables[@]}"; do

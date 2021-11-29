@@ -1,3 +1,11 @@
+-- setup for parallel processing
+SET max_parallel_workers = 6;
+SET max_parallel_workers_per_gather = 6;
+SET parallel_leader_participation = off;
+SET parallel_tuple_cost = 0;
+SET parallel_setup_cost = 0;
+SET min_parallel_table_scan_size = 0;
+
 insert into hospice_claim_lines (
 	parent_claim,
 	clm_line_num,
@@ -40,7 +48,4 @@ select
 	"revenueCenterRenderingPhysicianNPI",
 	"revenueCenterRenderingPhysicianUPIN"
 from
-	"HospiceClaimLines"
-on conflict on constraint
-	hospice_claim_lines_pkey
-do nothing;
+	"HospiceClaimLines";
