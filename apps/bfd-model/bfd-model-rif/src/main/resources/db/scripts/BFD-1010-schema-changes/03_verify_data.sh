@@ -74,7 +74,7 @@ restorePg() {
 
 testDbConnection() {
   echo "Testing db connectivity..."
-  now=$(psql -h $PGHOST -U $PGUSER -d $PGDATABASE --quiet --tuples-only -c "select NOW();")
+  now=$(psql -h "${PGHOST}" -U "${PGUSER}" -d "${PGDATABASE}" --quiet --tuples-only -c "select NOW();")
   if [[ "$now" == *"20"* ]]; then
     echo "db connectivity: OK"
   else
@@ -119,7 +119,7 @@ load_file(){
   # to review the output later. If you do output to files, and there is a lot of output, be mindful of
   # the amount of freespace on the host. 
   tbl_name="$1"
-  psql_cmd="psql -h $PGHOST -U $PGUSER -d $PGDATABASE --quiet --tuples-only -f ./verify_${tbl_name}.sql"
+  psql_cmd="psql -h ${PGHOST} -U ${PGUSER} -d ${PGDATABASE} --quiet --tuples-only -f ./verify_${tbl_name}.sql"
   $DRY_RUN && psql_cmd="echo $psql_cmd"
 
   echo "  -> start processing table ${tbl_name} at: $(date +'%T')"
@@ -139,7 +139,7 @@ load_file(){
 # load the given table
 # $1 == table name to process - this assumes all tables have a matching ./insert_${tbl_name}.sql file
 create_verification_table(){
-  psql_cmd="psql -h $PGHOST -U $PGUSER -d $PGDATABASE --quiet --tuples-only -f ./migration_errors_table.sql"
+  psql_cmd="psql -h ${PGHOST} -U ${PGUSER} -d ${PGDATABASE} --quiet --tuples-only -f ./migration_errors_table.sql"
 }
 
 # processes $MAX_JOBS number of tables (files) in parallel
