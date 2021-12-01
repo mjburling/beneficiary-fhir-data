@@ -53,6 +53,8 @@ mappings:
           sqlType: varchar(10)
         - name: lastUpdated
           sqlType: timestamp with time zone
+        - name: apiSource
+          sqlType: varchar(24)
         - name: pracLocAddr1
           sqlType: varchar(max)
         - name: pracLocAddr2
@@ -545,6 +547,8 @@ mappings:
           sqlType: date
         - name: lastUpdated
           sqlType: timestamp with time zone
+        - name: apiSource
+          sqlType: varchar(24)
     transformations:
       - from: idrClmHdIcn
         optional: false
