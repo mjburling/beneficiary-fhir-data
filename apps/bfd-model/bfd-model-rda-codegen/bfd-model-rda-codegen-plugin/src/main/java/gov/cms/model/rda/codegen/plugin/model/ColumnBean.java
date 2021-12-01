@@ -23,6 +23,7 @@ public class ColumnBean {
   private String sqlType;
   private String javaType;
   private String enumType;
+  private String comment;
   private boolean nullable = true;
 
   public String getColumnName(String fieldName) {
@@ -48,6 +49,10 @@ public class ColumnBean {
     } else {
       return mapJavaTypeToTypeName();
     }
+  }
+
+  public boolean hasComment() {
+    return !Strings.isNullOrEmpty(comment);
   }
 
   public boolean isColumnDefRequired() {

@@ -16,6 +16,7 @@ import lombok.Singular;
 public class TableBean {
   private String name;
   private String schema;
+  private String comment;
   @Singular private List<String> primaryKeyColumns = new ArrayList<>();
   @Singular private List<ColumnBean> columns = new ArrayList<>();
 
@@ -28,6 +29,10 @@ public class TableBean {
                 new IllegalArgumentException(
                     String.format(
                         "reference to non-existent column %s in table %s", columnName, name)));
+  }
+
+  public boolean hasComment() {
+    return !Strings.isNullOrEmpty(comment);
   }
 
   public boolean hasSchema() {

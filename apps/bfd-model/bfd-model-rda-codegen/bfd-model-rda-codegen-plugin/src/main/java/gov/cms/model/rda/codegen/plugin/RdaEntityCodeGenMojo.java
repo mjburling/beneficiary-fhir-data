@@ -100,12 +100,15 @@ public class RdaEntityCodeGenMojo extends AbstractMojo {
             .addAnnotation(AllArgsConstructor.class)
             .addAnnotation(NoArgsConstructor.class)
             .addAnnotation(createEqualsAndHashCodeAnnotation())
-            .addAnnotation(FieldNameConstants.class)
-            .addAnnotation(createTableAnnotation(mapping.getTable()));
-    addEnums(mapping.getEnumTypes(), classBuilder);
+            .addAnnotation(FieldNameConstants.class);
+    if (mapping.getTable().hasComment()) {
+      classBuilder.addJavadoc(mapping.getTable().getComment());
+    }
     if (!mapping.getTable().hasPrimaryKey()) {
       fail("mapping has no primary key fields: mapping=%s", mapping.getId());
     }
+    classBuilder.addAnnotation(createTableAnnotation(mapping.getTable()));
+    addEnums(mapping.getEnumTypes(), classBuilder);
     List<FieldSpec> primaryKeySpecs = new ArrayList<>();
     addColumnFields(mapping, classBuilder, primaryKeySpecs);
     if (primaryKeySpecs.size() > 1) {
@@ -147,15 +150,17 @@ public class RdaEntityCodeGenMojo extends AbstractMojo {
         fieldType = column.computeJavaType();
       }
       FieldSpec.Builder builder =
-          FieldSpec.builder(fieldType, column.getName())
-              .addModifiers(Modifier.PRIVATE)
-              .addAnnotation(createColumnAnnotation(column));
-      if (mapping.getTable().isPrimaryKey(column.getName())) {
-        builder.addAnnotation(Id.class).addAnnotation(EqualsAndHashCode.Include.class);
+          FieldSpec.builder(fieldType, column.getName()).addModifiers(Modifier.PRIVATE);
+      if (column.hasComment()) {
+        builder.addJavadoc(column.getComment());
       }
       if (column.isEnum()) {
         builder.addAnnotation(createEnumeratedAnnotation(mapping, column));
       }
+      if (mapping.getTable().isPrimaryKey(column.getName())) {
+        builder.addAnnotation(Id.class).addAnnotation(EqualsAndHashCode.Include.class);
+      }
+      builder.addAnnotation(createColumnAnnotation(column));
       FieldSpec fieldSpec = builder.build();
       classBuilder.addField(fieldSpec);
       if (mapping.getTable().isPrimaryKey(column.getName())) {
@@ -220,7 +225,8 @@ public class RdaEntityCodeGenMojo extends AbstractMojo {
             .addModifiers(Modifier.PUBLIC, Modifier.FINAL, Modifier.STATIC)
             .addAnnotation(Data.class)
             .addAnnotation(NoArgsConstructor.class)
-            .addAnnotation(AllArgsConstructor.class);
+            .addAnnotation(AllArgsConstructor.class)
+            .addJavadoc("PK class for the $L table", mapping.getTable().getName());
     for (FieldSpec fieldSpec : parentKeySpecs) {
       FieldSpec.Builder keyFieldBuilder =
           FieldSpec.builder(fieldSpec.type, fieldSpec.name).addModifiers(Modifier.PRIVATE);
