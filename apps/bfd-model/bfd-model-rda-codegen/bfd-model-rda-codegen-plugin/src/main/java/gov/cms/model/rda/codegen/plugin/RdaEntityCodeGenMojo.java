@@ -288,7 +288,7 @@ public class RdaEntityCodeGenMojo extends AbstractMojo {
       builder.addMember("columnDefinition", "$S", column.getSqlType());
     }
     int length = column.computeLength();
-    if (length > 0) {
+    if (length > 0 && length < Integer.MAX_VALUE && !column.isChar()) {
       builder.addMember("length", "$L", length);
     }
     return builder.build();
