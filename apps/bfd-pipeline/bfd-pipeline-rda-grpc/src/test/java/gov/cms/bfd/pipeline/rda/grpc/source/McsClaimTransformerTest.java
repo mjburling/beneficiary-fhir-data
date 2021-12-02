@@ -494,7 +494,7 @@ public class McsClaimTransformerTest {
   @Test
   public void testBadDiagnosisCodeIdrDiagIcdType() {
     assertDiagnosisCodeTransformationError(
-        codeBuilder -> codeBuilder.setIdrDiagIcdTypeEnumUnrecognized("sdjbfdskjbdfskjbsdf---"),
+        codeBuilder -> codeBuilder.setIdrDiagIcdTypeUnrecognized("sdjbfdskjbdfskjbsdf---"),
         new DataTransformer.ErrorMessage(
             "diagCode-0-idrDiagIcdType", "invalid length: expected=[1,1] actual=22"));
   }
