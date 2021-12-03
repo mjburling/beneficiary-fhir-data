@@ -79,6 +79,7 @@
                     <execution>
                         <goals>
                             <goal>entities</goal>
+                            <goal>sql</goal>
                         </goals>
                     </execution>
                 </executions>
