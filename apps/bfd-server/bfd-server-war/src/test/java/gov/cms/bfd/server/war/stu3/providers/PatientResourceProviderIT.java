@@ -1097,7 +1097,7 @@ public final class PatientResourceProviderIT {
             .findFirst()
             .get()
             .getValue();
-    assertEquals(beneficiary.getMbiHash().get(), mbiHashIdentifier, "mbiHash identifier exists");
+    assertEquals("mbiHash identifier exists", beneficiary.getMbiHash().get(), mbiHashIdentifier);
   }
 
   /**

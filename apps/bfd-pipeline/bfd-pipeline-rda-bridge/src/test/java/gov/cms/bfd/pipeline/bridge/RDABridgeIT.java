@@ -116,9 +116,9 @@ public class RDABridgeIT {
               RDABridge.SourceType.MCS, resourcesDir, carrierData, mbiMap, testSink);
 
           Clock clock = Clock.fixed(Instant.ofEpochMilli(1622743357000L), ZoneOffset.UTC);
-          IdHasher hasher = new IdHasher(new IdHasher.Config(10, "justsomestring"));
-          FissClaimTransformer fissTransformer = new FissClaimTransformer(clock, hasher);
-          McsClaimTransformer mcsTransformer = new McsClaimTransformer(clock, hasher);
+          IdHasher.Config hasherConfig = new IdHasher.Config(10, "justsomestring");
+          FissClaimTransformer fissTransformer = new FissClaimTransformer(clock, hasherConfig);
+          McsClaimTransformer mcsTransformer = new McsClaimTransformer(clock, hasherConfig);
 
           for (MessageOrBuilder message : results) {
             if (message instanceof FissClaimChange) {
