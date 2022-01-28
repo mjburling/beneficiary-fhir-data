@@ -78,6 +78,8 @@ public final class DatabaseSchemaManager {
         placeholders.put("logic.tablespaces-escape", "--");
         placeholders.put("logic.drop-tablespaces-escape", "--");
         placeholders.put("logic.alter-column-type", "");
+        placeholders.put("logic.psql-only", "-- ");
+        placeholders.put("logic.hsql-only", "");
         placeholders.put("logic.hsql-only-alter", "alter");
         placeholders.put("logic.psql-only-alter", "-- alter");
         placeholders.put("logic.alter-rename-column", "alter column");
@@ -93,6 +95,8 @@ public final class DatabaseSchemaManager {
         placeholders.put("logic.tablespaces-escape", "--");
         placeholders.put("logic.drop-tablespaces-escape", "");
         placeholders.put("logic.alter-column-type", "type");
+        placeholders.put("logic.psql-only", "");
+        placeholders.put("logic.hsql-only", "-- ");
         placeholders.put("logic.hsql-only-alter", "-- alter");
         placeholders.put("logic.psql-only-alter", "alter");
         placeholders.put("logic.alter-rename-column", "rename column");
