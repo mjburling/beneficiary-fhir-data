@@ -44,7 +44,7 @@ create table if not exists carrier_claim_lines_bfd1485 (
     prvdr_spclty                             character varying(3),                     -- providerSpecialityCode
     prvdr_state_cd                           character varying(2),                     -- providerStateCode
     prvdr_zip                                character varying(9),                     -- providerZipCode
-    tax_num                                  character varying(10) not null,           -- providerTaxNumber  
+    tax_num                                  character varying(10) not null            -- providerTaxNumber  
 /*
     constraint carrier_claim_lines_bfd1485_pkey
         primary key (clm_id, line_num),
