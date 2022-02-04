@@ -64,7 +64,6 @@ ${logic.psql-only} SET parallel_tuple_cost = 0;
 ${logic.psql-only} SET parallel_setup_cost = 0;
 ${logic.psql-only} SET min_parallel_table_scan_size = 0;
 
-
 ${logic.hsql-only} insert into carrier_claims_bfd1485(
 ${logic.hsql-only} 	clm_id,
 ${logic.hsql-only} 	bene_id,
