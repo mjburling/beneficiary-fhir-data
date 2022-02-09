@@ -1,4 +1,4 @@
-${logic.hsql-only} CREATE TABLE beneficiaries_bfd1485(
+${logic.hsql-only} CREATE TABLE public.bfd1485_beneficiaries(
 	${logic.hsql-only} bene_id						bigint NOT NULL,
 	${logic.hsql-only} bene_birth_dt 				date NOT NULL,
 	${logic.hsql-only} bene_esrd_ind				char(1), 
@@ -205,7 +205,8 @@ ${logic.hsql-only} CREATE TABLE beneficiaries_bfd1485(
 	${logic.hsql-only} cst_shr_grp_dec_cd			varchar(2), 
 	${logic.hsql-only} last_updated					timestamp with time zone,
 	${logic.hsql-only} bene_link_key 				numeric(38,0),
-	${logic.hsql-only} constraint beneficiaries_bfd1485_pkey
+	${logic.hsql-only} bene_id_fk					varchar(15) NOT NULL,
+	${logic.hsql-only} constraint public.bfd1485_beneficiaries_pkey
 	${logic.hsql-only} primary key (bene_id) );
 
 ${logic.psql-only} SET max_parallel_workers = 24;
@@ -215,7 +216,7 @@ ${logic.psql-only} SET parallel_tuple_cost = 0;
 ${logic.psql-only} SET parallel_setup_cost = 0;
 ${logic.psql-only} SET min_parallel_table_scan_size = 0;
 
-${logic.hsql-only} insert into beneficiaries_bfd1485 (
+${logic.hsql-only} insert into public.bfd1485_beneficiaries (
 	${logic.hsql-only} bene_id,
 	${logic.hsql-only} bene_birth_dt,
 	${logic.hsql-only} bene_esrd_ind,
@@ -421,8 +422,9 @@ ${logic.hsql-only} insert into beneficiaries_bfd1485 (
 	${logic.hsql-only} cst_shr_grp_nov_cd,
 	${logic.hsql-only} cst_shr_grp_dec_cd,
 	${logic.hsql-only} last_updated,
-	${logic.hsql-only} bene_link_key )
-${logic.psql-only} create table beneficiaries_bfd1485 as
+	${logic.hsql-only} bene_link_key,
+	${logic.hsql-only} bene_id_fk )
+${logic.psql-only} create table public.bfd1485_beneficiaries as
 select
 	${logic.psql-only} cast(bene_id as bigint),  
 	${logic.hsql-only} convert(bene_id, SQL_BIGINT),
@@ -638,11 +640,12 @@ select
 	cst_shr_grp_nov_cd,
 	cst_shr_grp_dec_cd,
 	last_updated,
-	bene_link_key
+	bene_link_key,
+	bene_id as bene_id_fk
 from
-	beneficiaries;
+	public.beneficiaries;
 
-${logic.psql-only} alter table beneficiaries_bfd1485
+${logic.psql-only} alter table public.bfd1485_beneficiaries
 ${logic.psql-only}     alter column bene_id SET NOT NULL,
 ${logic.psql-only}     alter column bene_birth_dt SET NOT NULL,
 ${logic.psql-only}     alter column bene_gvn_name SET NOT NULL,
@@ -651,7 +654,17 @@ ${logic.psql-only}     alter column bene_zip_cd SET NOT NULL,
 ${logic.psql-only}     alter column state_code SET NOT NULL,
 ${logic.psql-only}     alter column bene_county_cd SET NOT NULL,
 ${logic.psql-only}     alter column bene_sex_ident_cd SET NOT NULL,
-${logic.psql-only}     alter column bene_crnt_hic_num SET NOT NULL;
+${logic.psql-only}     alter column bene_crnt_hic_num SET NOT NULL
+${logic.psql-only}     alter column bene_id_fk SET NOT NULL;
 
-${logic.psql-only} alter table beneficiaries_bfd1485
-${logic.psql-only}     add CONSTRAINT beneficiaries_bfd1485_pkey PRIMARY KEY (bene_id);
+${logic.psql-only} alter table public.bfd1485_beneficiaries
+${logic.psql-only}     add CONSTRAINT bfd1485_beneficiaries_pkey PRIMARY KEY (bene_id);
+
+CREATE UNIQUE INDEX IF NOT EXISTS bfd1485_beneficiaries_bene_id_fk_idx
+    ON public.bfd1485_beneficiaries (bene_id_fk);
+
+CREATE INDEX IF NOT EXISTS bfd1485_beneficiaries_hicn_idx
+    ON public.bfd1485_beneficiaries (bene_crnt_hic_num);
+	
+CREATE INDEX IF NOT EXISTS bfd1485_beneficiaries_mbi_hash_idx
+    ON public.bfd1485_beneficiaries (mbi_hash);

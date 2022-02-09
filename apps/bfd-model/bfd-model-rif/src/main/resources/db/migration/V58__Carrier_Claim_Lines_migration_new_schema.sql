@@ -1,4 +1,4 @@
-${logic.hsql-only} CREATE TABLE IF NOT EXISTS carrier_claim_lines_bfd1485 (
+${logic.hsql-only} CREATE TABLE IF NOT EXISTS public.bfd1485_carrier_claim_lines (
 ${logic.hsql-only} clm_id				 			bigint not null,
 ${logic.hsql-only} line_num				 			smallint not null,
 ${logic.hsql-only} line_nch_pmt_amt					numeric(10,2) not null,
@@ -45,9 +45,8 @@ ${logic.hsql-only} prvdr_spclty				  		character varying(3),
 ${logic.hsql-only} prvdr_state_cd				  	character varying(2),
 ${logic.hsql-only} prvdr_zip				  		character varying(9),
 ${logic.hsql-only} tax_num				  			character varying(10),
-${logic.hsql-only} constraint carrier_claim_lines_bfd1485_pkey
-${logic.hsql-only}   primary key (clm_id, line_num)
-${logic.hsql-only} );
+${logic.hsql-only} constraint public.bfd1485_carrier_claim_lines_pkey
+${logic.hsql-only}   primary key (clm_id, line_num));
 
 ${logic.psql-only} SET max_parallel_workers = 24;
 ${logic.psql-only} SET max_parallel_workers_per_gather = 20;
@@ -56,7 +55,7 @@ ${logic.psql-only} SET parallel_tuple_cost = 0;
 ${logic.psql-only} SET parallel_setup_cost = 0;
 ${logic.psql-only} SET min_parallel_table_scan_size = 0;
 
-${logic.hsql-only} insert into carrier_claim_lines_bfd1485(
+${logic.hsql-only} insert into public.bfd1485_carrier_claim_lines(
 ${logic.hsql-only} clm_id,
 ${logic.hsql-only} line_num,
 ${logic.hsql-only} line_nch_pmt_amt,
@@ -104,7 +103,7 @@ ${logic.hsql-only} prvdr_state_cd,
 ${logic.hsql-only} prvdr_zip,
 ${logic.hsql-only} tax_num )
 --
-${logic.psql-only} create table carrier_claim_lines_bfd1485 as
+${logic.psql-only} create table public.bfd1485_carrier_claim_lines as
 select
 	${logic.psql-only} cast(clm_id as bigint),  
     ${logic.hsql-only} convert(clm_id, SQL_BIGINT),
@@ -167,9 +166,9 @@ select
 	prvdr_zip,
 	tax_num
 from
-	carrier_claim_lines;
+	public.carrier_claim_lines;
 
-${logic.psql-only} alter table public.carrier_claim_lines_bfd1485
+${logic.psql-only} alter table public.bfd1485_carrier_claim_lines
 ${logic.psql-only}    alter column clm_id SET NOT NULL,
 ${logic.psql-only}    alter column line_num	SET NOT NULL,
 ${logic.psql-only}    alter column line_nch_pmt_amt SET NOT NULL,
@@ -188,5 +187,9 @@ ${logic.psql-only}    alter column carr_line_mtus_cnt SET NOT NULL,
 ${logic.psql-only}    alter column carr_line_prcng_lclty_cd	SET NOT NULL,
 ${logic.psql-only}    alter column carr_prfrng_pin_num SET NOT NULL;
 
-${logic.psql-only} alter table carrier_claim_lines_bfd1485
-${logic.psql-only}     add CONSTRAINT carrier_claim_lines_bfd1485_pkey PRIMARY KEY (clm_id, line_num);
+${logic.psql-only} alter table public.bfd1485_carrier_claim_lines
+${logic.psql-only}     add CONSTRAINT bfd1485_carrier_claim_lines_pkey PRIMARY KEY (clm_id, line_num);
+
+ALTER TABLE IF EXISTS public.bfd1485_carrier_claim_lines
+    ADD CONSTRAINT bfd1485_carrier_claim_lines_clm_id_to_carrier_claims FOREIGN KEY (clm_id)
+    	REFERENCES public.bfd1485_carrier_claims (clm_id);
