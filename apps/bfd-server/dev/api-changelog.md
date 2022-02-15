@@ -1,5 +1,10 @@
 # API Changelog
 
+## BFD-1517
+
+Added mapping for Fiscal Intermediary Number
+FI_NUM => ExplanationOfBenefit.extension
+
 ## BFD-1518
 
 Added mapping for Revenue Status Code:
