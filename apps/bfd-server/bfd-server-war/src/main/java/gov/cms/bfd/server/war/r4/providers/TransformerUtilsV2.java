@@ -2945,12 +2945,12 @@ public final class TransformerUtilsV2 {
 
   /**
    * Transforms the common group level data elements between the {@link InpatientClaimLine} {@link
-   * OutpatientClaimLine} {@link HospiceClaimLine} {@link HHAClaimLine}and {@link SNFClaimLine}
+   * OutpatientClaimLine}* {@link HospiceClaimLine} {@link HHAClaimLine}and {@link SNFClaimLine}
    * claim types to FHIR. The method parameter fields from {@link InpatientClaimLine} {@link
-   * OutpatientClaimLine} {@link HospiceClaimLine} {@link HHAClaimLine}and {@link SNFClaimLine} are
+   * OutpatientClaimLine}* {@link HospiceClaimLine} {@link HHAClaimLine}and {@link SNFClaimLine} are
    * listed below and their corresponding RIF CCW fields (denoted in all CAPS below from {@link
-   * InpatientClaimColumn} {@link OutpatientClaimColumn} {@link HopsiceClaimColumn} {@link
-   * HHAClaimColumn} and {@link SNFClaimColumn}).
+   * InpatientClaimColumn}* {@link OutpatientClaimColumn} {@link HopsiceClaimColumn} {@link
+   * HHAClaimColumn}* and {@link SNFClaimColumn}).
    *
    * @param eob the {@link ExplanationOfBenefit} to modify
    * @param organizationNpi ORG_NPI_NUM,
@@ -2960,10 +2960,10 @@ public final class TransformerUtilsV2 {
    * @param patientDischargeStatusCode PTNT_DSCHRG_STUS_CD,
    * @param claimServiceClassificationTypeCode CLM_SRVC_CLSFCTN_TYPE_CD,
    * @param claimPrimaryPayerCode NCH_PRMRY_PYR_CD,
-   * @param attendingPhysicianNpi AT_PHYSN_NPI,
    * @param totalChargeAmount CLM_TOT_CHRG_AMT,
    * @param primaryPayerPaidAmount NCH_PRMRY_PYR_CLM_PD_AMT,
    * @param fiscalIntermediaryNumber FI_NUM
+   * @param lastUpdated the last updated
    */
   static void mapEobCommonGroupInpOutHHAHospiceSNF(
       ExplanationOfBenefit eob,
@@ -3024,6 +3024,12 @@ public final class TransformerUtilsV2 {
           CcwCodebookVariable.NCH_PRMRY_PYR_CD,
           CcwCodebookVariable.NCH_PRMRY_PYR_CD,
           claimPrimaryPayerCode.get());
+    }
+
+    // FI_NUM => ExplanationOfBenefit.extension
+    if (fiscalIntermediaryNumber.isPresent()) {
+      eob.addExtension(
+          createExtensionCoding(eob, CcwCodebookVariable.FI_NUM, fiscalIntermediaryNumber));
     }
 
     // CLM_TOT_CHRG_AMT => ExplainationOfBenefit.total
