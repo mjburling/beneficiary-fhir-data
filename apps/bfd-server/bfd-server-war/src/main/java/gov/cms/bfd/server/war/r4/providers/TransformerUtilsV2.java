@@ -2945,12 +2945,12 @@ public final class TransformerUtilsV2 {
 
   /**
    * Transforms the common group level data elements between the {@link InpatientClaimLine} {@link
-   * OutpatientClaimLine}* {@link HospiceClaimLine} {@link HHAClaimLine}and {@link SNFClaimLine}
+   * OutpatientClaimLine} {@link HospiceClaimLine} {@link HHAClaimLine}and {@link SNFClaimLine}
    * claim types to FHIR. The method parameter fields from {@link InpatientClaimLine} {@link
-   * OutpatientClaimLine}* {@link HospiceClaimLine} {@link HHAClaimLine}and {@link SNFClaimLine} are
+   * OutpatientClaimLine} {@link HospiceClaimLine} {@link HHAClaimLine}and {@link SNFClaimLine} are
    * listed below and their corresponding RIF CCW fields (denoted in all CAPS below from {@link
-   * InpatientClaimColumn}* {@link OutpatientClaimColumn} {@link HopsiceClaimColumn} {@link
-   * HHAClaimColumn}* and {@link SNFClaimColumn}).
+   * InpatientClaimColumn} {@link OutpatientClaimColumn} {@link HopsiceClaimColumn} {@link
+   * HHAClaimColumn} and {@link SNFClaimColumn}).
    *
    * @param eob the {@link ExplanationOfBenefit} to modify
    * @param organizationNpi ORG_NPI_NUM,
