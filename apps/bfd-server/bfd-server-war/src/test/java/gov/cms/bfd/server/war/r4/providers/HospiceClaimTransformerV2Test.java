@@ -1,6 +1,7 @@
 package gov.cms.bfd.server.war.r4.providers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -16,6 +17,7 @@ import gov.cms.bfd.server.war.ServerTestUtils;
 import gov.cms.bfd.server.war.commons.MedicareSegment;
 import gov.cms.bfd.server.war.commons.ProfileConstants;
 import gov.cms.bfd.server.war.commons.TransformerConstants;
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -40,6 +42,7 @@ import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Money;
 import org.hl7.fhir.r4.model.Organization;
+import org.hl7.fhir.r4.model.Quantity;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.UnsignedIntType;
@@ -802,6 +805,55 @@ public final class HospiceClaimTransformerV2Test {
                     .setCurrency(TransformerConstants.CODED_MONEY_USD));
 
     assertTrue(compare.equalsDeep(benefit));
+  }
+
+  /**
+   * Ensure that when the hospice period count exists in the claim, it should be mapped to the
+   * supporting info as a category and quantity.
+   */
+  @Test
+  public void shouldHaveHospicePeriodCount() {
+
+    String expectedDiscriminator =
+        "https://bluebutton.cms.gov/resources/variables/bene_hospc_prd_cnt";
+
+    assertNotNull(eob.getSupportingInfo());
+    assertTrue(eob.getSupportingInfo().size() > 0);
+    // Find the supporting info that has the BENE_HOSPC_PRD_CNT details
+    ExplanationOfBenefit.SupportingInformationComponent hospcPrdSupportingInfo =
+        eob.getSupportingInfo().stream()
+            .filter(
+                si ->
+                    si.getCategory().getCoding().stream()
+                        .anyMatch(c -> expectedDiscriminator.equals(c.getCode())))
+            .findFirst()
+            .orElse(null);
+
+    assertNotNull(
+        hospcPrdSupportingInfo,
+        "Found no supporting info which had BENE_HOSPC_PRD_CNT coding within.");
+
+    assertFalse(hospcPrdSupportingInfo.isEmpty());
+    Optional<Coding> fiNumCoding =
+        hospcPrdSupportingInfo.getCategory().getCoding().stream()
+            .filter(c -> expectedDiscriminator.equals(c.getCode()))
+            .findFirst();
+    assertTrue(
+        fiNumCoding.isPresent(),
+        "Missing expected supporting info category coding for BENE_HOSPC_PRD_CNT");
+    Optional<Coding> infoCoding =
+        hospcPrdSupportingInfo.getCategory().getCoding().stream()
+            .filter(c -> "info".equals(c.getCode()))
+            .findFirst();
+    assertTrue(
+        infoCoding.isPresent(),
+        "Missing expected supporting info category coding for info (claim info category for BENE_HOSPC_PRD_CNT)");
+
+    // Check valueQuantity in the supporting info has the right value
+    assertNotNull(
+        hospcPrdSupportingInfo.getValue(),
+        "Missing eob.valueQuantity object for BENE_HOSPC_PRD_CNT");
+    assertEquals(new BigDecimal("2.0"), ((Quantity) hospcPrdSupportingInfo.getValue()).getValue());
   }
 
   /**

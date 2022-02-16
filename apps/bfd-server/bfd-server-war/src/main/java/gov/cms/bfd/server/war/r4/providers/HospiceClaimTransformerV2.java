@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.Optional;
 import org.hl7.fhir.r4.model.ExplanationOfBenefit;
 import org.hl7.fhir.r4.model.ExplanationOfBenefit.ItemComponent;
+import org.hl7.fhir.r4.model.Quantity;
 
 /**
  * Transforms CCW {@link HospiceClaim} instances into FHIR {@link ExplanationOfBenefit} resources.
@@ -176,6 +177,15 @@ public class HospiceClaimTransformerV2 {
         claimGroup.getAttendingPhysicianUpin(),
         Optional.empty(),
         Optional.empty());
+
+    // BENE_HOSPC_PRD_CNT => eob.supportingInfo
+    if (claimGroup.getHospicePeriodCount().isPresent()) {
+      ExplanationOfBenefit.SupportingInformationComponent supportingInfo =
+          TransformerUtilsV2.addInformation(eob, CcwCodebookVariable.BENE_HOSPC_PRD_CNT);
+      Quantity hospicePeriodCountQuantity = new Quantity();
+      hospicePeriodCountQuantity.setValue(claimGroup.getHospicePeriodCount().get().doubleValue());
+      supportingInfo.setValue(hospicePeriodCountQuantity);
+    }
 
     for (HospiceClaimLine line : claimGroup.getLines()) {
       ItemComponent item = TransformerUtilsV2.addItem(eob);

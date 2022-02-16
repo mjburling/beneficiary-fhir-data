@@ -1,5 +1,10 @@
 # API Changelog
 
+## BFD-1516
+
+Added mapping for Hospice Period count
+BENE_HOSPC_PRD_CNT => eob.supportingInfo
+
 ## BFD-1517
 
 Added mapping for Fiscal Intermediary Number
