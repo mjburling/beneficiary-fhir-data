@@ -73,6 +73,8 @@ public final class DatabaseSchemaManager {
     Map<String, String> placeholders = new HashMap<>();
     try (Connection connection = dataSource.getConnection()) {
       if (DatabaseUtils.isHsqlConnection(connection)) {
+        placeholders.put("logic.psql-only", "-- ");
+        placeholders.put("logic.hsql-only", "");
         placeholders.put("type.int4", "integer");
         placeholders.put("type.text", "longvarchar");
         placeholders.put("logic.tablespaces-escape", "--");
@@ -88,6 +90,8 @@ public final class DatabaseSchemaManager {
         placeholders.put("logic.sequence-increment", "increment by");
         placeholders.put("logic.perms", "--");
       } else if (DatabaseUtils.isPostgresConnection(connection)) {
+        placeholders.put("logic.psql-only", "");
+        placeholders.put("logic.hsql-only", "-- ");
         placeholders.put("type.int4", "int4");
         placeholders.put("type.text", "text");
         placeholders.put("logic.tablespaces-escape", "--");

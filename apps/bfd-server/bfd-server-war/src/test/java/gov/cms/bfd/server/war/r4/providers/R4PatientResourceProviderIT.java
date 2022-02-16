@@ -622,7 +622,7 @@ public final class R4PatientResourceProviderIT {
         fhirClient,
         beneficiariesList,
         beneficiariesHistoryList,
-        "123456NULLREFYR",
+        "1234568",
         "3456789N",
         useMbiFromBeneficiaryTable,
         expectsSingleBeneMatch);
@@ -633,7 +633,7 @@ public final class R4PatientResourceProviderIT {
      * is different between the tables so the bene record from the
      * Beneficiaries table should be used.
      *
-     * bene id=BENE1234 mbi=SAMEMBI rfrnc_yr=2019 should be pulled back.
+     * bene id=123488 mbi=SAMEMBI rfrnc_yr=2019 should be pulled back.
      */
     useMbiFromBeneficiaryTable = true;
     expectsSingleBeneMatch = false;
@@ -641,7 +641,7 @@ public final class R4PatientResourceProviderIT {
         fhirClient,
         beneficiariesList,
         beneficiariesHistoryList,
-        "BENE1234",
+        "123488",
         "SAMEMBI",
         useMbiFromBeneficiaryTable,
         expectsSingleBeneMatch);
