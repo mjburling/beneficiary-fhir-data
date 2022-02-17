@@ -6,4 +6,4 @@
 -- This script falls under non-transactional since the create index is being done
 -- concurrently.
 CREATE UNIQUE INDEX ${logic.index-create-concurrently}
-IF NOT EXISTS beneficiaries_bene_id_numeric_idx ON public.beneficiaries (bene_id_numeric);
+    IF NOT EXISTS beneficiaries_bene_id_numeric_idx ON public.beneficiaries (bene_id_numeric);
