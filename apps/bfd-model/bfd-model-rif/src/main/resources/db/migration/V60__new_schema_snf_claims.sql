@@ -1,6 +1,6 @@
 -- flyway migration for carrier_claims and carrier_claim_lines
 -- HSQL differs from PSQL (postgres) in that the table defintion
--- is declared prior to loading data into the tabke. PSQL can
+-- is declared prior to loading data into the table. PSQL can
 -- derive the table column structure based on the data input
 -- (i.e., column name, data type). Thus, for HSQL we will
 -- explicitly define the table structure prior to loading data.
@@ -797,7 +797,7 @@ ${logic.psql-only} alter table public.bfd1537_snf_claims
 ${logic.psql-only}     add CONSTRAINT bfd1537_snf_claims_pkey PRIMARY KEY (clm_id);
 
 ${logic.psql-only} alter table public.bfd1537_snf_claim_lines
-${logic.psql-only}     add CONSTRAINT bfd1537_snf_claim_lines_pkey PRIMARY KEY (clm_id, line_num);
+${logic.psql-only}     add CONSTRAINT bfd1537_snf_claim_lines_pkey PRIMARY KEY (clm_id, clm_line_num);
 
 ALTER TABLE IF EXISTS public.bfd1537_snf_claim_lines
     ADD CONSTRAINT bfd1537_carrier_snf_lines_clm_id_to_snf_claims FOREIGN KEY (clm_id)
