@@ -131,7 +131,9 @@ try {
 				currentStage = "${env.STAGE_NAME}"
 				container('bfd-cbc-build') {
 					// Grab the commit that triggered the build.
-					checkout scm
+					sh "pwd"
+					sh "ls -ahlt"
+					// checkout scm
 
 					// Load the child Jenkinsfiles.
 					// scriptForApps = load('apps/build.groovy')
@@ -155,10 +157,10 @@ try {
 					// willDeployToProdEnvs = false
 
 					// Get the current commit id
-					gitCommitId = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
+					// gitCommitId = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
 
 					// Get the remote repo url. This assumes we are using git+https not git+ssh.
-					gitRepoUrl = sh(returnStdout: true, script: 'git config --get remote.origin.url').trim().replaceAll(/\.git$/,"")
+					// gitRepoUrl = sh(returnStdout: true, script: 'git config --get remote.origin.url').trim().replaceAll(/\.git$/,"")
 					echo 'Not doing anything interesting. Good bye.'
 
 
