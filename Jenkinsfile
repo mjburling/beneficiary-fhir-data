@@ -314,5 +314,6 @@ try {
 	currentBuild.result = "FAILURE"
 	throw ex
 } finally {
-	sendNotifications(currentBuild.currentResult, currentStage, gitCommitId, gitRepoUrl)
+	echo "Done"
+	// sendNotifications(currentBuild.currentResult, currentStage, gitCommitId, gitRepoUrl)
 }
