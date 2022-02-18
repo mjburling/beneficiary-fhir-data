@@ -57,70 +57,70 @@ def gitCommitId
 def gitRepoUrl
 
 // send notifications to slack, email, etc
-def sendNotifications(String buildStatus = '', String stageName = '', String gitCommitId = '', String gitRepoUrl = ''){
-	// we will use this to display a link to diffs in the message. This assumes we are using git+https not git+ssh
-	def diffsUrl = "${gitRepoUrl}/commit/"
+// def sendNotifications(String buildStatus = '', String stageName = '', String gitCommitId = '', String gitRepoUrl = ''){
+// 	// we will use this to display a link to diffs in the message. This assumes we are using git+https not git+ssh
+// 	def diffsUrl = "${gitRepoUrl}/commit/"
 
-	// buildStatus of NULL means success
-	if (!buildStatus) {
-		buildStatus = 'SUCCESS'
-	}
+// 	// buildStatus of NULL means success
+// 	if (!buildStatus) {
+// 		buildStatus = 'SUCCESS'
+// 	}
 
-	// build colors
-	def colorMap = [:]
-	colorMap['STARTED']  = '#0000FF'
-	colorMap['SUCCESS']  = '#00FF00'
-	colorMap['ABORTED']  = '#6A0DAD'
-	colorMap['UNSTABLE'] = '#FFFF00'
-	colorMap['FAILED']   = '#FF0000'
-	def buildColor = colorMap[buildStatus]
-	buildColor = buildColor ?: '#FF0000' // default to red
+// 	// build colors
+// 	def colorMap = [:]
+// 	colorMap['STARTED']  = '#0000FF'
+// 	colorMap['SUCCESS']  = '#00FF00'
+// 	colorMap['ABORTED']  = '#6A0DAD'
+// 	colorMap['UNSTABLE'] = '#FFFF00'
+// 	colorMap['FAILED']   = '#FF0000'
+// 	def buildColor = colorMap[buildStatus]
+// 	buildColor = buildColor ?: '#FF0000' // default to red
 
-	// prettyfi messages
-	def msg = ''
-	switch (buildStatus){
-		case 'UNSTABLE':
-		case 'SUCCESS':
-			msg = 'COMPLETED SUCCESSFULLY'
-			break
-		case 'FAILED':
-		case 'FAILURE':
-			msg = "FAILED ON ${stageName.toUpperCase()} STAGE"
-			break
-		case 'STARTED':
-			msg = 'HAS STARTED'
-			break
-		case 'ABORTED':
-			msg = 'WAS ABORTED'
-			break
-		default:
-			msg = "${buildStatus.toUpperCase()}"
-			break
-	}
+// 	// prettyfi messages
+// 	def msg = ''
+// 	switch (buildStatus){
+// 		case 'UNSTABLE':
+// 		case 'SUCCESS':
+// 			msg = 'COMPLETED SUCCESSFULLY'
+// 			break
+// 		case 'FAILED':
+// 		case 'FAILURE':
+// 			msg = "FAILED ON ${stageName.toUpperCase()} STAGE"
+// 			break
+// 		case 'STARTED':
+// 			msg = 'HAS STARTED'
+// 			break
+// 		case 'ABORTED':
+// 			msg = 'WAS ABORTED'
+// 			break
+// 		default:
+// 			msg = "${buildStatus.toUpperCase()}"
+// 			break
+// 	}
 
-	// who launched the build
-	def specificCause = currentBuild.getBuildCauses('hudson.model.Cause$UserIdCause')
-	def startedBy = "${specificCause.shortDescription}".replaceAll("[\\[\\](){}]","")
+// 	// who launched the build
+// 	def specificCause = currentBuild.getBuildCauses('hudson.model.Cause$UserIdCause')
+// 	def startedBy = "${specificCause.shortDescription}".replaceAll("[\\[\\](){}]","")
 
-	// build slack message
-	def slackMsg = ''
-	if (buildStatus == 'UNSTABLE'){
-		slackMsg = "UNSTABLE BFD BUILD <${env.BUILD_URL}|#${env.BUILD_NUMBER}> ${msg} \n"
-	} else {
-		slackMsg = "BFD BUILD <${env.BUILD_URL}|#${env.BUILD_NUMBER}> ${msg} \n"
-	}
-	slackMsg+="\tJob '${env.JOB_NAME}' (${startedBy.toLowerCase()}) \n"
-	slackMsg+="\tBranch: ${env.BRANCH_NAME == 'main' ? 'master' : env.BRANCH_NAME} \n"
-	if (gitCommitId){
-		// we will only have a gitCommitId if we've checked out the repo
-		slackMsg+="\tView changes <${diffsUrl + gitCommitId}|here> \n"
-	}
+// 	// build slack message
+// 	def slackMsg = ''
+// 	if (buildStatus == 'UNSTABLE'){
+// 		slackMsg = "UNSTABLE BFD BUILD <${env.BUILD_URL}|#${env.BUILD_NUMBER}> ${msg} \n"
+// 	} else {
+// 		slackMsg = "BFD BUILD <${env.BUILD_URL}|#${env.BUILD_NUMBER}> ${msg} \n"
+// 	}
+// 	slackMsg+="\tJob '${env.JOB_NAME}' (${startedBy.toLowerCase()}) \n"
+// 	slackMsg+="\tBranch: ${env.BRANCH_NAME == 'main' ? 'master' : env.BRANCH_NAME} \n"
+// 	if (gitCommitId){
+// 		// we will only have a gitCommitId if we've checked out the repo
+// 		slackMsg+="\tView changes <${diffsUrl + gitCommitId}|here> \n"
+// 	}
 
-	// send Slack messages
-	slackSend(color: buildColor, message: slackMsg)
+// 	// send Slack messages
+// 	slackSend(color: buildColor, message: slackMsg)
 
-	// future notifications can go here. (email, other channels, etc)
-}
+// 	// future notifications can go here. (email, other channels, etc)
+// }
 
 // begin pipeline
 try {
@@ -134,34 +134,36 @@ try {
 					checkout scm
 
 					// Load the child Jenkinsfiles.
-					scriptForApps = load('apps/build.groovy')
-					scriptForDeploys = load('ops/deploy-ccs.groovy')
+					// scriptForApps = load('apps/build.groovy')
+					// scriptForDeploys = load('ops/deploy-ccs.groovy')
 
 					// Set global AWS environment variables from role assumption
-					withCredentials([string(credentialsId: 'bfd-aws-assume-role', variable: 'awsAssumeRole')]) {
-						awsCredentials = sh(returnStdout: true, script: "aws sts assume-role --role-arn ${awsAssumeRole} --role-session-name session --output text --query Credentials").trim().split(/\s+/)
-						env.AWS_DEFAULT_REGION = 'us-east-1'
-						env.AWS_ACCESS_KEY_ID = awsCredentials[0]
-						env.AWS_SECRET_ACCESS_KEY = awsCredentials[2]
-						env.AWS_SESSION_TOKEN = awsCredentials[3]
-					}
+					// withCredentials([string(credentialsId: 'bfd-aws-assume-role', variable: 'awsAssumeRole')]) {
+					// 	awsCredentials = sh(returnStdout: true, script: "aws sts assume-role --role-arn ${awsAssumeRole} --role-session-name session --output text --query Credentials").trim().split(/\s+/)
+					// 	env.AWS_DEFAULT_REGION = 'us-east-1'
+					// 	env.AWS_ACCESS_KEY_ID = awsCredentials[0]
+					// 	env.AWS_SECRET_ACCESS_KEY = awsCredentials[2]
+					// 	env.AWS_SESSION_TOKEN = awsCredentials[3]
+					// }
 
 					// Find the most current AMI IDs (if any).
-					amiIds = null
-					amiIds = scriptForDeploys.findAmis()
+					// amiIds = null
+					// amiIds = scriptForDeploys.findAmis()
 
 					// These variables track our decision on whether or not to deploy to prod-like envs.
-					canDeployToProdEnvs = env.BRANCH_NAME == "master" || params.deploy_prod_from_non_master
-					willDeployToProdEnvs = false
+					// canDeployToProdEnvs = env.BRANCH_NAME == "master" || params.deploy_prod_from_non_master
+					// willDeployToProdEnvs = false
 
 					// Get the current commit id
 					gitCommitId = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
 
 					// Get the remote repo url. This assumes we are using git+https not git+ssh.
 					gitRepoUrl = sh(returnStdout: true, script: 'git config --get remote.origin.url').trim().replaceAll(/\.git$/,"")
+					echo 'Not doing anything interesting. Good bye.'
+
 
 					// Send notifications that the build has started
-					sendNotifications('STARTED', currentStage, gitCommitId, gitRepoUrl)
+					// sendNotifications('STARTED', currentStage, gitCommitId, gitRepoUrl)
 				}
 			}
 
@@ -169,140 +171,140 @@ try {
 			value if the build is a PR as the BRANCH_NAME var is populated with the build 
 			name during PR builds. 
 			*/
-			stage('Set Branch Name') {
-				currentStage = "${env.STAGE_NAME}"
-				script {
-					if (env.BRANCH_NAME.startsWith('PR')) {
-						gitBranchName = env.CHANGE_BRANCH
-					} else {
-						gitBranchName = env.BRANCH_NAME
-					}
-				}
-			}
+		// 	stage('Set Branch Name') {
+		// 		currentStage = "${env.STAGE_NAME}"
+		// 		script {
+		// 			if (env.BRANCH_NAME.startsWith('PR')) {
+		// 				gitBranchName = env.CHANGE_BRANCH
+		// 			} else {
+		// 				gitBranchName = env.BRANCH_NAME
+		// 			}
+		// 		}
+		// 	}
 
-			stage('Build Platinum AMI') {
-				currentStage = "${env.STAGE_NAME}"
-				if (params.build_platinum || amiIds.platinumAmiId == null) {
-					milestone(label: 'stage_build_platinum_ami_start')
+		// 	stage('Build Platinum AMI') {
+		// 		currentStage = "${env.STAGE_NAME}"
+		// 		if (params.build_platinum || amiIds.platinumAmiId == null) {
+		// 			milestone(label: 'stage_build_platinum_ami_start')
 
-					container('bfd-cbc-build') {
-						amiIds = scriptForDeploys.buildPlatinumAmi(amiIds)
-					}
-				} else {
-					org.jenkinsci.plugins.pipeline.modeldefinition.Utils.markStageSkippedForConditional('Build Platinum AMI')
-				}
-			}
+		// 			container('bfd-cbc-build') {
+		// 				amiIds = scriptForDeploys.buildPlatinumAmi(amiIds)
+		// 			}
+		// 		} else {
+		// 			org.jenkinsci.plugins.pipeline.modeldefinition.Utils.markStageSkippedForConditional('Build Platinum AMI')
+		// 		}
+		// 	}
 
-			stage('Build Apps') {
-				currentStage = "${env.STAGE_NAME}"
-				milestone(label: 'stage_build_apps_start')
+		// 	stage('Build Apps') {
+		// 		currentStage = "${env.STAGE_NAME}"
+		// 		milestone(label: 'stage_build_apps_start')
 
-				container('bfd-cbc-build') {
-					build_env = deployEnvironment
-					appBuildResults = scriptForApps.build(build_env)
-				}
-			}
+		// 		container('bfd-cbc-build') {
+		// 			build_env = deployEnvironment
+		// 			appBuildResults = scriptForApps.build(build_env)
+		// 		}
+		// 	}
 
 
-			stage('Build App AMIs') {
-				currentStage = "${env.STAGE_NAME}"
-				milestone(label: 'stage_build_app_amis_test_start')
+		// 	stage('Build App AMIs') {
+		// 		currentStage = "${env.STAGE_NAME}"
+		// 		milestone(label: 'stage_build_app_amis_test_start')
 
-				container('bfd-cbc-build') {
-					amiIds = scriptForDeploys.buildAppAmis(gitBranchName, gitCommitId, amiIds, appBuildResults)
-				}
-			}
+		// 		container('bfd-cbc-build') {
+		// 			amiIds = scriptForDeploys.buildAppAmis(gitBranchName, gitCommitId, amiIds, appBuildResults)
+		// 		}
+		// 	}
 
-			stage('Deploy to TEST') {
-				currentStage = "${env.STAGE_NAME}"
-				lock(resource: 'env_test', inversePrecendence: true) {
-					milestone(label: 'stage_deploy_test_start')
+		// 	stage('Deploy to TEST') {
+		// 		currentStage = "${env.STAGE_NAME}"
+		// 		lock(resource: 'env_test', inversePrecendence: true) {
+		// 			milestone(label: 'stage_deploy_test_start')
 
-					container('bfd-cbc-build') {
-						// Assume new role session for each deploy to prevent timeout
-						withCredentials([string(credentialsId: 'bfd-aws-assume-role', variable: 'awsAssumeRole')]) {
-							awsCredentials = sh(returnStdout: true, script: "aws sts assume-role --role-arn ${awsAssumeRole} --role-session-name session --output text --query Credentials").trim().split(/\s+/)
-							env.AWS_DEFAULT_REGION = 'us-east-1'
-							env.AWS_ACCESS_KEY_ID = awsCredentials[0]
-							env.AWS_SECRET_ACCESS_KEY = awsCredentials[2]
-							env.AWS_SESSION_TOKEN = awsCredentials[3]
-						}
-						scriptForDeploys.deploy('test', gitBranchName, gitCommitId, amiIds, appBuildResults)
-					}
-				}
-			}
+		// 			container('bfd-cbc-build') {
+		// 				// Assume new role session for each deploy to prevent timeout
+		// 				withCredentials([string(credentialsId: 'bfd-aws-assume-role', variable: 'awsAssumeRole')]) {
+		// 					awsCredentials = sh(returnStdout: true, script: "aws sts assume-role --role-arn ${awsAssumeRole} --role-session-name session --output text --query Credentials").trim().split(/\s+/)
+		// 					env.AWS_DEFAULT_REGION = 'us-east-1'
+		// 					env.AWS_ACCESS_KEY_ID = awsCredentials[0]
+		// 					env.AWS_SECRET_ACCESS_KEY = awsCredentials[2]
+		// 					env.AWS_SESSION_TOKEN = awsCredentials[3]
+		// 				}
+		// 				scriptForDeploys.deploy('test', gitBranchName, gitCommitId, amiIds, appBuildResults)
+		// 			}
+		// 		}
+		// 	}
 
-			stage('Manual Approval') {
-				currentStage = "${env.STAGE_NAME}"
-				if (canDeployToProdEnvs) {
-					/*
-					* Unless it was explicitly requested at the start of the build, prompt for confirmation before
-					* deploying to production environments.
-					*/
-					if (!params.deploy_prod_skip_confirm) {
-						/*
-						* The Jenkins UI will prompt with "Proceed" and "Abort" options. If "Proceed" is
-						* chosen, this build will continue merrily on as normal. If "Abort" is chosen,
-						* an exception will be thrown.
-						*/
-						try {
-							input 'Deploy to production environments (prod-sbx, prod)?'
-							willDeployToProdEnvs = true
-						} catch(err) {
-							willDeployToProdEnvs = false
-							echo 'User opted not to deploy to prod-like envs.'
-						}
-					}
-				} else {
-					org.jenkinsci.plugins.pipeline.modeldefinition.Utils.markStageSkippedForConditional('Manual Approval')
-				}
-			}
+		// 	stage('Manual Approval') {
+		// 		currentStage = "${env.STAGE_NAME}"
+		// 		if (canDeployToProdEnvs) {
+		// 			/*
+		// 			* Unless it was explicitly requested at the start of the build, prompt for confirmation before
+		// 			* deploying to production environments.
+		// 			*/
+		// 			if (!params.deploy_prod_skip_confirm) {
+		// 				/*
+		// 				* The Jenkins UI will prompt with "Proceed" and "Abort" options. If "Proceed" is
+		// 				* chosen, this build will continue merrily on as normal. If "Abort" is chosen,
+		// 				* an exception will be thrown.
+		// 				*/
+		// 				try {
+		// 					input 'Deploy to production environments (prod-sbx, prod)?'
+		// 					willDeployToProdEnvs = true
+		// 				} catch(err) {
+		// 					willDeployToProdEnvs = false
+		// 					echo 'User opted not to deploy to prod-like envs.'
+		// 				}
+		// 			}
+		// 		} else {
+		// 			org.jenkinsci.plugins.pipeline.modeldefinition.Utils.markStageSkippedForConditional('Manual Approval')
+		// 		}
+		// 	}
 
-			stage('Deploy to PROD-SBX') {
-				currentStage = "${env.STAGE_NAME}"
-				if (willDeployToProdEnvs) {
-					lock(resource: 'env_prod_sbx', inversePrecendence: true) {
-						milestone(label: 'stage_deploy_prod_sbx_start')
+		// 	stage('Deploy to PROD-SBX') {
+		// 		currentStage = "${env.STAGE_NAME}"
+		// 		if (willDeployToProdEnvs) {
+		// 			lock(resource: 'env_prod_sbx', inversePrecendence: true) {
+		// 				milestone(label: 'stage_deploy_prod_sbx_start')
 
-						container('bfd-cbc-build') {
-							// Assume new role session for each deploy to prevent timeout
-							withCredentials([string(credentialsId: 'bfd-aws-assume-role', variable: 'awsAssumeRole')]) {
-								awsCredentials = sh(returnStdout: true, script: "aws sts assume-role --role-arn ${awsAssumeRole} --role-session-name session --output text --query Credentials").trim().split(/\s+/)
-								env.AWS_DEFAULT_REGION = 'us-east-1'
-								env.AWS_ACCESS_KEY_ID = awsCredentials[0]
-								env.AWS_SECRET_ACCESS_KEY = awsCredentials[2]
-								env.AWS_SESSION_TOKEN = awsCredentials[3]
-							}
-							scriptForDeploys.deploy('prod-sbx', gitBranchName, gitCommitId, amiIds, appBuildResults)
-						}
-					}
-				} else {
-					org.jenkinsci.plugins.pipeline.modeldefinition.Utils.markStageSkippedForConditional('Deploy to prod-sbx')
-				}
-			}
+		// 				container('bfd-cbc-build') {
+		// 					// Assume new role session for each deploy to prevent timeout
+		// 					withCredentials([string(credentialsId: 'bfd-aws-assume-role', variable: 'awsAssumeRole')]) {
+		// 						awsCredentials = sh(returnStdout: true, script: "aws sts assume-role --role-arn ${awsAssumeRole} --role-session-name session --output text --query Credentials").trim().split(/\s+/)
+		// 						env.AWS_DEFAULT_REGION = 'us-east-1'
+		// 						env.AWS_ACCESS_KEY_ID = awsCredentials[0]
+		// 						env.AWS_SECRET_ACCESS_KEY = awsCredentials[2]
+		// 						env.AWS_SESSION_TOKEN = awsCredentials[3]
+		// 					}
+		// 					scriptForDeploys.deploy('prod-sbx', gitBranchName, gitCommitId, amiIds, appBuildResults)
+		// 				}
+		// 			}
+		// 		} else {
+		// 			org.jenkinsci.plugins.pipeline.modeldefinition.Utils.markStageSkippedForConditional('Deploy to prod-sbx')
+		// 		}
+		// 	}
 
-			stage('Deploy to PROD') {
-				currentStage = "${env.STAGE_NAME}"
-				if (willDeployToProdEnvs) {
-					lock(resource: 'env_prod', inversePrecendence: true) {
-						milestone(label: 'stage_deploy_prod_start')
+		// 	stage('Deploy to PROD') {
+		// 		currentStage = "${env.STAGE_NAME}"
+		// 		if (willDeployToProdEnvs) {
+		// 			lock(resource: 'env_prod', inversePrecendence: true) {
+		// 				milestone(label: 'stage_deploy_prod_start')
 
-						container('bfd-cbc-build') {
-							// Assume new role session for each deploy to prevent timeout
-							withCredentials([string(credentialsId: 'bfd-aws-assume-role', variable: 'awsAssumeRole')]) {
-								awsCredentials = sh(returnStdout: true, script: "aws sts assume-role --role-arn ${awsAssumeRole} --role-session-name session --output text --query Credentials").trim().split(/\s+/)
-								env.AWS_DEFAULT_REGION = 'us-east-1'
-								env.AWS_ACCESS_KEY_ID = awsCredentials[0]
-								env.AWS_SECRET_ACCESS_KEY = awsCredentials[2]
-								env.AWS_SESSION_TOKEN = awsCredentials[3]
-							}
-							scriptForDeploys.deploy('prod', gitBranchName, gitCommitId, amiIds, appBuildResults)
-						}
-					}
-				} else {
-					org.jenkinsci.plugins.pipeline.modeldefinition.Utils.markStageSkippedForConditional('Deploy to prod')
-				}
-			}
+		// 				container('bfd-cbc-build') {
+		// 					// Assume new role session for each deploy to prevent timeout
+		// 					withCredentials([string(credentialsId: 'bfd-aws-assume-role', variable: 'awsAssumeRole')]) {
+		// 						awsCredentials = sh(returnStdout: true, script: "aws sts assume-role --role-arn ${awsAssumeRole} --role-session-name session --output text --query Credentials").trim().split(/\s+/)
+		// 						env.AWS_DEFAULT_REGION = 'us-east-1'
+		// 						env.AWS_ACCESS_KEY_ID = awsCredentials[0]
+		// 						env.AWS_SECRET_ACCESS_KEY = awsCredentials[2]
+		// 						env.AWS_SESSION_TOKEN = awsCredentials[3]
+		// 					}
+		// 					scriptForDeploys.deploy('prod', gitBranchName, gitCommitId, amiIds, appBuildResults)
+		// 				}
+		// 			}
+		// 		} else {
+		// 			org.jenkinsci.plugins.pipeline.modeldefinition.Utils.markStageSkippedForConditional('Deploy to prod')
+		// 		}
+		// 	}
 		}
 	}
 } catch (org.jenkinsci.plugins.workflow.steps.FlowInterruptedException e){
