@@ -5,7 +5,7 @@
 !.gitignore
 !.gitattributes
 !.github
-!.secrets
+!.ansible-secrets
 
 # OSX system files
 .DS_Store
