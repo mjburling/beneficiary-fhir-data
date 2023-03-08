@@ -1,7 +1,8 @@
-import os
 import json
 import csv
 import argparse
+
+from pathlib import Path
 
 
 # func to build csv header row
@@ -44,12 +45,13 @@ parser.add_argument('-t','--target', dest='target', type=str,  required=True, he
 parser.add_argument('-m', '--template', dest='template', type=str,  required=True, help='template file name to use e.g. ./template/v2-to-csv.json')
 args = parser.parse_args()
 
+template = Path(args.template)
+source_dir = Path(args.source)
+target_path = Path(args.target)
+
 # open files
-with open(args.template, 'r') as template_file:
+with open(template, 'r') as template_file:
     template_json = json.load(template_file)
-template_file.close()
-out_file = open(args.target, 'w', newline='')
-csv_writer = csv.writer(out_file)
 
 print("Generating CSV from DD content")
 print("")
@@ -58,25 +60,22 @@ print("Source:    " + args.source)
 print("Target:    " + args.target)
 
 # main loop
-csv_writer.writerow(build_csv_header())
-ct = 0
-for file_name in os.listdir(args.source):    # loop thru source data folder, read each json file, translate to csv and write row to file
-    if file_name.endswith(".json"):
-        source_path = args.source + "\\" + file_name
-        with open(source_path) as element_file:
-            element_json = json.load(element_file)
-            row = build_csv_row(element_json)
-            csv_writer.writerow(row)
-            element_file.close()
-            ct += 1
+#
+with open(args.target, 'w', newline='') as out_file:
+    csv_writer = csv.writer(out_file)
+    csv_writer.writerow(build_csv_header())
+    ct = 0
+    for file_name in source_dir.iterdir():    # loop thru source data folder, read each json file, translate to csv and write row to file
+        try:
+            with open(file_name) as element_file:
+                element_json = json.load(element_file)
+                row = build_csv_row(element_json)
+                csv_writer.writerow(row)
+                ct += 1
+        except Exception as exc:
+            # TODO: Make this more robust...
+            print(str(exc))
+            continue
 
-# close out
-out_file.close()
 print("")
 print("CSV file generated. " + str(ct) + " source files processed.")
-
-# TODO:
-# Lots of bulletproofing needed, esp around os/dir/file operations, path handling, etc.
-# Improve error handling
-# consider using library like pandas
-# 
